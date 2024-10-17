@@ -1,0 +1,42 @@
+# Aspose.3D Wavefront OBJ Exporter
+# Copyright 2004-2024 Aspose Pty Ltd.
+# File created: 10/06/2024 10:30:26
+
+newmtl skullhull
+	Ka 0.588235 0.588235 0.588235
+	Kd 0.588235 0.588235 0.588235
+	Ke 0 0 0
+	illum 2
+	Ks 0.9 0.9 0.9
+	Ns 1.9999999
+	d 1
+	Tr 0
+	map_Kd Z:\Lordi\servoskull - Copy\Servoskull_mechanics_diff.jpg
+newmtl 19 - Default
+	Ka 0 0 0
+	Kd 0 0 0
+	Ke 0 0 0
+	illum 2
+	Ks 0.9 0.9 0.9
+	Ns 1024
+	d 0.58
+	Tr 0.42000002
+newmtl glow
+	Ka 0.5882353 0.07058824 0.07058824
+	Kd 0.5882353 0.07058824 0.07058824
+	Ke 0 0 0
+	illum 2
+	Ks 0.9 0.9 0.9
+	Ns 1.9999999
+	d 1
+	Tr 0
+newmtl skullface
+	Ka 0.588235 0.588235 0.588235
+	Kd 0.588235 0.588235 0.588235
+	Ke 0 0 0
+	illum 2
+	Ks 0.9 0.9 0.9
+	Ns 1.9999999
+	d 1
+	Tr 0
+	map_Kd Z:\Lordi\servoskull - Copy\Servoskull_face_diff.jpg
