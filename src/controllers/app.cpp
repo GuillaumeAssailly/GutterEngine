@@ -296,7 +296,8 @@ void App::set_up_glfw() {
     }
     glfwMakeContextCurrent(window);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cout << "Couldn't load GLAD" << std::endl;
@@ -324,7 +325,7 @@ void App::set_up_opengl() {
     glCullFace(GL_BACK);
 
     //WIREFRAME MOD : 
-   // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     shader = make_shader(
         "shaders/shader.vert",
