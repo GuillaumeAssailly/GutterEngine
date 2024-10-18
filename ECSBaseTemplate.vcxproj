@@ -104,12 +104,12 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\Natha\Documents\Visual Studio 2022\lib\glfw-3.4.bin.WIN64\include;C:\Users\Natha\Documents\Visual Studio 2022\lib\stb\include;C:\Users\Natha\Documents\Visual Studio 2022\lib\glm;C:\Users\Natha\Documents\Visual Studio 2022\lib\glad\include;C:\Users\Natha\Documents\Visual Studio 2022\lib\assimp-link\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Librairies\glfw-3.4.bin.WIN64\include;..\..\Librairies\stb\include;..\..\Librairies\glm;..\..\Librairies\glad\include;..\..\Librairies\assimp-link\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\Natha\Documents\Visual Studio 2022\lib\glfw-3.4.bin.WIN64\lib-vc2022;C:\Users\Natha\Documents\Visual Studio 2022\lib\assimp-link\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\Librairies\glfw-3.4.bin.WIN64\lib-vc2022;..\..\Librairies\assimp-link\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>glfw3.lib;opengl32.lib;user32.lib;gdi32.lib;shell32.lib;assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -121,14 +121,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\Natha\Documents\Visual Studio 2022\lib\glfw-3.4.bin.WIN64\include;C:\Users\Natha\Documents\Visual Studio 2022\lib\stb\include;C:\Users\Natha\Documents\Visual Studio 2022\lib\glm;C:\Users\Natha\Documents\Visual Studio 2022\lib\glad\include;C:\Users\Natha\Documents\Visual Studio 2022\lib\assimp-link\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Librairies\glfw-3.4.bin.WIN64\include;..\..\Librairies\stb\include;..\..\Librairies\glm;..\..\Librairies\glad\include;..\..\Librairies\assimp-link\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\Natha\Documents\Visual Studio 2022\lib\glfw-3.4.bin.WIN64\lib-vc2022;C:\Users\Natha\Documents\Visual Studio 2022\lib\assimp-link\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\Librairies\glfw-3.4.bin.WIN64\lib-vc2022;..\..\Librairies\assimp-link\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>glfw3.lib;opengl32.lib;user32.lib;gdi32.lib;shell32.lib;assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
