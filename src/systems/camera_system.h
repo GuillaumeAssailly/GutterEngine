@@ -14,6 +14,11 @@ public:
 
 private:
     unsigned int viewLocation;
-    glm::vec3 global_up = { 0.0f, 1.0f, 0.0f };
+
+    bool moving = false;
+    double mouse_x_ref = .0f;
+    double mouse_y_ref = .0f;
+
+    glm::vec3 global_up = { 0.0f, 0.0f, 1.0f };
     GLFWwindow* window;
 };
