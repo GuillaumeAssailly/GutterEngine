@@ -133,8 +133,8 @@ std::tuple<unsigned int, unsigned int> App::make_model(const char * filePath) {
 unsigned int App::make_cube_mesh(glm::vec3 size) {
 
     float l = size.x;
-    float w = size.y;
-    float h = size.z;
+    float h = size.y;
+    float w = size.z;
 
     std::vector<float> vertices = {
          l,  w, -h, 1.0f, 1.0f,

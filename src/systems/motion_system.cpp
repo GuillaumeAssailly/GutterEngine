@@ -5,11 +5,16 @@ void MotionSystem::update(
     std::unordered_map<unsigned int, PhysicsComponent>& physicsComponents,
     float dt) {
 
+    //const float gravity = -9.81f;
     for (std::pair<unsigned int, PhysicsComponent> entity : physicsComponents) {
-        transformComponents[entity.first].position += entity.second.velocity * dt;
-        transformComponents[entity.first].eulers += entity.second.eulerVelocity * dt;
-        if (transformComponents[entity.first].eulers.z > 360) {
-            transformComponents[entity.first].eulers.z -= 360;
-        }
+        PhysicsComponent& physics = entity.second;
+        TransformComponent& transform = transformComponents[entity.first];
+
+        //physics.velocity.y += gravity * dt;
+
+        transform.position += physics.velocity * dt;
+
+        transform.eulers += physics.eulerVelocity * dt;
+
     }
 }
