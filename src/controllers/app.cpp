@@ -130,75 +130,104 @@ std::tuple<unsigned int, unsigned int> App::make_model(const char * filePath) {
     return std::make_tuple(VAO, indices.size());
 }
 
-unsigned int App::make_cube_mesh(glm::vec3 size) {
+std::tuple<unsigned int, unsigned int> App::make_cube_mesh(glm::vec3 size) {
 
-    float l = size.x;
-    float h = size.y;
-    float w = size.z;
-
+    // Cube vertex data: each vertex has a position, normal, and texture coordinate
+    // The cube will be centered at (0, 0, 0) and scaled by the given size
     std::vector<float> vertices = {
-         l,  w, -h, 1.0f, 1.0f,
-         l, -w, -h, 1.0f, 0.0f,
-        -l, -w, -h, 0.0f, 0.0f,
-        -l, -w, -h, 0.0f, 0.0f,
-        -l,  w, -h, 0.0f, 1.0f,
-         l,  w, -h, 1.0f, 1.0f,
+        // Positions            // Normals           // TexCoords
+        -0.5f * size.x, -0.5f * size.y, -0.5f * size.z,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,  // Back face
+         0.5f * size.x, -0.5f * size.y, -0.5f * size.z,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
+         0.5f * size.x,  0.5f * size.y, -0.5f * size.z,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+        -0.5f * size.x,  0.5f * size.y, -0.5f * size.z,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
 
-        -l, -w,  h, 0.0f, 0.0f,
-         l, -w,  h, 1.0f, 0.0f,
-         l,  w,  h, 1.0f, 1.0f,
-         l,  w,  h, 1.0f, 1.0f,
-        -l,  w,  h, 0.0f, 1.0f,
-        -l, -w,  h, 0.0f, 0.0f,
+        -0.5f * size.x, -0.5f * size.y,  0.5f * size.z,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,  // Front face
+         0.5f * size.x, -0.5f * size.y,  0.5f * size.z,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
+         0.5f * size.x,  0.5f * size.y,  0.5f * size.z,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+        -0.5f * size.x,  0.5f * size.y,  0.5f * size.z,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
 
-        -l,  w,  h, 1.0f, 1.0f,
-        -l,  w, -h, 1.0f, 0.0f,
-        -l, -w, -h, 0.0f, 0.0f,
-        -l, -w, -h, 0.0f, 0.0f,
-        -l, -w,  h, 0.0f, 1.0f,
-        -l,  w,  h, 1.0f, 1.0f,
+        -0.5f * size.x,  0.5f * size.y,  0.5f * size.z, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  // Left face
+        -0.5f * size.x,  0.5f * size.y, -0.5f * size.z, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+        -0.5f * size.x, -0.5f * size.y, -0.5f * size.z, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+        -0.5f * size.x, -0.5f * size.y,  0.5f * size.z, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
 
-         l, -w, -h, 0.0f, 0.0f,
-         l,  w, -h, 1.0f, 0.0f,
-         l,  w,  h, 1.0f, 1.0f,
-         l,  w,  h, 1.0f, 1.0f,
-         l, -w,  h, 0.0f, 1.0f,
-         l, -w, -h, 0.0f, 0.0f,
+         0.5f * size.x,  0.5f * size.y,  0.5f * size.z,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  // Right face
+         0.5f * size.x,  0.5f * size.y, -0.5f * size.z,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+         0.5f * size.x, -0.5f * size.y, -0.5f * size.z,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+         0.5f * size.x, -0.5f * size.y,  0.5f * size.z,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
 
-        -l, -w, -h, 0.0f, 0.0f,
-         l, -w, -h, 1.0f, 0.0f,
-         l, -w,  h, 1.0f, 1.0f,
-         l, -w,  h, 1.0f, 1.0f,
-        -l, -w,  h, 0.0f, 1.0f,
-        -l, -w, -h, 0.0f, 0.0f,
+        -0.5f * size.x, -0.5f * size.y, -0.5f * size.z,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,  // Bottom face
+         0.5f * size.x, -0.5f * size.y, -0.5f * size.z,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+         0.5f * size.x, -0.5f * size.y,  0.5f * size.z,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
+        -0.5f * size.x, -0.5f * size.y,  0.5f * size.z,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
 
-         l,  w,  h, 1.0f, 1.0f,
-         l,  w, -h, 1.0f, 0.0f,
-        -l,  w, -h, 0.0f, 0.0f,
-        -l,  w, -h, 0.0f, 0.0f,
-        -l,  w,  h, 0.0f, 1.0f,
-         l,  w,  h, 1.0f, 1.0f
+        -0.5f * size.x,  0.5f * size.y, -0.5f * size.z,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,  // Top face
+         0.5f * size.x,  0.5f * size.y, -0.5f * size.z,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+         0.5f * size.x,  0.5f * size.y,  0.5f * size.z,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
+        -0.5f * size.x,  0.5f * size.y,  0.5f * size.z,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
     };
 
+    // Cube indices (corrected to counterclockwise winding order for back-face culling)
+    std::vector<unsigned int> indices = {
+        // Back face (now clockwise)
+        3, 1, 0,
+        3, 2, 1,
+
+        // Front face
+        5, 7, 4,
+        6, 7, 5,
+
+        // Left face
+        9, 11, 8,
+        10, 11, 9,
+
+        // Right face
+        15, 13, 12,
+        15, 14, 13,
+
+        // Bottom face
+        16, 17, 19,
+        17, 18, 19,
+
+        // Top face
+        20,23,21,
+        21, 23, 22
+    };
+
+    // Create VAO
     unsigned int VAO;
     glGenVertexArrays(1, &VAO);
     VAOs.push_back(VAO);
     glBindVertexArray(VAO);
 
+    // Create VBO for vertices
     unsigned int VBO;
     glGenBuffers(1, &VBO);
     VBOs.push_back(VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float),
-        vertices.data(), GL_STATIC_DRAW);
-    //position
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 20, (void*)0);
-    glEnableVertexAttribArray(0);
-    //texture coordinates
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 20, (void*)12);
-    glEnableVertexAttribArray(1);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
 
-    return VAO;
+    // Create EBO for indices
+    unsigned int EBO;
+    glGenBuffers(1, &EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
+
+    // Set vertex attribute pointers
+    // Position attribute
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+
+    // Normal attribute
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+
+    // Texture coordinate attribute
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+
+    // Return a tuple of the VAO and the number of indices
+    return std::make_tuple(VAO, indices.size());
 }
 
 unsigned int App::make_texture(const char* filename, const bool flipTex) {
@@ -269,6 +298,8 @@ void App::run() {
         if (should_close) {
             break;
         }
+        lightSystem->update(lightComponents, transformComponents, cameraID);
+
 
         renderSystem->update(transformComponents, renderComponents);
     }
@@ -321,8 +352,8 @@ void App::set_up_opengl() {
     glEnable(GL_MULTISAMPLE);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
+   /* glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);*/
 
     //WIREFRAME MOD : 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -343,6 +374,7 @@ void App::set_up_opengl() {
 void App::make_systems() {
     motionSystem = new MotionSystem();
     cameraSystem = new CameraSystem(shader, window);
+	lightSystem = new LightSystem(shader);
     renderSystem = new RenderSystem(shader, window);
 }
 

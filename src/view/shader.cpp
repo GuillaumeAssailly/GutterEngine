@@ -19,9 +19,6 @@ unsigned int make_shader(
 	}
 	glLinkProgram(shader);
 
-	set_shader_uniform(shader, "lightPos", glm::vec3(1.0f, 1.0f, 1.0f));
-	set_shader_uniform(shader, "viewPos", glm::vec3(0.0f, 0.0f, 3.0f));
-	set_shader_uniform(shader, "lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
 	set_shader_uniform(shader, "ambientStrength", glm::vec3(0.07f, 0.07f, 0.07f));
 	set_shader_uniform(shader, "diffuseStrength", glm::vec3(0.9f, 0.9f, 0.9f));
 	set_shader_uniform(shader, "specularStrength", glm::vec3(2.0f, 2.0f, 2.0f));
