@@ -16,6 +16,9 @@
     <ClCompile Include="src\systems\camera_system.cpp">
       <Filter>src\systems</Filter>
     </ClCompile>
+    <ClCompile Include="src\systems\light_system.cpp">
+      <Filter>src\systems</Filter>
+    </ClCompile>
     <ClCompile Include="src\systems\motion_system.cpp">
       <Filter>src\systems</Filter>
     </ClCompile>
@@ -24,9 +27,6 @@
     </ClCompile>
     <ClCompile Include="src\controllers\app.cpp">
       <Filter>src\controllers</Filter>
-    </ClCompile>
-    <ClCompile Include="src\systems\light_system.cpp">
-      <Filter>src\systems</Filter>
     </ClCompile>
     <ClCompile Include="src\controllers\mesh_manager.cpp">
       <Filter>src\controllers</Filter>
@@ -39,19 +39,10 @@
     <ClInclude Include="src\view\shader.h">
       <Filter>src\view</Filter>
     </ClInclude>
-    <ClInclude Include="src\components\camera_component.h">
-      <Filter>src\components</Filter>
-    </ClInclude>
-    <ClInclude Include="src\components\physics_component.h">
-      <Filter>src\components</Filter>
-    </ClInclude>
-    <ClInclude Include="src\components\render_component.h">
-      <Filter>src\components</Filter>
-    </ClInclude>
-    <ClInclude Include="src\components\transform_component.h">
-      <Filter>src\components</Filter>
-    </ClInclude>
     <ClInclude Include="src\systems\camera_system.h">
+      <Filter>src\systems</Filter>
+    </ClInclude>
+    <ClInclude Include="src\systems\light_system.h">
       <Filter>src\systems</Filter>
     </ClInclude>
     <ClInclude Include="src\systems\motion_system.h">
@@ -63,14 +54,23 @@
     <ClInclude Include="src\controllers\app.h">
       <Filter>src\controllers</Filter>
     </ClInclude>
+    <ClInclude Include="src\controllers\mesh_manager.h">
+      <Filter>src\controllers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\components\camera_component.h">
+      <Filter>src\components</Filter>
+    </ClInclude>
     <ClInclude Include="src\components\light_component.h">
       <Filter>src\components</Filter>
     </ClInclude>
-    <ClInclude Include="src\systems\light_system.h">
-      <Filter>src\systems</Filter>
+    <ClInclude Include="src\components\physics_component.h">
+      <Filter>src\components</Filter>
     </ClInclude>
-    <ClInclude Include="src\controllers\mesh_manager.h">
-      <Filter>src\controllers</Filter>
+    <ClInclude Include="src\components\render_component.h">
+      <Filter>src\components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\components\transform_component.h">
+      <Filter>src\components</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -83,25 +83,25 @@
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
-      <UniqueIdentifier>{57280fd4-6da9-491c-8e1c-b6940e265335}</UniqueIdentifier>
+      <UniqueIdentifier>{ca8a4a6c-c336-47f6-9143-bf932b408a25}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\view">
-      <UniqueIdentifier>{52467d7b-b2cd-4c6a-ab71-ad980a63ca8c}</UniqueIdentifier>
+      <UniqueIdentifier>{23ac4306-1d6f-4677-9a6a-4847d5f25259}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\systems">
-      <UniqueIdentifier>{711c49e9-e168-46f9-b2a0-97eeb28d999e}</UniqueIdentifier>
+      <UniqueIdentifier>{9b987f7c-7661-4337-aaaf-471b735a4e5e}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\controllers">
-      <UniqueIdentifier>{28e82cc8-7f63-431c-afae-e2a41b8844d7}</UniqueIdentifier>
+      <UniqueIdentifier>{b3c96e75-5333-4e84-86e9-e8ff55ba9833}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\components">
-      <UniqueIdentifier>{007f530d-675c-4729-b687-df7ddc93456b}</UniqueIdentifier>
+      <UniqueIdentifier>{8caa0e1a-4a93-400e-84c6-5daba6b4254d}</UniqueIdentifier>
     </Filter>
     <Filter Include="shaders">
-      <UniqueIdentifier>{aeeace7d-0f2a-47c1-a5fd-c5a95f0ac95a}</UniqueIdentifier>
+      <UniqueIdentifier>{11726bd3-1098-4532-bb09-090ca4ab1f7e}</UniqueIdentifier>
     </Filter>
     <Filter Include="tex">
-      <UniqueIdentifier>{1ae007ac-2498-4758-826f-04697eb6360f}</UniqueIdentifier>
+      <UniqueIdentifier>{bf6444f3-f75a-4e48-879a-34f12ae549e4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

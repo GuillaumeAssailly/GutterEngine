@@ -38,6 +38,5 @@ void RenderSystem::update(
 
     }
 
-    // Swap buffers to display the frame
-    glfwSwapBuffers(window);
+   
 }

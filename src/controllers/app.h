@@ -24,7 +24,7 @@ public:
     App();
     ~App();
     void run();
-    unsigned int make_entity();
+    unsigned int make_entity(const std::string&);
     std::tuple<unsigned int, unsigned int> make_cube_mesh(glm::vec3 size);
     std::tuple<unsigned int, unsigned int>  make_model(const char *);
 
@@ -34,6 +34,7 @@ public:
     
 
     //Components
+	std::unordered_map<unsigned int, std::string> entityNames;
     std::unordered_map<unsigned int, TransformComponent> transformComponents;
     std::unordered_map<unsigned int, PhysicsComponent> physicsComponents;
     CameraComponent* cameraComponent;

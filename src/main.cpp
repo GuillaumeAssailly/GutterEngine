@@ -33,7 +33,7 @@ int main() {
 	
 		//boule
 
-		unsigned int lane = app->make_entity();
+		unsigned int lane = app->make_entity("Lane");
 		transform.position = { 0.0f, -0.084f, 15.0f };
 		transform.eulers = { 0.f, 0.f, 0.0f };
 		app->transformComponents[lane] = transform;
@@ -48,7 +48,7 @@ int main() {
 		render.material = app->make_texture("obj/servoskull/textures/lane.jpg", false);
 		app->renderComponents[lane] = render;
 
-		unsigned int boule = app->make_entity();
+		unsigned int boule = app->make_entity("Boule");
 		transform.position = { 0.0f, 0.105f, 3.0f};
 		transform.eulers = {0.0f, 0.0f, 0.0f };
 		app->transformComponents[boule] = transform;
@@ -79,7 +79,7 @@ int main() {
 		};
 
 		for (int i = 0; i < 10; i++) {
-			unsigned int quille = app->make_entity();
+			unsigned int quille = app->make_entity("Quille " + std::to_string(i));
 			transform.position = vectors[i];
 			transform.eulers = { 0, 0, 0 };
 			app->transformComponents[quille] = transform;
@@ -95,7 +95,7 @@ int main() {
 			app->renderComponents[quille] = render;
 		}
 
-		unsigned int cameraEntity = app->make_entity();
+		unsigned int cameraEntity = app->make_entity("Camera");
 		transform.position = first_pin;
 		transform.eulers = { 0.0f, 0.0f, 90.0f };
 		app->transformComponents[cameraEntity] = transform;
@@ -105,7 +105,7 @@ int main() {
 		app->cameraID = cameraEntity;
 
 		//First light : 
-		unsigned int lightEntity1 = app->make_entity();
+		unsigned int lightEntity1 = app->make_entity("First Light");
 		transform.position = first_pin;
 		transform.eulers = { 0.0f, 0.0f, 0.0f };
 		app->transformComponents[lightEntity1] = transform;
@@ -126,7 +126,7 @@ int main() {
 
 
 		//Second light: 
-		unsigned int lightEntity2 = app->make_entity();
+		unsigned int lightEntity2 = app->make_entity("Second Light");
 		transform.position = { 0.0f, 4.0f, 4.0f };
 		transform.eulers = { 0.0f, 0.0f, 0.0f };
 		app->transformComponents[lightEntity2] = transform;
@@ -143,7 +143,7 @@ int main() {
 
 
 		////glorious t34 :
-		//unsigned int glaive = app->make_entity();
+		//unsigned int glaive = app->make_entity("T34");
 		//transform.position = { 0.0f, 0.0f, 0.0f };
 		//transform.eulers = { 270.0f, 0.0f, 0.0f };
 		//app->transformComponents[glaive] = transform;

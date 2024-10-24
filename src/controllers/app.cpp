@@ -18,7 +18,8 @@ App::~App() {
     glfwTerminate();
 }
 
-unsigned int App::make_entity() {
+unsigned int App::make_entity(const std::string& name) {
+	entityNames.insert(std::make_pair(entity_count, name));
     return entity_count++;
 }
 
@@ -265,6 +266,9 @@ unsigned int App::make_texture(const char* filename, const bool flipTex) {
     return texture;
 }
 
+//ImGui variables
+unsigned int selectedEntityID = 0;
+
 void App::run() {
     // Variables to track FPS display
     float fpsTimeCounter = 0.0f;
@@ -273,6 +277,10 @@ void App::run() {
     while (!glfwWindowShouldClose(window)) {
         // Per-frame time logic
         // -------------------
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
@@ -280,6 +288,7 @@ void App::run() {
         // Count the number of frames and accumulate time
         frameCount++;
         fpsTimeCounter += deltaTime;
+
 
         // Calculate and display FPS in window title every second
         if (fpsTimeCounter >= 1.0f) {
@@ -299,10 +308,83 @@ void App::run() {
             break;
         }
         lightSystem->update(lightComponents, transformComponents, cameraID);
-
-
         renderSystem->update(transformComponents, renderComponents);
+
+        // Start ImGui window for debugging
+        ImGui::Begin("Debug");
+
+        // Display FPS
+        ImGui::Text("FPS: %f", 1.0f / deltaTime);
+
+        // --- Entity Tree Window ---
+        ImGui::Begin("Entity Tree");
+
+        // Loop through all entities to create a tree view
+        for (int entityID = 0; entityID < entity_count; entityID++) {
+            std::string entityLabel = entityNames.at(entityID);
+
+            // Display each entity as selectable
+            if (ImGui::Selectable(entityLabel.c_str(), selectedEntityID == entityID)) {
+                selectedEntityID = entityID; // Set the selected entity when clicked
+            }
+        }
+
+        ImGui::End(); // End of Entity Tree window
+
+        // --- Inspector Window ---
+        ImGui::Begin("Inspector");
+
+        // If an entity is selected, show its components
+        if (selectedEntityID < entity_count) {
+
+            // Display TransformComponent if present
+            if (transformComponents.find(selectedEntityID) != transformComponents.end()) {
+                ImGui::Text("Transform Component");
+                TransformComponent& transform = transformComponents[selectedEntityID];
+                ImGui::InputFloat3("Position", &transform.position[0]);
+                ImGui::InputFloat3("Rotation", &transform.eulers[0]);
+            }
+
+            // Display PhysicsComponent if present
+            if (physicsComponents.find(selectedEntityID) != physicsComponents.end()) {
+                ImGui::Text("Physics Component");
+                PhysicsComponent& physics = physicsComponents[selectedEntityID];
+                ImGui::InputFloat3("Velocity", &physics.velocity[0]);
+                ImGui::InputFloat3("Euler Velocity", &physics.eulerVelocity[0]);
+            }
+
+            // Display LightComponent if present
+            if (lightComponents.find(selectedEntityID) != lightComponents.end()) {
+                ImGui::Text("Light Component");
+                LightComponent& light = lightComponents[selectedEntityID];
+                ImGui::ColorEdit3("Light Color", &light.color[0]);
+                ImGui::SliderFloat("Intensity", &light.intensity, 0.0f, 10.0f);
+            }
+
+            // Display RenderComponent if present
+            if (renderComponents.find(selectedEntityID) != renderComponents.end()) {
+                ImGui::Text("Render Component");
+                RenderComponent& render = renderComponents[selectedEntityID];
+                ImGui::InputInt("Mesh ID", (int*)&render.mesh);
+            }
+        }
+        else {
+            ImGui::Text("No entity selected.");
+        }
+
+        ImGui::End(); // End of Inspector window
+
+		// Render ImGui
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+        // Swap buffers to display the frame
+        glfwSwapBuffers(window);
     }
+
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
 }
 
 
@@ -334,6 +416,13 @@ void App::set_up_glfw() {
         std::cout << "Couldn't load GLAD" << std::endl;
         glfwTerminate();
     }
+
+    //Init ImGui : 
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 460");
 
 }
 
