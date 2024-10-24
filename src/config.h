@@ -15,6 +15,8 @@
 
 #include <iostream>
 
+#include <PxPhysicsAPI.h>
+
 #include <vector>
 #include <unordered_map>
 

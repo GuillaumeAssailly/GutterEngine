@@ -6,8 +6,6 @@
 #include "components/render_component.h"
 #include "components/transform_component.h"
 
-#include <btBulletDynamicsCommon.h>
-
 int main() {
 
 		App* app = new App();
@@ -38,7 +36,7 @@ int main() {
 
 		unsigned int lane = app->make_entity();
 		transform.position = { 0.f, 0.f, 0.f };
-		transform.eulers = { 0.f, 0.f, 0.0f};
+		transform.eulers = { 0.f, 0.f, 0.0f, 0.f};
 		transform.size = { 1.0f, 0.168f, 18.0f };
 		app->transformComponents[lane] = transform;
 
@@ -68,7 +66,7 @@ int main() {
 
 		unsigned int boule = app->make_entity();
 		transform.position = { 0.f, 10.f, 0.1f};
-		transform.eulers = {0.0f, 0.0f, 0.0f};
+		transform.eulers = {0.0f, 0.0f, 0.0f, 0.f};
 		transform.size = { 0.21f, 0.21f, 0.21f };
 		app->transformComponents[boule] = transform;
 
@@ -118,7 +116,7 @@ int main() {
 
 		unsigned int cameraEntity = app->make_entity();
 		transform.position = { -3.0f, 1.0f, 0.0f };
-		transform.eulers = { 0.0f, 0.0f, 0.0f};
+		transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f};
 		app->transformComponents[cameraEntity] = transform;
 
 		CameraComponent* camera = new CameraComponent();

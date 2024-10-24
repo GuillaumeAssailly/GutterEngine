@@ -12,28 +12,21 @@ bool CameraSystem::update(
     unsigned int cameraID, CameraComponent& cameraComponent, float dt) {
 
     glm::vec3& pos = transformComponents[cameraID].position;
-    glm::vec3& eulers = transformComponents[cameraID].eulers;
-    float theta = glm::radians(eulers.z);
-    float phi = glm::radians(eulers.y);
+    glm::quat& rotation = transformComponents[cameraID].eulers; // Utilisation du quaternion
 
     glm::vec3& right = cameraComponent.right;
     glm::vec3& up = cameraComponent.up;
     glm::vec3& forwards = cameraComponent.forwards;
 
-    forwards = {
-        glm::cos(theta) * glm::cos(phi),
-        glm::sin(phi),  
-        glm::sin(theta) * glm::cos(phi)
-    };
+    // Convertir le quaternion en une matrice de rotation
+    glm::mat4 rotationMatrix = glm::mat4_cast(rotation);
 
-    glm::vec3 global_up = { 0.0f, 1.0f, 0.0f };
+    // Récupérer les vecteurs de direction à partir de la matrice de rotation
+    forwards = glm::vec3(rotationMatrix[2]);  // Z est généralement l'axe avant
+    up = glm::vec3(rotationMatrix[1]);        // Y est l'axe vers le haut
+    right = glm::vec3(rotationMatrix[0]);     // X est l'axe vers la droite
 
-    right = glm::normalize(glm::cross(forwards, global_up));
-
-    up = glm::normalize(glm::cross(right, forwards));
-
-    glm::mat4 view = glm::lookAt(pos, pos + forwards, global_up);
-
+    glm::mat4 view = glm::lookAt(pos, pos + forwards, up);
     glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
 
     glm::vec3 dPos = { 0.0f, 0.0f, 0.0f };
@@ -47,7 +40,6 @@ bool CameraSystem::update(
             moving = true;
             glfwGetCursorPos(window, &mouse_x_ref, &mouse_y_ref);
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-            
         }
     }
     else if (moving) {
@@ -55,10 +47,7 @@ bool CameraSystem::update(
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     }
 
-
-    if (moving)
-    {
-        
+    if (moving) {
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
             dPos.x += 1.0f;
         }
@@ -77,14 +66,11 @@ bool CameraSystem::update(
         if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
             dPos.z -= 1.0f;
         }
-       
+
         float speed = 0.01f;
-
-
         if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
             speed *= 2.0f;
         }
-
         if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
             speed *= 0.5f;
         }
@@ -96,32 +82,24 @@ bool CameraSystem::update(
             pos += speed * dPos.z * up;
         }
 
-        //Mouse
-        glm::vec3 dEulers = { 0.0f, 0.0f, 0.0f };
-
-
+        // Gestion de la souris pour la rotation
         double mouse_x, mouse_y;
         glfwGetCursorPos(window, &mouse_x, &mouse_y);
         glfwSetCursorPos(window, mouse_x_ref, mouse_y_ref);
-        
 
-        dEulers.z = 0.1f * static_cast<float>(mouse_x - mouse_x_ref);
-        dEulers.y = -0.1f * static_cast<float>(mouse_y - mouse_y_ref);
+        float sensitivity = 0.005f; // Sensibilité de la souris
+        float yaw = sensitivity * static_cast<float>(mouse_x - mouse_x_ref);
+        float pitch = -sensitivity * static_cast<float>(mouse_y - mouse_y_ref);
 
-        eulers.y = glm::clamp(eulers.y + dEulers.y, -89.0f, 89.0f);
+        // Appliquer la rotation autour de l'axe Y (yaw) et X (pitch)
+        glm::quat yawRotation = glm::angleAxis(-yaw, glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::quat pitchRotation = glm::angleAxis(-pitch, right);
 
-        eulers.z += dEulers.z;
-        if (eulers.z > 360) {
-            eulers.z -= 360;
-        }
-        else if (eulers.z < 0) {
-            eulers.z += 360;
-        }
+        // Mettre à jour la rotation de la caméra
+        rotation = glm::normalize(pitchRotation * yawRotation * rotation);
     }
 
     glfwPollEvents();
-
-    
 
     return false;
 }

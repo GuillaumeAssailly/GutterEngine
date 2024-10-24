@@ -72,30 +72,40 @@ void processNode(const aiScene* scene, aiNode* node, std::vector<float>& vertice
 	
 }
 
-btConvexHullShape* createConvexMeshShape(const std::vector<float>& vertices, const std::vector<unsigned int>& indices) {
-    // Créer un btConvexHullShape pour stocker les sommets du maillage
-    btConvexHullShape* convexShape = new btConvexHullShape();
 
-    // Parcourir les indices par groupes de 3 (car chaque triangle a 3 sommets)
-    for (size_t i = 0; i < indices.size(); ++i) {
-        // Récupérer l'indice du sommet
-        unsigned int index = indices[i];
 
-        // Récupérer les coordonnées du sommet (x, y, z)
-        btVector3 vertex(vertices[index * 8], vertices[index * 8 + 1], vertices[index * 8 + 2]);
 
-        // Ajouter le sommet à la forme convexe
-        convexShape->addPoint(vertex);
+btConvexHullShape* createConvexMesh(const std::string& path) {
+    Assimp::Importer importer;
+    const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_JoinIdenticalVertices);
+
+    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+        std::cerr << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
+        return nullptr;
     }
 
-    // Optionnel : Optimiser la forme convexe pour améliorer les performances
-    convexShape->optimizeConvexHull();
+    // Création du maillage convexe
+    btConvexHullShape* convexShape = new btConvexHullShape();
+
+    // Parcourir tous les maillages du modèle
+    for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
+        aiMesh* mesh = scene->mMeshes[i];
+
+        // Ajouter chaque vertex au maillage convexe
+        for (unsigned int j = 0; j < mesh->mNumVertices; j++) {
+            aiVector3D vertex = mesh->mVertices[j];
+            convexShape->addPoint(btVector3(vertex.x, vertex.y, vertex.z), false);
+        }
+    }
+
+    // Recalculer l'AABB local après ajout des points
+    convexShape->recalcLocalAabb();
 
     return convexShape;
 }
 
 
-std::tuple<unsigned int, unsigned int, btConvexHullShape*> App::make_model(const char * filePath, bool concaveMesh) {
+std::tuple<unsigned int, unsigned int, btConvexHullShape*> App::make_model(const char* filePath, bool concaveMesh) {
 
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
@@ -110,7 +120,8 @@ std::tuple<unsigned int, unsigned int, btConvexHullShape*> App::make_model(const
 
     processNode(scene, scene->mRootNode, vertices, indices);
 
-    objShape = createConvexMeshShape(vertices, indices);
+    if(concaveMesh)
+        objShape = createConvexMesh("obj/servoskull/quille.dae");
 
     // Create VAO
     unsigned int VAO;
@@ -318,7 +329,7 @@ void App::run() {
         }
 
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-            btVector3 force(0, 0, 800); // Force dirigée vers le haut
+            btVector3 force(0, 0, 80); // Force dirigée vers le haut
             printf("Pressed\n\n");
             physicsComponents[1].rigidBody->applyCentralForce(force);
         }
