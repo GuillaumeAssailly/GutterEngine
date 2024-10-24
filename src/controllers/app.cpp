@@ -352,8 +352,8 @@ void App::set_up_opengl() {
     glEnable(GL_MULTISAMPLE);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-   /* glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);*/
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
 
     //WIREFRAME MOD : 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);

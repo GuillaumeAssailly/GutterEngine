@@ -53,7 +53,7 @@ int main() {
 		transform.eulers = {0.0f, 0.0f, 0.0f };
 		app->transformComponents[boule] = transform;
 
-		physics.velocity = { 0.f, 0.0f, 1.f };
+		physics.velocity = { 0.f, 0.0f, 0.01f };
 		physics.eulerVelocity = { 100, 0, 0};
 		app->physicsComponents[boule] = physics;
 
@@ -142,19 +142,19 @@ int main() {
 		app->renderComponents[lightEntity2] = render;
 
 
-		//servoskull :
-		unsigned int glaive = app->make_entity();
-		transform.position = { 0.0f, 0.0f, 0.0f };
-		transform.eulers = { 270.0f, 0.0f, 0.0f };
-		app->transformComponents[glaive] = transform;
+		////glorious t34 :
+		//unsigned int glaive = app->make_entity();
+		//transform.position = { 0.0f, 0.0f, 0.0f };
+		//transform.eulers = { 270.0f, 0.0f, 0.0f };
+		//app->transformComponents[glaive] = transform;
 
-		
-		std::tuple<unsigned int, unsigned int> glaiveMesh = app->make_model("obj/servoskull/t34.fbx");
+		//
+		//std::tuple<unsigned int, unsigned int> t34 = app->make_model("obj/servoskull/t34.fbx");
 
-		render.mesh = std::get<0>(glaiveMesh);
-		render.indexCount = std::get<1>(glaiveMesh);
-		render.material = app->make_texture("obj/servoskull/text t34/Antracite_Base_color.png", false);
-		app->renderComponents[glaive] = render;
+		//render.mesh = std::get<0>(t34);
+		//render.indexCount = std::get<1>(t34);
+		//render.material = app->make_texture("obj/servoskull/text t34/Antracite_Base_color.png", false);
+		//app->renderComponents[glaive] = render;
 
 
 		app->set_up_opengl();
