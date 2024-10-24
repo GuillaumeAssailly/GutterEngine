@@ -22,6 +22,12 @@ uniform vec3 lightPos[MAX_LIGHTS];     // Array of light positions (max 10 light
 uniform vec3 lightColor[MAX_LIGHTS];   // Array of light colors
 uniform vec3 viewPos;          // Position of the viewer (camera)
 
+// Attenuation factors and intensity
+uniform float constant;          // Constant attenuation factor
+uniform float linear;            // Linear attenuation factor
+uniform float quadratic;         // Quadratic attenuation factor
+uniform float intensity[MAX_LIGHTS]; // Intensity for each light
+
 void main()
 {
     // Combine textures using mix
@@ -40,13 +46,17 @@ void main()
         
          // Compute lighting direction for this light
         vec3 lightDir = normalize(lightPos[i] - FragPos);
+        float distance = length(lightPos[i] - FragPos);
+
+        // Compute attenuation
+        float attenuation = 1.0 / (constant + linear * distance + quadratic * (distance * distance));
 
         // Ambient lighting
-        ambient += ambientStrength * lightColor[i];
+        ambient += ambientStrength * lightColor[i] * intensity[i] * attenuation;
 
         // Diffuse lighting
         float diff = max(dot(norm, lightDir), 0.0);
-        diffuse += diffuseStrength * diff * lightColor[i];
+        diffuse += diffuseStrength * diff * lightColor[i] * intensity[i] * attenuation;
 
         // Specular lighting
         float spec = 0;
@@ -57,7 +67,7 @@ void main()
         {
             spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
         }        
-        specular += specularStrength * spec * lightColor[i];
+        specular += specularStrength * spec * lightColor[i] * intensity[i] * attenuation;
        
 
        

@@ -31,6 +31,9 @@
     <ClCompile Include="src\controllers\mesh_manager.cpp">
       <Filter>src\controllers</Filter>
     </ClCompile>
+    <ClCompile Include="src\systems\shadow_system.cpp">
+      <Filter>src\systems</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\config.h">
@@ -71,6 +74,9 @@
     </ClInclude>
     <ClInclude Include="src\components\transform_component.h">
       <Filter>src\components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\systems\shadow_system.h">
+      <Filter>src\systems</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

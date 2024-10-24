@@ -269,10 +269,16 @@ unsigned int App::make_texture(const char* filename, const bool flipTex) {
 //ImGui variables
 unsigned int selectedEntityID = 0;
 
+
+///<summary>
+/// run methods launching the renderer pipeline :
+///</summary>
 void App::run() {
     // Variables to track FPS display
     float fpsTimeCounter = 0.0f;
     int frameCount = 0;
+
+    //while loop iterating on the renderer pipeline : 
 
     while (!glfwWindowShouldClose(window)) {
         // Per-frame time logic
@@ -455,8 +461,8 @@ void App::set_up_opengl() {
 
     glUseProgram(shader);
     unsigned int projLocation = glGetUniformLocation(shader, "projection");
-    glm::mat4 projection = glm::perspective(
-       45.0f, 1920.0f / 1080.0f, 0.01f, 1000.0f);
+    //TODO : add configurable perspective :
+    glm::mat4 projection = glm::perspective(  45.0f, 1920.0f / 1080.0f, 0.01f, 1000.0f);
     glUniformMatrix4fv(projLocation, 1, GL_FALSE, glm::value_ptr(projection));
 }   
 

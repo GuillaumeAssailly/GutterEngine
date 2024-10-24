@@ -24,6 +24,11 @@ void LightSystem::update(std::unordered_map<unsigned int, LightComponent>&  ligh
 		std::string lightColorUniform = "lightColor[" + std::to_string(i) + "]";
 		GLint lightColorLoc = glGetUniformLocation(shaderProgram, lightColorUniform.c_str());
 		glUniform3fv(lightColorLoc, 1, glm::value_ptr(lights[i].color));
+
+		//Set light intensity
+		std::string lightIntensityUniform = "intensity[" + std::to_string(i) + "]";
+		GLint lightIntensityLoc = glGetUniformLocation(shaderProgram, lightIntensityUniform.c_str());
+		glUniform1f(lightIntensityLoc, lights[i].intensity);
 	}
 }
 

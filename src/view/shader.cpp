@@ -18,11 +18,19 @@ unsigned int make_shader(
 		glAttachShader(shader, shaderModule);
 	}
 	glLinkProgram(shader);
-
+	
+	//Phong lighting model values :
+	//Todo : replace with materials component
 	set_shader_uniform(shader, "ambientStrength", glm::vec3(0.07f, 0.07f, 0.07f));
 	set_shader_uniform(shader, "diffuseStrength", glm::vec3(0.9f, 0.9f, 0.9f));
 	set_shader_uniform(shader, "specularStrength", glm::vec3(2.0f, 2.0f, 2.0f));
 	set_shader_uniform(shader, "shininess", 32.0f);
+
+	//Attenuation values :
+	set_shader_uniform(shader, "constant", 1.0f);
+	set_shader_uniform(shader, "linear", 0.09f);
+	set_shader_uniform(shader, "quadratic", 0.032f);
+
 
 	//Check the linking worked
 	int success;
