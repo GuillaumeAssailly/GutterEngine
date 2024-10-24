@@ -72,13 +72,34 @@ void processNode(const aiScene* scene, aiNode* node, std::vector<float>& vertice
 	
 }
 
+btConvexHullShape* createConvexMeshShape(const std::vector<float>& vertices, const std::vector<unsigned int>& indices) {
+    // Créer un btConvexHullShape pour stocker les sommets du maillage
+    btConvexHullShape* convexShape = new btConvexHullShape();
+
+    // Parcourir les indices par groupes de 3 (car chaque triangle a 3 sommets)
+    for (size_t i = 0; i < indices.size(); ++i) {
+        // Récupérer l'indice du sommet
+        unsigned int index = indices[i];
+
+        // Récupérer les coordonnées du sommet (x, y, z)
+        btVector3 vertex(vertices[index * 8], vertices[index * 8 + 1], vertices[index * 8 + 2]);
+
+        // Ajouter le sommet à la forme convexe
+        convexShape->addPoint(vertex);
+    }
+
+    // Optionnel : Optimiser la forme convexe pour améliorer les performances
+    convexShape->optimizeConvexHull();
+
+    return convexShape;
+}
 
 
-
-std::tuple<unsigned int, unsigned int> App::make_model(const char * filePath) {
+std::tuple<unsigned int, unsigned int, btConvexHullShape*> App::make_model(const char * filePath, bool concaveMesh) {
 
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
+    btConvexHullShape* objShape = nullptr;
 
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile( filePath, aiProcess_OptimizeMeshes | aiProcess_Triangulate | aiProcess_FlipUVs);
@@ -88,6 +109,8 @@ std::tuple<unsigned int, unsigned int> App::make_model(const char * filePath) {
     }
 
     processNode(scene, scene->mRootNode, vertices, indices);
+
+    objShape = createConvexMeshShape(vertices, indices);
 
     // Create VAO
     unsigned int VAO;
@@ -127,7 +150,38 @@ std::tuple<unsigned int, unsigned int> App::make_model(const char * filePath) {
 
 
     // Return a tuple of the VAO and the number of indices
-    return std::make_tuple(VAO, indices.size());
+    return std::make_tuple(VAO, indices.size(), objShape);
+}
+
+void App::make_object(std::tuple<unsigned int, unsigned int, btConvexHullShape*> model, unsigned int tex, glm::vec3 position, float massf, float friction, float restitution, glm::vec4 eulers, glm::vec3 inert)
+{
+    PhysicsComponent physics;
+    RenderComponent render;
+    btConvexHullShape* shape = std::get<2>(model);
+    btDefaultMotionState* motionState = new btDefaultMotionState(btTransform(
+        btQuaternion(eulers.x, eulers.y, eulers.z, 1),
+        btVector3(position.x, position.y, position.z)
+    ));
+
+    btScalar mass = massf; 
+    btVector3 inertia(inert.x, inert.y, inert.z);
+    shape->calculateLocalInertia(mass, inertia);
+
+    btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(mass, motionState, shape, inertia);
+    rigidBodyCI.m_restitution = 0.5f;
+    rigidBodyCI.m_friction = 0.8f;
+    physics.rigidBody = new btRigidBody(rigidBodyCI);
+    add_rigid_body(physics.rigidBody);
+
+    physicsComponents[entity_count] = physics;
+
+    render.mesh = std::get<0>(model);
+    render.indexCount = std::get<1>(model);
+    render.material = tex;
+
+    renderComponents[entity_count] = render;
+
+    make_entity();
 }
 
 unsigned int App::make_cube_mesh(glm::vec3 size) {
@@ -263,6 +317,12 @@ void App::run() {
             fpsTimeCounter = 0.0f;
         }
 
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+            btVector3 force(0, 0, 800); // Force dirigée vers le haut
+            printf("Pressed\n\n");
+            physicsComponents[1].rigidBody->applyCentralForce(force);
+        }
+
         // Update systems
         motionSystem->update(transformComponents, physicsComponents, deltaTime);
         bool should_close = cameraSystem->update(transformComponents, cameraID, *cameraComponent, deltaTime);
@@ -344,6 +404,11 @@ void App::make_systems() {
     motionSystem = new MotionSystem();
     cameraSystem = new CameraSystem(shader, window);
     renderSystem = new RenderSystem(shader, window);
+}
+
+void App::add_rigid_body(btRigidBody* rigidBody)
+{
+    motionSystem->addRigidBody(rigidBody);
 }
 
 /// <summary>

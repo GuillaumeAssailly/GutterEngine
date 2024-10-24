@@ -38,6 +38,9 @@ bool CameraSystem::update(
 
     glm::vec3 dPos = { 0.0f, 0.0f, 0.0f };
 
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+        return true;
+    }
 
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
         if (!moving) {
@@ -93,10 +96,6 @@ bool CameraSystem::update(
             pos += speed * dPos.z * up;
         }
 
-        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-            return true;
-        }
-
         //Mouse
         glm::vec3 dEulers = { 0.0f, 0.0f, 0.0f };
 
@@ -106,10 +105,10 @@ bool CameraSystem::update(
         glfwSetCursorPos(window, mouse_x_ref, mouse_y_ref);
         
 
-        dEulers.z = -0.1f * static_cast<float>(mouse_x - mouse_x_ref);
+        dEulers.z = 0.1f * static_cast<float>(mouse_x - mouse_x_ref);
         dEulers.y = -0.1f * static_cast<float>(mouse_y - mouse_y_ref);
 
-    eulers.y = glm::clamp(eulers.y + dEulers.y, -89.0f, 89.0f);
+        eulers.y = glm::clamp(eulers.y + dEulers.y, -89.0f, 89.0f);
 
         eulers.z += dEulers.z;
         if (eulers.z > 360) {

@@ -19,6 +19,6 @@ private:
     double mouse_x_ref = .0f;
     double mouse_y_ref = .0f;
 
-    glm::vec3 global_up = { 0.0f, 0.0f, 1.0f };
+    glm::vec3 global_up = { 0.0f, 1.0f, 0.0f };
     GLFWwindow* window;
 };
