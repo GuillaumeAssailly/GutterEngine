@@ -104,13 +104,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\Librairies\glfw-3.4.bin.WIN64\include;..\..\Librairies\stb\include;..\..\Librairies\glm;..\..\Librairies\glad\include;..\..\Librairies\assimp-link\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Librairies\glfw-3.4.bin.WIN64\include;..\..\Librairies\stb\include;..\..\Librairies\glm;..\..\Librairies\glad\include;..\..\Librairies\assimp-link\include;..\..\Librairies\imgui_x64-windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\..\Librairies\glfw-3.4.bin.WIN64\lib-vc2022;..\..\Librairies\assimp-link\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;user32.lib;gdi32.lib;shell32.lib;assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\Librairies\glfw-3.4.bin.WIN64\lib-vc2022;..\..\Librairies\assimp-link\lib;..\..\Librairies\imgui_x64-windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;user32.lib;gdi32.lib;shell32.lib;assimp-vc143-mtd.lib;imgui.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -121,37 +121,58 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\Librairies\glfw-3.4.bin.WIN64\include;..\..\Librairies\stb\include;..\..\Librairies\glm;..\..\Librairies\glad\include;..\..\Librairies\assimp-link\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Librairies\glfw-3.4.bin.WIN64\include;..\..\Librairies\stb\include;..\..\Librairies\glm;..\..\Librairies\glad\include;..\..\Librairies\assimp-link\include;..\..\Librairies\imgui_x64-windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\..\Librairies\glfw-3.4.bin.WIN64\lib-vc2022;..\..\Librairies\assimp-link\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;user32.lib;gdi32.lib;shell32.lib;assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\Librairies\glfw-3.4.bin.WIN64\lib-vc2022;..\..\Librairies\assimp-link\lib;..\..\Librairies\imgui_x64-windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;user32.lib;gdi32.lib;shell32.lib;assimp-vc143-mtd.lib;imgui.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\config.cpp" />
     <ClCompile Include="src\controllers\app.cpp" />
+    <ClCompile Include="src\controllers\mesh_manager.cpp">
+      <DeploymentContent>false</DeploymentContent>
+    </ClCompile>
     <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\systems\camera_system.cpp" />
+    <ClCompile Include="src\systems\light_system.cpp">
+      <DeploymentContent>false</DeploymentContent>
+    </ClCompile>
     <ClCompile Include="src\systems\motion_system.cpp" />
     <ClCompile Include="src\systems\render_system.cpp" />
+    <ClCompile Include="src\systems\shadow_system.cpp">
+      <DeploymentContent>false</DeploymentContent>
+    </ClCompile>
     <ClCompile Include="src\view\shader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\components\camera_component.h" />
+    <ClInclude Include="src\components\light_component.h">
+      <DeploymentContent>false</DeploymentContent>
+    </ClInclude>
     <ClInclude Include="src\components\physics_component.h" />
     <ClInclude Include="src\components\render_component.h" />
     <ClInclude Include="src\components\transform_component.h" />
     <ClInclude Include="src\config.h" />
     <ClInclude Include="src\controllers\app.h" />
+    <ClInclude Include="src\controllers\mesh_manager.h">
+      <DeploymentContent>false</DeploymentContent>
+    </ClInclude>
     <ClInclude Include="src\systems\camera_system.h" />
+    <ClInclude Include="src\systems\light_system.h">
+      <DeploymentContent>false</DeploymentContent>
+    </ClInclude>
     <ClInclude Include="src\systems\motion_system.h" />
     <ClInclude Include="src\systems\render_system.h" />
+    <ClInclude Include="src\systems\shadow_system.h">
+      <DeploymentContent>false</DeploymentContent>
+    </ClInclude>
     <ClInclude Include="src\view\shader.h" />
   </ItemGroup>
   <ItemGroup>

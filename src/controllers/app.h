@@ -11,6 +11,8 @@
 #include "../systems/render_system.h"
 
 #include "../view/shader.h"
+#include "../components/light_component.h"
+#include "../systems/light_system.h"
 
 
 //Callbacks
@@ -22,8 +24,8 @@ public:
     App();
     ~App();
     void run();
-    unsigned int make_entity();
-    unsigned int make_cube_mesh(glm::vec3 size);
+    unsigned int make_entity(const std::string&);
+    std::tuple<unsigned int, unsigned int> make_cube_mesh(glm::vec3 size);
     std::tuple<unsigned int, unsigned int>  make_model(const char *);
 
     unsigned int make_texture(const char* filename, const bool );
@@ -32,11 +34,14 @@ public:
     
 
     //Components
+	std::unordered_map<unsigned int, std::string> entityNames;
     std::unordered_map<unsigned int, TransformComponent> transformComponents;
     std::unordered_map<unsigned int, PhysicsComponent> physicsComponents;
     CameraComponent* cameraComponent;
     unsigned int cameraID;
+    std::unordered_map<unsigned int, LightComponent> lightComponents;
     std::unordered_map<unsigned int, RenderComponent> renderComponents;
+    
 
 private:
     void set_up_glfw();
@@ -57,6 +62,7 @@ private:
     MotionSystem* motionSystem;
     CameraSystem* cameraSystem;
     RenderSystem* renderSystem;
+    LightSystem* lightSystem;
 
     
 };

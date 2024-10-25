@@ -18,7 +18,8 @@ App::~App() {
     glfwTerminate();
 }
 
-unsigned int App::make_entity() {
+unsigned int App::make_entity(const std::string& name) {
+	entityNames.insert(std::make_pair(entity_count, name));
     return entity_count++;
 }
 
@@ -130,75 +131,104 @@ std::tuple<unsigned int, unsigned int> App::make_model(const char * filePath) {
     return std::make_tuple(VAO, indices.size());
 }
 
-unsigned int App::make_cube_mesh(glm::vec3 size) {
+std::tuple<unsigned int, unsigned int> App::make_cube_mesh(glm::vec3 size) {
 
-    float l = size.x;
-    float h = size.y;
-    float w = size.z;
-
+    // Cube vertex data: each vertex has a position, normal, and texture coordinate
+    // The cube will be centered at (0, 0, 0) and scaled by the given size
     std::vector<float> vertices = {
-         l,  w, -h, 1.0f, 1.0f,
-         l, -w, -h, 1.0f, 0.0f,
-        -l, -w, -h, 0.0f, 0.0f,
-        -l, -w, -h, 0.0f, 0.0f,
-        -l,  w, -h, 0.0f, 1.0f,
-         l,  w, -h, 1.0f, 1.0f,
+        // Positions            // Normals           // TexCoords
+        -0.5f * size.x, -0.5f * size.y, -0.5f * size.z,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,  // Back face
+         0.5f * size.x, -0.5f * size.y, -0.5f * size.z,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
+         0.5f * size.x,  0.5f * size.y, -0.5f * size.z,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+        -0.5f * size.x,  0.5f * size.y, -0.5f * size.z,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
 
-        -l, -w,  h, 0.0f, 0.0f,
-         l, -w,  h, 1.0f, 0.0f,
-         l,  w,  h, 1.0f, 1.0f,
-         l,  w,  h, 1.0f, 1.0f,
-        -l,  w,  h, 0.0f, 1.0f,
-        -l, -w,  h, 0.0f, 0.0f,
+        -0.5f * size.x, -0.5f * size.y,  0.5f * size.z,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,  // Front face
+         0.5f * size.x, -0.5f * size.y,  0.5f * size.z,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
+         0.5f * size.x,  0.5f * size.y,  0.5f * size.z,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+        -0.5f * size.x,  0.5f * size.y,  0.5f * size.z,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
 
-        -l,  w,  h, 1.0f, 1.0f,
-        -l,  w, -h, 1.0f, 0.0f,
-        -l, -w, -h, 0.0f, 0.0f,
-        -l, -w, -h, 0.0f, 0.0f,
-        -l, -w,  h, 0.0f, 1.0f,
-        -l,  w,  h, 1.0f, 1.0f,
+        -0.5f * size.x,  0.5f * size.y,  0.5f * size.z, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  // Left face
+        -0.5f * size.x,  0.5f * size.y, -0.5f * size.z, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+        -0.5f * size.x, -0.5f * size.y, -0.5f * size.z, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+        -0.5f * size.x, -0.5f * size.y,  0.5f * size.z, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
 
-         l, -w, -h, 0.0f, 0.0f,
-         l,  w, -h, 1.0f, 0.0f,
-         l,  w,  h, 1.0f, 1.0f,
-         l,  w,  h, 1.0f, 1.0f,
-         l, -w,  h, 0.0f, 1.0f,
-         l, -w, -h, 0.0f, 0.0f,
+         0.5f * size.x,  0.5f * size.y,  0.5f * size.z,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  // Right face
+         0.5f * size.x,  0.5f * size.y, -0.5f * size.z,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+         0.5f * size.x, -0.5f * size.y, -0.5f * size.z,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+         0.5f * size.x, -0.5f * size.y,  0.5f * size.z,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
 
-        -l, -w, -h, 0.0f, 0.0f,
-         l, -w, -h, 1.0f, 0.0f,
-         l, -w,  h, 1.0f, 1.0f,
-         l, -w,  h, 1.0f, 1.0f,
-        -l, -w,  h, 0.0f, 1.0f,
-        -l, -w, -h, 0.0f, 0.0f,
+        -0.5f * size.x, -0.5f * size.y, -0.5f * size.z,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,  // Bottom face
+         0.5f * size.x, -0.5f * size.y, -0.5f * size.z,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+         0.5f * size.x, -0.5f * size.y,  0.5f * size.z,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
+        -0.5f * size.x, -0.5f * size.y,  0.5f * size.z,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
 
-         l,  w,  h, 1.0f, 1.0f,
-         l,  w, -h, 1.0f, 0.0f,
-        -l,  w, -h, 0.0f, 0.0f,
-        -l,  w, -h, 0.0f, 0.0f,
-        -l,  w,  h, 0.0f, 1.0f,
-         l,  w,  h, 1.0f, 1.0f
+        -0.5f * size.x,  0.5f * size.y, -0.5f * size.z,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,  // Top face
+         0.5f * size.x,  0.5f * size.y, -0.5f * size.z,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+         0.5f * size.x,  0.5f * size.y,  0.5f * size.z,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
+        -0.5f * size.x,  0.5f * size.y,  0.5f * size.z,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
     };
 
+    // Cube indices (corrected to counterclockwise winding order for back-face culling)
+    std::vector<unsigned int> indices = {
+        // Back face (now clockwise)
+        3, 1, 0,
+        3, 2, 1,
+
+        // Front face
+        5, 7, 4,
+        6, 7, 5,
+
+        // Left face
+        9, 11, 8,
+        10, 11, 9,
+
+        // Right face
+        15, 13, 12,
+        15, 14, 13,
+
+        // Bottom face
+        16, 17, 19,
+        17, 18, 19,
+
+        // Top face
+        20,23,21,
+        21, 23, 22
+    };
+
+    // Create VAO
     unsigned int VAO;
     glGenVertexArrays(1, &VAO);
     VAOs.push_back(VAO);
     glBindVertexArray(VAO);
 
+    // Create VBO for vertices
     unsigned int VBO;
     glGenBuffers(1, &VBO);
     VBOs.push_back(VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float),
-        vertices.data(), GL_STATIC_DRAW);
-    //position
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 20, (void*)0);
-    glEnableVertexAttribArray(0);
-    //texture coordinates
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 20, (void*)12);
-    glEnableVertexAttribArray(1);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
 
-    return VAO;
+    // Create EBO for indices
+    unsigned int EBO;
+    glGenBuffers(1, &EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
+
+    // Set vertex attribute pointers
+    // Position attribute
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+
+    // Normal attribute
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+
+    // Texture coordinate attribute
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+
+    // Return a tuple of the VAO and the number of indices
+    return std::make_tuple(VAO, indices.size());
 }
 
 unsigned int App::make_texture(const char* filename, const bool flipTex) {
@@ -236,14 +266,27 @@ unsigned int App::make_texture(const char* filename, const bool flipTex) {
     return texture;
 }
 
+//ImGui variables
+unsigned int selectedEntityID = 0;
+
+
+///<summary>
+/// run methods launching the renderer pipeline :
+///</summary>
 void App::run() {
     // Variables to track FPS display
     float fpsTimeCounter = 0.0f;
     int frameCount = 0;
 
+    //while loop iterating on the renderer pipeline : 
+
     while (!glfwWindowShouldClose(window)) {
         // Per-frame time logic
         // -------------------
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
@@ -251,6 +294,7 @@ void App::run() {
         // Count the number of frames and accumulate time
         frameCount++;
         fpsTimeCounter += deltaTime;
+
 
         // Calculate and display FPS in window title every second
         if (fpsTimeCounter >= 1.0f) {
@@ -269,9 +313,84 @@ void App::run() {
         if (should_close) {
             break;
         }
-
+        lightSystem->update(lightComponents, transformComponents, cameraID);
         renderSystem->update(transformComponents, renderComponents);
+
+        // Start ImGui window for debugging
+        ImGui::Begin("Debug");
+
+        // Display FPS
+        ImGui::Text("FPS: %f", 1.0f / deltaTime);
+
+        // --- Entity Tree Window ---
+        ImGui::Begin("Entity Tree");
+
+        // Loop through all entities to create a tree view
+        for (int entityID = 0; entityID < entity_count; entityID++) {
+            std::string entityLabel = entityNames.at(entityID);
+
+            // Display each entity as selectable
+            if (ImGui::Selectable(entityLabel.c_str(), selectedEntityID == entityID)) {
+                selectedEntityID = entityID; // Set the selected entity when clicked
+            }
+        }
+
+        ImGui::End(); // End of Entity Tree window
+
+        // --- Inspector Window ---
+        ImGui::Begin("Inspector");
+
+        // If an entity is selected, show its components
+        if (selectedEntityID < entity_count) {
+
+            // Display TransformComponent if present
+            if (transformComponents.find(selectedEntityID) != transformComponents.end()) {
+                ImGui::Text("Transform Component");
+                TransformComponent& transform = transformComponents[selectedEntityID];
+                ImGui::InputFloat3("Position", &transform.position[0]);
+                ImGui::InputFloat3("Rotation", &transform.eulers[0]);
+            }
+
+            // Display PhysicsComponent if present
+            if (physicsComponents.find(selectedEntityID) != physicsComponents.end()) {
+                ImGui::Text("Physics Component");
+                PhysicsComponent& physics = physicsComponents[selectedEntityID];
+                ImGui::InputFloat3("Velocity", &physics.velocity[0]);
+                ImGui::InputFloat3("Euler Velocity", &physics.eulerVelocity[0]);
+            }
+
+            // Display LightComponent if present
+            if (lightComponents.find(selectedEntityID) != lightComponents.end()) {
+                ImGui::Text("Light Component");
+                LightComponent& light = lightComponents[selectedEntityID];
+                ImGui::ColorEdit3("Light Color", &light.color[0]);
+                ImGui::SliderFloat("Intensity", &light.intensity, 0.0f, 10.0f);
+            }
+
+            // Display RenderComponent if present
+            if (renderComponents.find(selectedEntityID) != renderComponents.end()) {
+                ImGui::Text("Render Component");
+                RenderComponent& render = renderComponents[selectedEntityID];
+                ImGui::InputInt("Mesh ID", (int*)&render.mesh);
+            }
+        }
+        else {
+            ImGui::Text("No entity selected.");
+        }
+
+        ImGui::End(); // End of Inspector window
+
+		// Render ImGui
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+        // Swap buffers to display the frame
+        glfwSwapBuffers(window);
     }
+
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
 }
 
 
@@ -304,6 +423,13 @@ void App::set_up_glfw() {
         glfwTerminate();
     }
 
+    //Init ImGui : 
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 460");
+
 }
 
 /// <summary>
@@ -335,14 +461,15 @@ void App::set_up_opengl() {
 
     glUseProgram(shader);
     unsigned int projLocation = glGetUniformLocation(shader, "projection");
-    glm::mat4 projection = glm::perspective(
-       45.0f, 1920.0f / 1080.0f, 0.01f, 1000.0f);
+    //TODO : add configurable perspective :
+    glm::mat4 projection = glm::perspective(  45.0f, 1920.0f / 1080.0f, 0.01f, 1000.0f);
     glUniformMatrix4fv(projLocation, 1, GL_FALSE, glm::value_ptr(projection));
 }   
 
 void App::make_systems() {
     motionSystem = new MotionSystem();
     cameraSystem = new CameraSystem(shader, window);
+	lightSystem = new LightSystem(shader);
     renderSystem = new RenderSystem(shader, window);
 }
 
