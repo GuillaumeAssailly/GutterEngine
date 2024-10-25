@@ -106,7 +106,7 @@ bool CameraSystem::update(
         glfwSetCursorPos(window, mouse_x_ref, mouse_y_ref);
         
 
-        dEulers.z = -0.1f * static_cast<float>(mouse_x - mouse_x_ref);
+        dEulers.z = 0.1f * static_cast<float>(mouse_x - mouse_x_ref);
         dEulers.y = -0.1f * static_cast<float>(mouse_y - mouse_y_ref);
 
     eulers.y = glm::clamp(eulers.y + dEulers.y, -89.0f, 89.0f);
