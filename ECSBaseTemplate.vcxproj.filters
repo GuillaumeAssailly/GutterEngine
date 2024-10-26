@@ -25,13 +25,16 @@
     <ClCompile Include="src\systems\render_system.cpp">
       <Filter>src\systems</Filter>
     </ClCompile>
+    <ClCompile Include="src\systems\shadow_system.cpp">
+      <Filter>src\systems</Filter>
+    </ClCompile>
     <ClCompile Include="src\controllers\app.cpp">
       <Filter>src\controllers</Filter>
     </ClCompile>
     <ClCompile Include="src\controllers\mesh_manager.cpp">
       <Filter>src\controllers</Filter>
     </ClCompile>
-    <ClCompile Include="src\systems\shadow_system.cpp">
+    <ClCompile Include="src\systems\line_system.cpp">
       <Filter>src\systems</Filter>
     </ClCompile>
   </ItemGroup>
@@ -52,6 +55,9 @@
       <Filter>src\systems</Filter>
     </ClInclude>
     <ClInclude Include="src\systems\render_system.h">
+      <Filter>src\systems</Filter>
+    </ClInclude>
+    <ClInclude Include="src\systems\shadow_system.h">
       <Filter>src\systems</Filter>
     </ClInclude>
     <ClInclude Include="src\controllers\app.h">
@@ -75,7 +81,7 @@
     <ClInclude Include="src\components\transform_component.h">
       <Filter>src\components</Filter>
     </ClInclude>
-    <ClInclude Include="src\systems\shadow_system.h">
+    <ClInclude Include="src\systems\line_system.h">
       <Filter>src\systems</Filter>
     </ClInclude>
   </ItemGroup>
@@ -89,25 +95,25 @@
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
-      <UniqueIdentifier>{ca8a4a6c-c336-47f6-9143-bf932b408a25}</UniqueIdentifier>
+      <UniqueIdentifier>{b3a12918-e247-4b84-b1d1-028193d2dbf4}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\view">
-      <UniqueIdentifier>{23ac4306-1d6f-4677-9a6a-4847d5f25259}</UniqueIdentifier>
+      <UniqueIdentifier>{ada97138-5d26-4bf9-9a07-5e6b1802cc37}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\systems">
-      <UniqueIdentifier>{9b987f7c-7661-4337-aaaf-471b735a4e5e}</UniqueIdentifier>
+      <UniqueIdentifier>{00a2ba7d-1ce4-4a17-bc9f-68305656ae91}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\controllers">
-      <UniqueIdentifier>{b3c96e75-5333-4e84-86e9-e8ff55ba9833}</UniqueIdentifier>
+      <UniqueIdentifier>{a5eea581-c6c4-4e92-8ffb-4fad24058b4a}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\components">
-      <UniqueIdentifier>{8caa0e1a-4a93-400e-84c6-5daba6b4254d}</UniqueIdentifier>
+      <UniqueIdentifier>{1c66840f-d98f-4fee-98db-e7c6bf8d42dd}</UniqueIdentifier>
     </Filter>
     <Filter Include="shaders">
-      <UniqueIdentifier>{11726bd3-1098-4532-bb09-090ca4ab1f7e}</UniqueIdentifier>
+      <UniqueIdentifier>{8f13d138-5c43-4ed7-9cb1-bc09aaac8ddb}</UniqueIdentifier>
     </Filter>
     <Filter Include="tex">
-      <UniqueIdentifier>{bf6444f3-f75a-4e48-879a-34f12ae549e4}</UniqueIdentifier>
+      <UniqueIdentifier>{b6e41553-143c-4e2e-ac32-a7d82cf1b3e3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
