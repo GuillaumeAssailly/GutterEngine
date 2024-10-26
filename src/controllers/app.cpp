@@ -3,6 +3,7 @@
 
 App::App() {
     set_up_glfw();
+    init_ref_frame();
 }
 
 App::~App() {
@@ -316,6 +317,11 @@ void App::run() {
         lightSystem->update(lightComponents, transformComponents, cameraID);
         renderSystem->update(transformComponents, renderComponents);
 
+        //Draw Reference frame
+        //Lines must be render before models otherwise the coord of lines is at the postion of the last rendered obj
+        lineSystem->draw_line_from_vector(reference_frame);
+        lineSystem->render_lines(shader);
+
         // Start ImGui window for debugging
         ImGui::Begin("Debug");
 
@@ -471,6 +477,7 @@ void App::make_systems() {
     cameraSystem = new CameraSystem(shader, window);
 	lightSystem = new LightSystem(shader);
     renderSystem = new RenderSystem(shader, window);
+    lineSystem = new LineSystem();
 }
 
 /// <summary>
@@ -481,4 +488,11 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     // make sure the viewport matches the new window dimensions; note that width and 
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
+}
+
+void App::init_ref_frame()
+{
+    reference_frame.push_back({ {-500000.0, 0.0, 0.0}, {500000.0, 0.0, 0.0}, {1.0, 0.0, 0.0} });
+    reference_frame.push_back({ {0.0, -500000.0, 0.0}, {0.0, 500000.0, 0.0}, {0.0, 1.0, 0.0} });
+    reference_frame.push_back({ {0.0, 0.0, -500000.0}, {0.0, 0.0, 500000.0}, {0.0, 0.0, 1.0} });
 }

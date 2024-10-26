@@ -4,6 +4,7 @@ out vec4 FragColor;
 in vec3 FragPos;
 in vec2 TexCoord;
 in vec3 Normal;
+in vec3 lineColor;
 
 // texture samplers
 uniform sampler2D texture1;    // First texture sampler
@@ -14,6 +15,7 @@ uniform vec3 ambientStrength;  // Ambient reflectivity
 uniform vec3 diffuseStrength;  // Diffuse reflectivity
 uniform vec3 specularStrength; // Specular reflectivity
 uniform float shininess;       // Shininess factor
+uniform bool isLine;           // Drawing a line or not
 
 // Light properties
 #define MAX_LIGHTS 50
@@ -30,53 +32,57 @@ uniform float intensity[MAX_LIGHTS]; // Intensity for each light
 
 void main()
 {
-    // Combine textures using mix
-    vec4 texColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), 0.5);
+    if (isLine) {
+        FragColor = vec4(lineColor, 1.0);
+    } else {
+        // Combine textures using mix
+        vec4 texColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), 0.5);
 
-    // Normalize the input normal
-    vec3 norm = normalize(Normal);
+        // Normalize the input normal
+        vec3 norm = normalize(Normal);
 
-    // Initialize lighting components
-    vec3 ambient = vec3(0.0);
-    vec3 diffuse = vec3(0.0);
-    vec3 specular = vec3(0.0);
+        // Initialize lighting components
+        vec3 ambient = vec3(0.0);
+        vec3 diffuse = vec3(0.0);
+        vec3 specular = vec3(0.0);
 
-    // Loop over all lights
-    for (int i = 0; i < numLights; i++) {
+        // Loop over all lights
+        for (int i = 0; i < numLights; i++) {
         
-         // Compute lighting direction for this light
-        vec3 lightDir = normalize(lightPos[i] - FragPos);
-        float distance = length(lightPos[i] - FragPos);
+             // Compute lighting direction for this light
+            vec3 lightDir = normalize(lightPos[i] - FragPos);
+            float distance = length(lightPos[i] - FragPos);
 
-        // Compute attenuation
-        float attenuation = 1.0 / (constant + linear * distance + quadratic * (distance * distance));
+            // Compute attenuation
+            float attenuation = 1.0 / (constant + linear * distance + quadratic * (distance * distance));
 
-        // Ambient lighting
-        ambient += ambientStrength * lightColor[i] * intensity[i] * attenuation;
+            // Ambient lighting
+            ambient += ambientStrength * lightColor[i] * intensity[i] * attenuation;
 
-        // Diffuse lighting
-        float diff = max(dot(norm, lightDir), 0.0);
-        diffuse += diffuseStrength * diff * lightColor[i] * intensity[i] * attenuation;
+            // Diffuse lighting
+            float diff = max(dot(norm, lightDir), 0.0);
+            diffuse += diffuseStrength * diff * lightColor[i] * intensity[i] * attenuation;
 
-        // Specular lighting
-        float spec = 0;
+            // Specular lighting
+            float spec = 0;
         
-        vec3 viewDir = normalize(viewPos - FragPos);
-        vec3 reflectDir = reflect(-lightDir, norm);
-        if(dot(norm, lightDir) >=0.0)
-        {
-            spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
-        }        
-        specular += specularStrength * spec * lightColor[i] * intensity[i] * attenuation;
+            vec3 viewDir = normalize(viewPos - FragPos);
+            vec3 reflectDir = reflect(-lightDir, norm);
+            if(dot(norm, lightDir) >=0.0)
+            {
+                spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
+            }        
+            specular += specularStrength * spec * lightColor[i] * intensity[i] * attenuation;
        
 
        
         
+        }
+
+        // Combine the lighting components
+        vec3 phong = ambient + diffuse + specular;
+
+        // Apply the final color with Phong lighting and texture
+        FragColor = texColor * vec4(phong, 1.0);
     }
-
-    // Combine the lighting components
-    vec3 phong = ambient + diffuse + specular;
-
-    // Apply the final color with Phong lighting and texture
-    FragColor = texColor * vec4(phong, 1.0);
 }

@@ -9,6 +9,7 @@
 #include "../systems/camera_system.h"
 #include "../systems/motion_system.h"
 #include "../systems/render_system.h"
+#include "../systems/line_system.h"
 
 #include "../view/shader.h"
 #include "../components/light_component.h"
@@ -63,6 +64,9 @@ private:
     CameraSystem* cameraSystem;
     RenderSystem* renderSystem;
     LightSystem* lightSystem;
+    LineSystem* lineSystem;
 
-    
+    //Reference frame
+    void init_ref_frame();
+    std::vector<Line> reference_frame;
 };
