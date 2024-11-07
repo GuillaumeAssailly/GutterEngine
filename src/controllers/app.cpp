@@ -3,7 +3,6 @@
 
 App::App() {
     set_up_glfw();
-    init_ref_frame();
 }
 
 App::~App() {
@@ -15,6 +14,7 @@ App::~App() {
     delete motionSystem;
     delete cameraSystem;
     delete renderSystem;
+    delete lineSystem;
 
     glfwTerminate();
 }
@@ -270,6 +270,9 @@ unsigned int App::make_texture(const char* filename, const bool flipTex) {
 //ImGui variables
 unsigned int selectedEntityID = 0;
 
+//Lines related variables
+bool reference_frame_display = true;
+bool grid_display = true;
 
 ///<summary>
 /// run methods launching the renderer pipeline :
@@ -317,10 +320,9 @@ void App::run() {
         lightSystem->update(lightComponents, transformComponents, cameraID);
         renderSystem->update(transformComponents, renderComponents);
 
-        //Draw Reference frame
-        //Lines must be render before models otherwise the coord of lines is at the postion of the last rendered obj
-        lineSystem->draw_line_from_vector(reference_frame);
-        lineSystem->render_lines(shader);
+        //Draw Lines
+        //Add here more lines to draw...
+        lineSystem->render_lines_ref_frame_grid(reference_frame_display, grid_display, cameraComponent->forwards.x, cameraComponent->forwards.z, transformComponents[cameraID].position, shader);
 
         // Start ImGui window for debugging
         ImGui::Begin("Debug");
@@ -385,6 +387,36 @@ void App::run() {
         }
 
         ImGui::End(); // End of Inspector window
+
+        // --- Settings Window ---
+        ImGui::Begin("Settings");
+        if (reference_frame_display)
+        {
+            ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.43f, 0.7f, 0.75f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.43f, 1.0f, 1.0f));
+            if (ImGui::Button(" Reference Frame ", ImVec2(-1.0f, 0.0f)))
+                reference_frame_display = false;
+            ImGui::PopStyleColor(2);
+        }
+        else
+        {
+            if (ImGui::Button(" Reference Frame ", ImVec2(-1.0f, 0.0f)))
+                reference_frame_display = true;
+        }
+        if (grid_display)
+        {
+            ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.43f, 0.7f, 0.75f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.43f, 1.0f, 1.0f));
+            if (ImGui::Button(" Grid ", ImVec2(-1.0f, 0.0f)))
+                grid_display = false;
+            ImGui::PopStyleColor(2);
+        }
+        else
+        {
+            if (ImGui::Button(" Grid ", ImVec2(-1.0f, 0.0f)))
+                grid_display = true;
+        }
+        ImGui::End(); // End of Settings window
 
 		// Render ImGui
 		ImGui::Render();
@@ -488,11 +520,4 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     // make sure the viewport matches the new window dimensions; note that width and 
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
-}
-
-void App::init_ref_frame()
-{
-    reference_frame.push_back({ {-500000.0, 0.0, 0.0}, {500000.0, 0.0, 0.0}, {1.0, 0.0, 0.0} });
-    reference_frame.push_back({ {0.0, -500000.0, 0.0}, {0.0, 500000.0, 0.0}, {0.0, 1.0, 0.0} });
-    reference_frame.push_back({ {0.0, 0.0, -500000.0}, {0.0, 0.0, 500000.0}, {0.0, 0.0, 1.0} });
 }

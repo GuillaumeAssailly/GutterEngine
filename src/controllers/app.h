@@ -65,8 +65,4 @@ private:
     RenderSystem* renderSystem;
     LightSystem* lightSystem;
     LineSystem* lineSystem;
-
-    //Reference frame
-    void init_ref_frame();
-    std::vector<Line> reference_frame;
 };
