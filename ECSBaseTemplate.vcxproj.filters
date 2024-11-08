@@ -34,6 +34,9 @@
     <ClCompile Include="src\systems\shadow_system.cpp">
       <Filter>src\systems</Filter>
     </ClCompile>
+    <ClCompile Include="src\loaders\loaderRaw.cpp">
+      <Filter>src\loaders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\config.h">
@@ -78,6 +81,12 @@
     <ClInclude Include="src\systems\shadow_system.h">
       <Filter>src\systems</Filter>
     </ClInclude>
+    <ClInclude Include="src\loaders\loader.h">
+      <Filter>src\loaders</Filter>
+    </ClInclude>
+    <ClInclude Include="src\loaders\loaderRaw.h">
+      <Filter>src\loaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\shader.frag">
@@ -108,6 +117,9 @@
     </Filter>
     <Filter Include="tex">
       <UniqueIdentifier>{bf6444f3-f75a-4e48-879a-34f12ae549e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\loaders">
+      <UniqueIdentifier>{2de84cf5-039c-4dd3-ac06-6652bd426e20}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -7,6 +7,9 @@
 #include "components/transform_component.h"
 #include "components/light_component.h"
 
+#include "loaders/loader.h"
+#include "loaders/loaderRaw.h"
+
 int main() {
 
 		App* app = new App();
@@ -15,6 +18,7 @@ int main() {
 		RenderComponent render;
 		PhysicsComponent physics;
 		LightComponent light;
+		Loader* loader = new LoaderRaw();
 
 		////BASE CUBE : 
 		/*unsigned int cubeEntity = app->make_entity();
@@ -64,23 +68,14 @@ int main() {
 		render.material = app->make_texture("obj/bowling/textures/Bowling_Pack_Diffuse.png", false);
 		app->renderComponents[boule] = render;
 
-		glm::vec3 first_pin = { 0.f, 0.142f, 20.60475f };
-		glm::vec3 vectors[10] = {
-			first_pin,
-			glm::vec3(first_pin.x + 0.1524f, first_pin.y, first_pin.z + 0.2635f),
-			glm::vec3(first_pin.x - 0.1524f, first_pin.y, first_pin.z + 0.2635f),
-			glm::vec3(first_pin.x - 0.3048f, first_pin.y, first_pin.z + 0.527f),
-			glm::vec3(first_pin.x, first_pin.y, first_pin.z + 0.527f),
-			glm::vec3(first_pin.x + 0.3048f, first_pin.y, first_pin.z + 0.527f),
-			glm::vec3(first_pin.x + 0.1524f, first_pin.y, first_pin.z + 0.7905f),
-			glm::vec3(first_pin.x - 0.1524f, first_pin.y, first_pin.z + 0.7905f),
-			glm::vec3(first_pin.x + 0.4572f, first_pin.y, first_pin.z + 0.7905f),
-			glm::vec3(first_pin.x - 0.4572f, first_pin.y, first_pin.z + 0.7905f)
-		};
+		glm::vec3 first_pin = {0.f, 0.142f, 20.60475f};
+		glm::vec3 vectors[10]; 
+		loader->load(vectors);
 
 		for (int i = 0; i < 10; i++) {
 			unsigned int quille = app->make_entity("Quille " + std::to_string(i));
 			transform.position = vectors[i];
+			
 			transform.eulers = { 0, 0, 0 };
 			app->transformComponents[quille] = transform;
 
