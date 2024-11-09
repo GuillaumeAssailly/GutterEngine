@@ -87,77 +87,77 @@ void LineSystem::render_lines(unsigned int shader)
     lineData.clear();
 }
 
-void LineSystem::draw_grid_lines(bool draw_middle, float view_x, float view_z, const glm::vec3 pos_camera)
+int LineSystem::draw_grid_lines(short type_ref_frame, const glm::vec3 pos_camera)
 {
-    float current_y = pos_camera.y;
-
-
     int power_of_2 = 1;
-    while (power_of_2 <= (2 * int(std::abs(current_y) / 5) + 1)) power_of_2 *= 2;
-    int multiplier_zoom = power_of_2 / 2;
-
-    int max_lines = -100 * std::log(multiplier_zoom + 10) + 550;
-
+    while (power_of_2 <= (2 * int(std::abs(pos_camera.y) / 5) + 1)) power_of_2 *= 2;
+    const int multiplier_zoom = power_of_2 / 2;
 
     int lower_multiple = (int)(pos_camera.x / multiplier_zoom) * multiplier_zoom;
     int upper_multiple = lower_multiple + multiplier_zoom;
-    int current_x = (std::abs(pos_camera.x - lower_multiple) < std::abs(pos_camera.x - upper_multiple)) ? lower_multiple : upper_multiple;
+    const int current_x = (std::abs(pos_camera.x - lower_multiple) < std::abs(pos_camera.x - upper_multiple)) ? lower_multiple : upper_multiple;
     lower_multiple = (int)(pos_camera.z / multiplier_zoom) * multiplier_zoom;
     upper_multiple = lower_multiple + multiplier_zoom;
-    int current_z = (std::abs(pos_camera.z - lower_multiple) < std::abs(pos_camera.z - upper_multiple)) ? lower_multiple : upper_multiple;
+    const int current_z = (std::abs(pos_camera.z - lower_multiple) < std::abs(pos_camera.z - upper_multiple)) ? lower_multiple : upper_multiple;
 
-    int threshold_lines_rendered_behind_camera = multiplier_zoom * 50; // multiplier * nb lines you want behind the camera
 
-    for (int i = -max_lines; i < max_lines; i++) {
+    const int nb_lines = 10 + (int)( ((std::abs(pos_camera.y) / 5) - (multiplier_zoom / 2)) / (multiplier_zoom - (multiplier_zoom / 2)) * 10 );
+    const int limit_line = nb_lines * multiplier_zoom;
 
-        int pos_line = i * multiplier_zoom;
-        if (view_x < 0) {
-            if (view_z < 0) {
-                if (current_x + pos_line < current_x + threshold_lines_rendered_behind_camera && current_x + pos_line != 0) draw_line({ {current_x + pos_line, 0.0, -10000}, {current_x + pos_line, 0.0, current_z + threshold_lines_rendered_behind_camera}, {0.3, 0.3, 0.3} });
-                if (current_z + pos_line < current_z + threshold_lines_rendered_behind_camera && current_z + pos_line != 0) draw_line({ {-10000, 0.0, current_z + pos_line}, {current_x + threshold_lines_rendered_behind_camera, 0.0, current_z + pos_line}, {0.3, 0.3, 0.3} });
-                //draw_middle
-                if (current_x + pos_line == 0 && draw_middle) draw_line({ {current_x + pos_line, 0.0, -10000}, {current_x + pos_line, 0.0, current_z + threshold_lines_rendered_behind_camera}, {0.3, 0.3, 0.3} });
-                if (current_z + pos_line == 0 && draw_middle) draw_line({ {-10000, 0.0, current_z + pos_line}, {current_x + threshold_lines_rendered_behind_camera, 0.0, current_z + pos_line}, {0.3, 0.3, 0.3} });
-            }
-            else
-            {
-                if (current_x + pos_line < current_x + threshold_lines_rendered_behind_camera && current_x + pos_line != 0) draw_line({ {current_x + pos_line, 0.0, current_z - threshold_lines_rendered_behind_camera}, {current_x + pos_line, 0.0, 10000}, {0.3, 0.3, 0.3} });
-                if (current_z + pos_line > current_z - threshold_lines_rendered_behind_camera && current_z + pos_line != 0) draw_line({ {-10000, 0.0, current_z + pos_line}, {current_x + threshold_lines_rendered_behind_camera, 0.0, current_z + pos_line}, {0.3, 0.3, 0.3} });
-                //draw_middle
-                if (current_x + pos_line == 0 && draw_middle) draw_line({ {current_x + pos_line, 0.0, current_z - threshold_lines_rendered_behind_camera}, {current_x + pos_line, 0.0, 10000}, {0.3, 0.3, 0.3} });
-                if (current_z + pos_line == 0 && draw_middle) draw_line({ {-10000, 0.0, current_z + pos_line}, {current_x + threshold_lines_rendered_behind_camera, 0.0, current_z + pos_line}, {0.3, 0.3, 0.3} });
-            }
-        }
-        else
-        {
-            if (view_z < 0) {
-                if (current_x + pos_line > current_x - threshold_lines_rendered_behind_camera && current_x + pos_line != 0) draw_line({ {current_x + pos_line, 0.0, -10000}, {current_x + pos_line, 0.0, current_z + threshold_lines_rendered_behind_camera}, {0.3, 0.3, 0.3} });
-                if (current_z + pos_line < current_z + threshold_lines_rendered_behind_camera && current_z + pos_line != 0) draw_line({ {current_x - threshold_lines_rendered_behind_camera, 0.0, current_z + pos_line}, {10000, 0.0, current_z + pos_line}, {0.3, 0.3, 0.3} });
-                //draw_middle
-                if (current_x + pos_line == 0 && draw_middle) draw_line({ {current_x + pos_line, 0.0, -10000}, {current_x + pos_line, 0.0, current_z + threshold_lines_rendered_behind_camera}, {0.3, 0.3, 0.3} });
-                if (current_z + pos_line == 0 && draw_middle) draw_line({ {current_x - threshold_lines_rendered_behind_camera, 0.0, current_z + pos_line}, {10000, 0.0, current_z + pos_line}, {0.3, 0.3, 0.3} });
-            }
-            else
-            {
-                if (current_x + pos_line > current_x - threshold_lines_rendered_behind_camera && current_x + pos_line != 0) draw_line({ {current_x + pos_line, 0.0, current_z - threshold_lines_rendered_behind_camera}, {current_x + pos_line, 0.0, 10000}, {0.3, 0.3, 0.3} });
-                if (current_z + pos_line > current_z - threshold_lines_rendered_behind_camera && current_z + pos_line != 0) draw_line({ {current_x - threshold_lines_rendered_behind_camera, 0.0, current_z + pos_line}, {10000, 0.0, current_z + pos_line}, {0.3, 0.3, 0.3} });
-                //draw_middle
-                if (current_x + pos_line == 0 && draw_middle) draw_line({ {current_x + pos_line, 0.0, current_z - threshold_lines_rendered_behind_camera}, {current_x + pos_line, 0.0, 10000}, {0.3, 0.3, 0.3} });
-                if (current_z + pos_line == 0 && draw_middle) draw_line({ {current_x - threshold_lines_rendered_behind_camera, 0.0, current_z + pos_line}, {10000, 0.0, current_z + pos_line}, {0.3, 0.3, 0.3} });
-            }
+    if (!type_ref_frame)
+    {
+        for (int i = -nb_lines; i < nb_lines + 1; i++) {
+
+            const int pos_x = current_x + i * multiplier_zoom;
+            const int pos_z = current_z + i * multiplier_zoom;
+
+            if (pos_x > pos_camera.x - limit_line && pos_x < pos_camera.x + limit_line) draw_line({ {pos_x, 0.0, pos_camera.z - limit_line}, {pos_x, 0.0, pos_camera.z + limit_line}, {0.3, 0.3, 0.3} });
+            if (pos_z > pos_camera.z - limit_line && pos_z < pos_camera.z + limit_line) draw_line({ {pos_camera.x - limit_line, 0.0, pos_z}, {pos_camera.x + limit_line, 0.0, pos_z}, {0.3, 0.3, 0.3} });
         }
     }
+    else
+    {
+        for (int i = -nb_lines; i < nb_lines + 1; i++) {
+
+            const int pos_x = current_x + i * multiplier_zoom;
+            const int pos_z = current_z + i * multiplier_zoom;
+
+            if (pos_x > pos_camera.x - limit_line && pos_x < pos_camera.x + limit_line && pos_x != 0) draw_line({ {pos_x, 0.0, pos_camera.z - limit_line}, {pos_x, 0.0, pos_camera.z + limit_line}, {0.3, 0.3, 0.3} });
+            if (pos_z > pos_camera.z - limit_line && pos_z < pos_camera.z + limit_line && pos_z != 0) draw_line({ {pos_camera.x - limit_line, 0.0, pos_z}, {pos_camera.x + limit_line, 0.0, pos_z}, {0.3, 0.3, 0.3} });
+        }
+    }
+
+    return limit_line;
 }
 
-void LineSystem::render_lines_ref_frame_grid(bool draw_ref_frame, bool draw_grid, float view_x, float view_z, const glm::vec3 pos_camera, unsigned int shader)
+void LineSystem::reset_reference_frame() {
+    reference_frame.at(0).start.x = -10000.0;
+    reference_frame.at(0).end.x = 10000.0;
+    reference_frame.at(2).start.z = -10000.0;
+    reference_frame.at(2).end.z = 10000.0;
+}
+
+void LineSystem::change_reference_frame(const int limit_line, const glm::vec3 pos_camera) {
+    reference_frame.at(0).start.x = std::min((double)pos_camera.x - limit_line, 0.0);
+    reference_frame.at(0).end.x = std::max((double)pos_camera.x + limit_line, 0.0);
+    reference_frame.at(2).start.z = std::min((double)pos_camera.z - limit_line, 0.0);
+    reference_frame.at(2).end.z = std::max((double)pos_camera.z + limit_line, 0.0);
+}
+
+void LineSystem::render_lines_ref_frame_grid(short type_ref_frame, bool draw_grid, const glm::vec3 pos_camera, unsigned int shader)
 {
-    //Draw Reference Frame
-    if (draw_ref_frame)
-        draw_line_from_vector(reference_frame);
+    int limit_line = 0;
 
     //Draw grid
     if (draw_grid)
-        draw_grid_lines(!draw_ref_frame, view_x, view_z, pos_camera);
+        limit_line = draw_grid_lines(type_ref_frame, pos_camera);
+
+    //Draw Reference Frame
+    if (type_ref_frame)
+    {
+        if (type_ref_frame == 1) change_reference_frame(limit_line, pos_camera);
+        draw_line_from_vector(reference_frame);
+    }
 
     //Render all lines
     render_lines(shader);

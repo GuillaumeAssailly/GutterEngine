@@ -16,12 +16,15 @@ public:
     void draw_line(const Line line);
     void draw_line_from_vector(const std::vector<Line> lines_vector);
 
-    void render_lines_ref_frame_grid(bool draw_ref_frame, bool draw_grid, float view_x, float view_z, const glm::vec3 pos_camera, unsigned int shader);
+    void reset_reference_frame();
+
+    void render_lines_ref_frame_grid(short type_, bool draw_grid, const glm::vec3 pos_camera, unsigned int shader);
     
 private:
 
-    void draw_grid_lines(bool draw_middle, float view_x, float view_z, const glm::vec3 pos_camera);
+    int draw_grid_lines(short type_ref_frame, const glm::vec3 pos_camera);
     void render_lines(unsigned int shader);
+    void change_reference_frame(const int limit_line, const glm::vec3 pos_camera);
 
     std::vector<float> lineData{};
     unsigned int vao, vbo;
