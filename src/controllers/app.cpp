@@ -49,7 +49,15 @@ void processNode(const aiScene* scene, aiNode* node, std::vector<float>& vertice
             vertices.push_back(mesh->mTextureCoords[0][j].x);
             vertices.push_back(mesh->mTextureCoords[0][j].y);
 
-          
+			vertices.push_back(mesh->mTangents[j].x);
+			vertices.push_back(mesh->mTangents[j].y);
+			vertices.push_back(mesh->mTangents[j].z);
+
+		    vertices.push_back(mesh->mBitangents[j].x);
+		    vertices.push_back(mesh->mBitangents[j].y);
+		    vertices.push_back(mesh->mBitangents[j].z);
+
+
         
 
         }
@@ -85,7 +93,7 @@ std::tuple<unsigned int, unsigned int> App::make_model(const char * filePath) {
     std::vector<unsigned int> indices;
 
     Assimp::Importer importer;
-    const aiScene* scene = importer.ReadFile( filePath, aiProcess_OptimizeMeshes | aiProcess_Triangulate | aiProcess_FlipUVs);
+    const aiScene* scene = importer.ReadFile( filePath, aiProcess_OptimizeMeshes | aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
         std::cout << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
         exit(-1);
@@ -115,18 +123,17 @@ std::tuple<unsigned int, unsigned int> App::make_model(const char * filePath) {
     // Set vertex attribute pointers
     // Position attribute
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0); // 8 * sizeof(float) stride (3 for pos, 3 for normal, 2 for tex)
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)0); // 8 * sizeof(float) stride (3 for pos, 3 for normal, 2 for tex)
 
 
     // Texture coordinate attribute
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(sizeof(float[3]))); // Normal starts after 3 floats for position
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(sizeof(float[3]))); // Normal starts after 3 floats for position
     
-
 
     // Normal attribute
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(sizeof(float[6]))); // Tex coords start after 6 floats (3 for pos, 3 for normal)
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(sizeof(float[6]))); // Tex coords start after 6 floats (3 for pos, 3 for normal)
 
     // Tangent attribute
     glEnableVertexAttribArray(3);

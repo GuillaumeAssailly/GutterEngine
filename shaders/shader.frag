@@ -85,7 +85,7 @@ void main()
     if(hasNormalMap == 1){
         // Retrieve the normal from the normal map
         vec3 normalMapValue = texture(normalMap, TexCoord).rgb;
-        normalMapValue = normalMapValue * 2.0 - 1.0; // Transform from [0,1] to [-1,1]
+        normalMapValue = normalMapValue * 2.0 - 1.0f; // Transform from [0,1] to [-1,1]
 
         // Construct the TBN matrix
         vec3 T = normalize(Tangent);
@@ -157,4 +157,7 @@ void main()
 
     // Apply the final color with Phong lighting and texture
     FragColor = texColor * vec4(phong, 1.0);
+
+    FragColor = vec4(norm * 0.5 + 0.5, 1.0);
+
 }

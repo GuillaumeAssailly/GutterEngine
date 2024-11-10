@@ -158,7 +158,7 @@ int main() {
 		render.mesh = std::get<0>(t34);
 		render.indexCount = std::get<1>(t34);
 		render.material = app->make_texture("obj/servoskull/text t34/Antracite_Base_color.png", false);
-		//render.normalMap = app->make_texture("obj/servoskull/text t34/Antracite_Normal_OpenGL.png", false);
+		render.normalMap = app->make_texture("obj/servoskull/text t34/Antracite_Normal_OpenGL.png", false);
 		app->renderComponents[glaive] = render;
 		/*
 		unsigned int glaive = app->make_entity("Store");
