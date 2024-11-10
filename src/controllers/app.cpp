@@ -14,6 +14,7 @@ App::~App() {
     delete motionSystem;
     delete cameraSystem;
     delete renderSystem;
+    delete lineSystem;
 
     glfwTerminate();
 }
@@ -269,6 +270,9 @@ unsigned int App::make_texture(const char* filename, const bool flipTex) {
 //ImGui variables
 unsigned int selectedEntityID = 0;
 
+//Lines related variables
+short type_reference_frame = 2;
+bool grid_display = true;
 
 ///<summary>
 /// run methods launching the renderer pipeline :
@@ -315,6 +319,10 @@ void App::run() {
         }
         lightSystem->update(lightComponents, transformComponents, cameraID);
         renderSystem->update(transformComponents, renderComponents);
+
+        //Draw Lines
+        //Add here more lines to draw...
+        lineSystem->render_lines_ref_frame_grid(type_reference_frame, grid_display, transformComponents[cameraID].position, shader);
 
         // Start ImGui window for debugging
         ImGui::Begin("Debug");
@@ -379,6 +387,55 @@ void App::run() {
         }
 
         ImGui::End(); // End of Inspector window
+
+        // --- Settings Window ---
+        ImGui::Begin("Settings");
+
+        switch (type_reference_frame) {
+        case 2 :
+            ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.43f, 0.7f, 0.75f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.43f, 1.0f, 1.0f));
+            if (ImGui::Button(" Full Reference Frame ", ImVec2(-1.0f, 0.0f)))
+                type_reference_frame = 0;
+            ImGui::PopStyleColor(2);
+            break;
+        case 1:
+            ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.43f, 0.5f, 0.55f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.43f, 0.7f, 0.7f));
+            if (ImGui::Button(" Partial Reference Frame ", ImVec2(-1.0f, 0.0f)))
+            {
+                type_reference_frame = 2;
+                lineSystem->reset_reference_frame();
+            }
+            ImGui::PopStyleColor(2);
+            break;
+        default:
+            if (ImGui::Button(" Hidden Reference Frame ", ImVec2(-1.0f, 0.0f)))
+                type_reference_frame = (grid_display) ? 1 : 2;
+            break;
+        }
+
+        if (grid_display)
+        {
+            ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.43f, 0.7f, 0.75f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.43f, 1.0f, 1.0f));
+            if (ImGui::Button(" Displayed Grid ", ImVec2(-1.0f, 0.0f)))
+            {
+                grid_display = false;
+                if (type_reference_frame == 1)
+                {
+                    type_reference_frame = 2;
+                    lineSystem->reset_reference_frame();
+                }
+            }
+            ImGui::PopStyleColor(2);
+        }
+        else
+        {
+            if (ImGui::Button(" Hidden Grid ", ImVec2(-1.0f, 0.0f)))
+                grid_display = true;
+        }
+        ImGui::End(); // End of Settings window
 
 		// Render ImGui
 		ImGui::Render();
@@ -471,6 +528,7 @@ void App::make_systems() {
     cameraSystem = new CameraSystem(shader, window);
 	lightSystem = new LightSystem(shader);
     renderSystem = new RenderSystem(shader, window);
+    lineSystem = new LineSystem();
 }
 
 /// <summary>
