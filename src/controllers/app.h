@@ -24,13 +24,12 @@ public:
     void run();
     unsigned int make_entity();
     unsigned int make_cube_mesh(glm::vec3 size);
-    std::tuple<unsigned int, unsigned int>  make_model(const char *);
+    std::tuple<unsigned int, unsigned int>  make_model(const char *, std::string, bool conv = false);
 
     unsigned int make_texture(const char* filename, const bool );
     void set_up_opengl();
     void make_systems();
     physx::PxConvexMesh* make_physics_model(const char* filename);
-    physx::PxRigidDynamic* createDynamic(const physx::PxGeometry& geometry, glm::vec3 material, glm::vec3 transform, float mass, float sleepT = 0.005f, float linearDamp = 0.0f, float angularDamp = 0.0f);
     void createStatic(const physx::PxGeometry& geometry, glm::vec3 material, glm::vec3 transform);
     void decomposeMeshWithVHACD(const std::string& inputFilePath, const std::string& outputDir, physx::PxPhysics* physics);
 
@@ -40,6 +39,8 @@ public:
     CameraComponent* cameraComponent;
     unsigned int cameraID;
     std::unordered_map<unsigned int, RenderComponent> renderComponents;
+
+    MotionSystem* motionSystem;
 
 private:
     void set_up_glfw();
@@ -57,7 +58,6 @@ private:
 	float lastFrame = 0.0f;
 
     //Systems
-    MotionSystem* motionSystem;
     CameraSystem* cameraSystem;
     RenderSystem* renderSystem;
 

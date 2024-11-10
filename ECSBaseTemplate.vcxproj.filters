@@ -40,6 +40,9 @@
     <Filter Include="Resource Files\tex">
       <UniqueIdentifier>{ea3dece8-7475-4449-82b2-ea85e2dba367}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Decomposition">
+      <UniqueIdentifier>{9de3bd94-cb7b-48f4-9390-ab21dc06b079}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\config.cpp">
@@ -65,6 +68,15 @@
     </ClCompile>
     <ClCompile Include="src\glad.c">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\decomposition\FloatMath.cpp">
+      <Filter>Decomposition</Filter>
+    </ClCompile>
+    <ClCompile Include="src\decomposition\InParser.cpp">
+      <Filter>Decomposition</Filter>
+    </ClCompile>
+    <ClCompile Include="src\decomposition\wavefront.cpp">
+      <Filter>Decomposition</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -97,6 +109,15 @@
     </ClInclude>
     <ClInclude Include="src\controllers\app.h">
       <Filter>Header Files\controllers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\decomposition\FloatMath.h">
+      <Filter>Decomposition</Filter>
+    </ClInclude>
+    <ClInclude Include="src\decomposition\InParser.h">
+      <Filter>Decomposition</Filter>
+    </ClInclude>
+    <ClInclude Include="src\decomposition\wavefront.h">
+      <Filter>Decomposition</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

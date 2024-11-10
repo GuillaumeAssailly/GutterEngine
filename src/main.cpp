@@ -35,7 +35,8 @@ int main() {
 		//boule
 
 		std::string inputFilePath = "obj/servoskull/quille.obj";
-		std::string outputDir = "obj/servoskull/";
+		std::string outputDir = "obj/convexMesh/";
+		std::string outputDir2 = "obj/convexMesh/quille/";
 
 		std::cout << "Décomposition terminée. Les fichiers .obj convexes sont enregistrés dans le répertoire de sortie." << std::endl;
 
@@ -50,7 +51,7 @@ int main() {
 
 		app->createStatic(laneGeometry, laneMaterial, transform.position);
 
-		std::tuple<unsigned int, unsigned int> laneModel = app->make_model("obj/servoskull/lane.obj");
+		std::tuple<unsigned int, unsigned int> laneModel = app->make_model("obj/servoskull/lane.obj", outputDir);
 		render.mesh = std::get<0>(laneModel);
 		render.indexCount = std::get<1>(laneModel);
 		render.material = app->make_texture("obj/servoskull/textures/lane.jpg", false);
@@ -66,12 +67,12 @@ int main() {
 		physics.eulerVelocity = { 0, 0, 0};
 		
 		glm::vec3 ballMaterial = { 0.5f, 0.5f, 0.8f };
-		physx::PxSphereGeometry ballGeometry(0.105f);
+		const physx::PxSphereGeometry ballGeometry(0.105f);
 
-		physics.rigidBody  = app->createDynamic(ballGeometry, ballMaterial, transform.position, 6.8f);
+		physics.rigidBody  = app->motionSystem->createDynamic(ballGeometry, ballMaterial, transform.position, 6.8f);
 		app->physicsComponents[boule] = physics;
 
-		std::tuple<unsigned int, unsigned int> ballModel = app->make_model("obj/servoskull/boule.obj");
+		std::tuple<unsigned int, unsigned int> ballModel = app->make_model("obj/servoskull/boule.obj", outputDir);
 		 
 		render.mesh = std::get<0>(ballModel);
 		render.indexCount = std::get<1>(ballModel);
@@ -93,13 +94,17 @@ int main() {
 			glm::vec3(first_pin.x - 0.4572f, first_pin.y, first_pin.z + 0.7905f)
 		};
 
-		physx::PxConvexMesh* pinModelPhysics = app->make_physics_model("obj/servoskull/quilleLOD.obj");
-		std::tuple<unsigned int, unsigned int> pinModel = app->make_model("obj/servoskull/quilleLOD.obj");
+		std::vector<physx::PxConvexMesh*> meshes;
+		app->motionSystem->loadObjToPhysX("obj/convexMesh/quille/decomp.obj", meshes);
+		std::cout << "nombre meshes : " << meshes.size() << std::endl;
+
+
+		std::tuple<unsigned int, unsigned int> pinModel = app->make_model("obj/servoskull/quille.obj", outputDir2, false);
 		float staticFriction = 0.8f;
 		float dynamicFriction = 0.6f;
 		float restitution = 0.2f;
 
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 1; i++) {
 			unsigned int pin = app->make_entity();
 			transform.position = vectors[i];
 			transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
@@ -110,7 +115,7 @@ int main() {
 
 			glm::vec3 pinMaterial = { 0.5f, 0.5f, 0.2f };
 
-			physics.rigidBody = app->createDynamic(physx::PxConvexMeshGeometry(pinModelPhysics, physx::PxMeshScale(), physx::PxConvexMeshGeometryFlag::eTIGHT_BOUNDS), pinMaterial, transform.position, 1.5f, 0.005f, 0.0f, 0.0f);
+			physics.rigidBody = app->motionSystem->createDynamic(meshes, pinMaterial, transform.position, 1.5f, 0.005f, 0.0f, 0.0f);
 			app->physicsComponents[pin] = physics;
 
 

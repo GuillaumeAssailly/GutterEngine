@@ -139,6 +139,9 @@
   <ItemGroup>
     <ClCompile Include="src\config.cpp" />
     <ClCompile Include="src\controllers\app.cpp" />
+    <ClCompile Include="src\decomposition\FloatMath.cpp" />
+    <ClCompile Include="src\decomposition\InParser.cpp" />
+    <ClCompile Include="src\decomposition\wavefront.cpp" />
     <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\systems\camera_system.cpp" />
@@ -153,6 +156,9 @@
     <ClInclude Include="src\components\transform_component.h" />
     <ClInclude Include="src\config.h" />
     <ClInclude Include="src\controllers\app.h" />
+    <ClInclude Include="src\decomposition\FloatMath.h" />
+    <ClInclude Include="src\decomposition\InParser.h" />
+    <ClInclude Include="src\decomposition\wavefront.h" />
     <ClInclude Include="src\systems\camera_system.h" />
     <ClInclude Include="src\systems\motion_system.h" />
     <ClInclude Include="src\systems\render_system.h" />

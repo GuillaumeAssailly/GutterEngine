@@ -1,6 +1,8 @@
 #include "app.h"
 #define ENABLE_VHACD_IMPLEMENTATION 1
 #include "VHACD.h"
+#include "wavefront.h"
+#include <iomanip>
 
 
 App::App() {
@@ -141,6 +143,47 @@ void processNode(const aiScene* scene, aiNode* node, std::vector<physx::PxVec3>&
         processNode(scene, node->mChildren[i], vertices, uniqueVertices);
     }
 }
+
+void saveConvexHullToObj(VHACD::IVHACD* interfaceVHACD, const std::string& outputDir) {
+    std::string filePath = outputDir + "/decomp.obj";
+    std::ofstream outFile(filePath);
+
+    if (!outFile.is_open()) {
+        std::cerr << "Erreur : impossible d'ouvrir le fichier " << filePath << " pour écrire." << std::endl;
+        return;
+    }
+
+    std::cout << "Saving Convex Decomposition results of " << interfaceVHACD->GetNConvexHulls() << " convex hulls to '" << filePath << "'\n";
+    uint32_t baseIndex = 1;
+
+    for (uint32_t i = 0; i < interfaceVHACD->GetNConvexHulls(); i++) {
+        // Ajouter un nom d'objet pour chaque coque convexe
+        outFile << "o quilleP" << std::setw(3) << std::setfill('0') << i << "\n";
+
+        VHACD::IVHACD::ConvexHull ch;
+        interfaceVHACD->GetConvexHull(i, ch);
+
+        // Écrire les sommets
+        for (const auto& pos : ch.m_points) {
+            outFile << "v " << std::fixed << std::setprecision(9)
+                << pos.mX << " " << pos.mY << " " << pos.mZ << "\n";
+        }
+
+        // Écrire les faces (triangles)
+        for (const auto& tri : ch.m_triangles) {
+            uint32_t i1 = tri.mI0 + baseIndex;
+            uint32_t i2 = tri.mI1 + baseIndex;
+            uint32_t i3 = tri.mI2 + baseIndex;
+            outFile << "f " << i1 << " " << i2 << " " << i3 << "\n";
+        }
+
+        baseIndex += static_cast<uint32_t>(ch.m_points.size());
+    }
+
+    outFile.close();
+    std::cout << "Fichier sauvegardé avec succès : " << filePath << std::endl;
+}
+
 physx::PxConvexMesh* App::make_physics_model(const char* filename) {
     physx::PxConvexMesh* convexMesh = nullptr;
     std::vector<physx::PxVec3> physxVertices;
@@ -154,14 +197,13 @@ physx::PxConvexMesh* App::make_physics_model(const char* filename) {
     }
 
     processNode(scene, scene->mRootNode, physxVertices, uniqueVertices);
-    printf("Taille: %d,    tailleUnique : %d\n", physxVertices.size(), uniqueVertices.size());
 
     convexMesh = motionSystem->createMesh(physxVertices);
 
     return convexMesh;
 }
 
-std::tuple<unsigned int, unsigned int> App::make_model(const char* filePath) {
+std::tuple<unsigned int, unsigned int> App::make_model(const char* filePath, std::string outputDir, bool conv) {
 
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
@@ -174,6 +216,53 @@ std::tuple<unsigned int, unsigned int> App::make_model(const char* filePath) {
     }
 
     processNode(scene, scene->mRootNode, vertices, indices);
+
+    if (conv) {
+        WavefrontObj w;
+		uint32_t tcount = w.loadObj(filePath);
+		if ( tcount == 0 )
+		{
+			printf("Failed to load valid mesh from wavefront OBJ file:%s\n", filePath);
+		}
+        VHACD::IVHACD* interfaceVHACD = VHACD::CreateVHACD();
+        if (!interfaceVHACD) {
+            std::cerr << "Erreur : impossible de créer une instance de VHACD." << std::endl;
+            exit(1);
+        }
+
+        std::cout << "Instance VHACD créée avec succès." << std::endl;
+
+        VHACD::IVHACD::Parameters params;
+        params.m_maxConvexHulls = 10;                         // Limite raisonnable pour obtenir des coques sans excès
+        params.m_resolution = 300000;                         // Bonne résolution pour un équilibre entre vitesse et précision
+        params.m_minimumVolumePercentErrorAllowed = 1.0;      // Tolérance modérée pour une approximation correcte
+        params.m_maxRecursionDepth = 10;                      // Profondeur de récursion modérée
+        params.m_shrinkWrap = true;                           // Réduction pour coller au modèle sans perte excessive
+        params.m_fillMode = VHACD::FillMode::SURFACE_ONLY;      // Remplissage complet
+        params.m_maxNumVerticesPerCH = 256;                    // Nombre modéré de sommets pour chaque coque
+        params.m_asyncACD = false;                            // Mode synchrone pour éviter les problèmes de threading
+        params.m_minEdgeLength = 2;                           // Longueur d’arête permettant des détails raisonnables
+        params.m_findBestPlane = false;                       // Plan standard pour un traitement plus rapide
+
+
+        double* points = new double[w.mVertexCount * 3];
+        for (uint32_t i = 0; i < w.mVertexCount * 3; i++)
+        {
+            points[i] = w.mVertices[i];
+        }
+        bool canceled = false;
+        
+        std::cout << w.mVertexCount << std::endl;
+        interfaceVHACD->Compute(points, w.mVertexCount, w.mIndices, w.mTriCount, params);
+        std::cout << "Params" << std::endl;
+        saveConvexHullToObj(interfaceVHACD, outputDir);
+
+
+
+        interfaceVHACD->Clean();
+        interfaceVHACD->Release();
+
+    }
 
     // Create VAO
     unsigned int VAO;
@@ -350,7 +439,7 @@ void App::run() {
         }
 
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-            physx::PxVec3 force(0, 0, 0.02);
+            physx::PxVec3 force(0, 0, 0.001);
             motionSystem->applyForceToActor(physicsComponents[1].rigidBody, force);
         }
 
@@ -440,12 +529,6 @@ void App::make_systems() {
     motionSystem = new MotionSystem();
     cameraSystem = new CameraSystem(shader, window);
     renderSystem = new RenderSystem(shader, window);
-}
-
-
-
-physx::PxRigidDynamic* App::createDynamic(const physx::PxGeometry& geometry, glm::vec3 material, glm::vec3 transform, float mass, float sleepT, float linearDamp, float angularDamp){
-    return motionSystem->createDynamic(geometry, material, transform, mass, sleepT,linearDamp, angularDamp);
 }
 
 void App::createStatic(const physx::PxGeometry& geometry, glm::vec3 material, glm::vec3 transform) {

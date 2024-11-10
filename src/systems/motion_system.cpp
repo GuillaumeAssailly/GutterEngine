@@ -50,21 +50,45 @@ MotionSystem::~MotionSystem() {
     }
 }
 
+physx::PxRigidDynamic* MotionSystem::createDynamic(const std::vector<physx::PxConvexMesh*>& convexMeshes, glm::vec3 mat, glm::vec3 transf, float mass, float sleepT, float linearDamp, float angularDamp) {
+    physx::PxMaterial* material = mPhysics->createMaterial(mat.x, mat.y, mat.z);
+    physx::PxTransform transform = { transf.x, transf.y, transf.z };
+    physx::PxRigidDynamic* actor = mPhysics->createRigidDynamic(transform);
+
+    for (auto& convexMesh : convexMeshes) {
+        printf("done\n");
+        physx::PxConvexMeshGeometry geometry(convexMesh);
+        physx::PxShape* shape = mPhysics->createShape(geometry, *mPhysics->createMaterial(0.5f, 0.5f, 0.6f));
+        actor->attachShape(*shape);
+        shape->release();
+    }
+
+    actor->setSleepThreshold(sleepT);
+    actor->setLinearDamping(linearDamp);  // Amortissement linéaire modéré
+    actor->setAngularDamping(angularDamp); // Amortissement angulaire modéré
+
+    physx::PxRigidBodyExt::updateMassAndInertia(*actor, mass);
+    mScene->addActor(*actor);
+    return actor;
+}
+
 physx::PxRigidDynamic* MotionSystem::createDynamic(const physx::PxGeometry& geometry, glm::vec3 mat, glm::vec3 transf, float mass, float sleepT, float linearDamp, float angularDamp) {
     physx::PxMaterial* material = mPhysics->createMaterial(mat.x, mat.y, mat.z);
     physx::PxTransform transform = { transf.x, transf.y, transf.z };
-    physx::PxRigidDynamic* body = mPhysics->createRigidDynamic(transform);
-    body->setSleepThreshold(sleepT);
-    physx::PxShape* shape = mPhysics->createShape(geometry, *material);
-    body->attachShape(*shape);
-    body->setLinearDamping(linearDamp);  // Amortissement linéaire modéré
-    body->setAngularDamping(angularDamp); // Amortissement angulaire modéré
-    physx::PxRigidBodyExt::updateMassAndInertia(*body, mass);
-    shape->release();
-    mScene->addActor(*body);
-    return body;
-}
+    physx::PxRigidDynamic* actor = mPhysics->createRigidDynamic(transform);
 
+    physx::PxShape* shape = mPhysics->createShape(geometry, *mPhysics->createMaterial(0.5f, 0.5f, 0.6f));
+    actor->attachShape(*shape);
+    shape->release();
+
+    actor->setSleepThreshold(sleepT);
+    actor->setLinearDamping(linearDamp);  // Amortissement linéaire modéré
+    actor->setAngularDamping(angularDamp); // Amortissement angulaire modéré
+
+    physx::PxRigidBodyExt::updateMassAndInertia(*actor, mass);
+    mScene->addActor(*actor);
+    return actor;
+}
 
 void MotionSystem::createStatic(const physx::PxGeometry& geometry, glm::vec3 mat, glm::vec3 transf) {
     physx::PxMaterial* material = mPhysics->createMaterial(mat.x, mat.y, mat.z);
@@ -94,26 +118,82 @@ void printConvexMeshVertices(physx::PxConvexMesh* convexMesh) {
     // Obtenez le nombre de sommets dans le maillage convexe
     physx::PxU32 numVertices = convexMesh->getNbVertices();
     const physx::PxVec3* vertices = convexMesh->getVertices();
-
-    std::cout << "Nombre de sommets dans le maillage convexe : " << numVertices << std::endl;
-
-    // Parcourez et affichez chaque sommet
-    for (physx::PxU32 i = 0; i < numVertices; ++i) {
-        std::cout << "Vertex " << i << ": ("
-            << vertices[i].x << ", "
-            << vertices[i].y << ", "
-            << vertices[i].z << ")"
-            << std::endl;
-    }
 }
 
-physx::PxConvexMesh* MotionSystem::createMesh(std::vector<physx::PxVec3> vertices) {
+void MotionSystem::loadObjToPhysX(const std::string& filePath, std::vector<physx::PxConvexMesh*>& convexMeshes) {
+    Assimp::Importer importer;
+    const aiScene* scene = importer.ReadFile(filePath, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices);
 
-    printVerticesData(vertices);
+    if (!scene || (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) || !scene->mRootNode) {
+        std::cerr << "Erreur lors du chargement du fichier .obj avec Assimp : " << importer.GetErrorString() << std::endl;
+        return;
+    }
+
+    // Parcourir chaque maillage dans le fichier
+    std::cout << "mNumMeshes : " << scene->mNumMeshes << std::endl;
+    for (unsigned int i = 0; i < scene->mNumMeshes; ++i) {
+        aiMesh* mesh = scene->mMeshes[i];
+
+        // Récupérer les sommets
+        std::vector<physx::PxVec3> vertices;
+        for (unsigned int v = 0; v < mesh->mNumVertices; ++v) {
+            vertices.emplace_back(mesh->mVertices[v].x, mesh->mVertices[v].y, mesh->mVertices[v].z);
+        }
+
+        // Récupérer les indices
+        std::vector<physx::PxU32> indices;
+        for (unsigned int f = 0; f < mesh->mNumFaces; ++f) {
+            aiFace face = mesh->mFaces[f];
+            if (face.mNumIndices == 3) {  // Assurez-vous que le maillage est triangulé
+                indices.push_back(face.mIndices[0]);
+                indices.push_back(face.mIndices[1]);
+                indices.push_back(face.mIndices[2]);
+            }
+        }
+
+        // Créer un descripteur de maillage pour PhysX
+        physx::PxConvexMeshDesc convexDesc;
+        convexDesc.points.count = static_cast<physx::PxU32>(vertices.size());
+        convexDesc.points.stride = sizeof(physx::PxVec3);
+        convexDesc.points.data = vertices.data();
+
+        convexDesc.indices.count = static_cast<physx::PxU32>(indices.size());
+        convexDesc.indices.stride = sizeof(physx::PxU32);
+        convexDesc.indices.data = indices.data();
+
+        convexDesc.flags = physx::PxConvexFlag::eCOMPUTE_CONVEX;
+
+        // Cuisiner et créer le maillage convexe
+        physx::PxDefaultMemoryOutputStream buf;
+        physx::PxConvexMeshCookingResult::Enum result;
+
+        physx::PxTolerancesScale scale;
+        physx::PxCookingParams params(scale);
+        params.convexMeshCookingType = physx::PxConvexMeshCookingType::eQUICKHULL;
+        params.gaussMapLimit = 256;
+        params.buildGPUData = false;
+        params.meshPreprocessParams = physx::PxMeshPreprocessingFlag::eDISABLE_CLEAN_MESH; // Désactive le nettoyage de maillage
+        params.meshPreprocessParams |= physx::PxMeshPreprocessingFlag::eDISABLE_ACTIVE_EDGES_PRECOMPUTE;
+
+        if (!PxCookConvexMesh(params, convexDesc, buf, &result))
+            return;
+
+        physx::PxDefaultMemoryInputData inputStream(buf.getData(), buf.getSize());
+        physx::PxConvexMesh* convexMesh = mPhysics->createConvexMesh(inputStream);
+
+
+        if (!convexMesh) {
+            // Gérer l'erreur de création du maillage
+            std::cerr << "Erreur lors de la création du maillage convexe." << std::endl;
+            return;
+        }
+        convexMeshes.push_back(convexMesh);
+    }
+}
+physx::PxConvexMesh* MotionSystem::createMesh(std::vector<physx::PxVec3> vertices) {
 
     physx::PxConvexMeshDesc convexMeshDesc;
     convexMeshDesc.points.count = static_cast<physx::PxU32>(vertices.size());
-    printf("VERTICES : %d\n\n", vertices.size());
     convexMeshDesc.points.stride = sizeof(physx::PxVec3);
     convexMeshDesc.points.data = vertices.data(); // Utiliser data() pour obtenir un pointeur
     convexMeshDesc.flags = physx::PxConvexFlag::eCOMPUTE_CONVEX;
@@ -124,10 +204,7 @@ physx::PxConvexMesh* MotionSystem::createMesh(std::vector<physx::PxVec3> vertice
     physx::PxTolerancesScale scale;
     physx::PxCookingParams params(scale);
     params.convexMeshCookingType = physx::PxConvexMeshCookingType::eQUICKHULL; // Utiliser l'algorithme QuickHull
-    params.gaussMapLimit = 256;
     params.buildGPUData = false;
-    params.meshPreprocessParams = physx::PxMeshPreprocessingFlag::eDISABLE_CLEAN_MESH; // Désactive le nettoyage de maillage
-    params.meshPreprocessParams |= physx::PxMeshPreprocessingFlag::eDISABLE_ACTIVE_EDGES_PRECOMPUTE;
 
     if (!PxCookConvexMesh(params, convexMeshDesc, outputStream, &result))
         return NULL;
@@ -158,8 +235,6 @@ void MotionSystem::update(
     std::unordered_map<unsigned int, TransformComponent>& transformComponents,
     std::unordered_map<unsigned int, PhysicsComponent>& physicsComponents,
     float dt) {
-
-    printf("dt : %f\n", dt);
     if (dt > 0.1)
         return;
     mScene->simulate(dt);
@@ -172,8 +247,8 @@ void MotionSystem::update(
         physx::PxTransform pxTransform = physicsComponent.rigidBody->getGlobalPose();
 
         transform.position = glm::vec3(pxTransform.p.x, pxTransform.p.y, pxTransform.p.z);
-        printf("Pos : %f, %f, %f\n", pxTransform.p.x, pxTransform.p.y, pxTransform.p.z);
+        //printf("Pos : %f, %f, %f\n", pxTransform.p.x, pxTransform.p.y, pxTransform.p.z);
         transform.eulers = glm::eulerAngles(glm::quat(pxTransform.q.w, pxTransform.q.x, pxTransform.q.y, pxTransform.q.z));
     }
-    printf("\n");
+    //printf("\n");
 }
