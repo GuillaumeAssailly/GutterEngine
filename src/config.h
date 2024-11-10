@@ -14,6 +14,7 @@
 #include <assimp/postprocess.h>
 
 #include <iostream>
+#include <iomanip>
 
 #include <PxPhysicsAPI.h>
 
@@ -23,7 +24,3 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-
-const int MESH = 0;
-const int BOX = 1;
-const int SPHERE = 2;

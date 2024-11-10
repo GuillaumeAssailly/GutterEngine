@@ -24,14 +24,12 @@ public:
     void run();
     unsigned int make_entity();
     unsigned int make_cube_mesh(glm::vec3 size);
-    std::tuple<unsigned int, unsigned int>  make_model(const char *, std::string, bool conv = false);
+    std::tuple<unsigned int, unsigned int>  make_model(const char *);
 
     unsigned int make_texture(const char* filename, const bool );
     void set_up_opengl();
     void make_systems();
     physx::PxConvexMesh* make_physics_model(const char* filename);
-    void createStatic(const physx::PxGeometry& geometry, glm::vec3 material, glm::vec3 transform);
-    void decomposeMeshWithVHACD(const std::string& inputFilePath, const std::string& outputDir, physx::PxPhysics* physics);
 
     //Components
     std::unordered_map<unsigned int, TransformComponent> transformComponents;

@@ -11,9 +11,11 @@ public:
     physx::PxRigidDynamic* createDynamic(const std::vector<physx::PxConvexMesh*>& convexMeshes, glm::vec3 material, glm::vec3 transform, float mass, float sleepT = 0.05f, float linearDamp = 0.0f, float angularDamp = 0.0f);
     physx::PxRigidDynamic* createDynamic(const physx::PxGeometry& geometry, glm::vec3 material, glm::vec3 transform, float mass, float sleepT = 0.05f, float linearDamp = 0.0f, float angularDamp = 0.0f);
     void createStatic(const physx::PxGeometry& geometry, glm::vec3 material, glm::vec3 transform);
-    physx::PxConvexMesh* createMesh(std::vector<physx::PxVec3> vertices);
-    void applyForceToActor(physx::PxRigidDynamic* actor, const physx::PxVec3& force, const physx::PxForceMode::Enum mode = physx::PxForceMode::eIMPULSE);
+    
+
+    void concaveToConvex(const char* filePath, std::string outputDir, std::string baseName);
     void loadObjToPhysX(const std::string& filePath, std::vector<physx::PxConvexMesh*>& convexMeshes);
+    void applyForceToActor(physx::PxRigidDynamic* actor, const physx::PxVec3& force, const physx::PxForceMode::Enum mode = physx::PxForceMode::eIMPULSE);
 
     void update(
         std::unordered_map<unsigned int, TransformComponent>& transformComponents,
@@ -22,10 +24,10 @@ public:
 
 private:
     int mNbThreads = 4;
-    physx::PxPhysics* mPhysics; // Attribut pour garder une référence à l'objet PhysX
+    physx::PxPhysics* mPhysics;
     physx::PxPvd* mPvd;
-    physx::PxScene* mScene;     // Scène PhysX
-    physx::PxDefaultCpuDispatcher* mCpuDispatcher; // Gestionnaire de tâches
+    physx::PxScene* mScene;
+    physx::PxDefaultCpuDispatcher* mCpuDispatcher;
     physx::PxFoundation* mFoundation;
 
 };

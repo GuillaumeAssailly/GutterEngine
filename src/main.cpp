@@ -33,13 +33,6 @@ int main() {
 		app->renderComponents[cubeEntity] = render;*/
 	
 		//boule
-
-		std::string inputFilePath = "obj/servoskull/quille.obj";
-		std::string outputDir = "obj/convexMesh/";
-		std::string outputDir2 = "obj/convexMesh/quille/";
-
-		std::cout << "Décomposition terminée. Les fichiers .obj convexes sont enregistrés dans le répertoire de sortie." << std::endl;
-
 		unsigned int lane = app->make_entity();
 		transform.position = { 0.f, 0.f, 0.f };
 		transform.eulers = { 0.f, 0.f, 0.0f, 0.f};
@@ -49,9 +42,9 @@ int main() {
 		glm::vec3 laneMaterial = { 0.5f, 0.5f, 0.6f };
 		physx::PxBoxGeometry laneGeometry(physx::PxVec3(transform.size.x / 2.0f, transform.size.y / 2.0f, transform.size.z / 2.0f));
 
-		app->createStatic(laneGeometry, laneMaterial, transform.position);
+		app->motionSystem->createStatic(laneGeometry, laneMaterial, transform.position);
 
-		std::tuple<unsigned int, unsigned int> laneModel = app->make_model("obj/servoskull/lane.obj", outputDir);
+		std::tuple<unsigned int, unsigned int> laneModel = app->make_model("obj/servoskull/lane.obj");
 		render.mesh = std::get<0>(laneModel);
 		render.indexCount = std::get<1>(laneModel);
 		render.material = app->make_texture("obj/servoskull/textures/lane.jpg", false);
@@ -72,7 +65,7 @@ int main() {
 		physics.rigidBody  = app->motionSystem->createDynamic(ballGeometry, ballMaterial, transform.position, 6.8f);
 		app->physicsComponents[boule] = physics;
 
-		std::tuple<unsigned int, unsigned int> ballModel = app->make_model("obj/servoskull/boule.obj", outputDir);
+		std::tuple<unsigned int, unsigned int> ballModel = app->make_model("obj/servoskull/boule.obj");
 		 
 		render.mesh = std::get<0>(ballModel);
 		render.indexCount = std::get<1>(ballModel);
@@ -96,10 +89,8 @@ int main() {
 
 		std::vector<physx::PxConvexMesh*> meshes;
 		app->motionSystem->loadObjToPhysX("obj/convexMesh/quille/decomp.obj", meshes);
-		std::cout << "nombre meshes : " << meshes.size() << std::endl;
 
-
-		std::tuple<unsigned int, unsigned int> pinModel = app->make_model("obj/servoskull/quille.obj", outputDir2, false);
+		std::tuple<unsigned int, unsigned int> pinModel = app->make_model("obj/servoskull/quille.obj");
 		float staticFriction = 0.8f;
 		float dynamicFriction = 0.6f;
 		float restitution = 0.2f;
