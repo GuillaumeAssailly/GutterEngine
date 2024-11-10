@@ -1,6 +1,9 @@
 #include "app.h"
 
 
+int screenWidth = 1920;
+int screenHeight = 1080;
+
 App::App() {
     set_up_glfw();
 }
@@ -110,7 +113,7 @@ std::tuple<unsigned int, unsigned int> App::make_model(const char * filePath) {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
     // Set vertex attribute pointers
-   // Position attribute
+    // Position attribute
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0); // 8 * sizeof(float) stride (3 for pos, 3 for normal, 2 for tex)
 
@@ -125,6 +128,16 @@ std::tuple<unsigned int, unsigned int> App::make_model(const char * filePath) {
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(sizeof(float[6]))); // Tex coords start after 6 floats (3 for pos, 3 for normal)
 
+    // Tangent attribute
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(8 * sizeof(float))); // Tangent starts after 8 floats (3 for pos, 3 for normal, 2 for tex)
+
+    // Bitangent attribute
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(11 * sizeof(float))); // Bitangent starts after 11 floats (3 for pos, 3 for normal, 2 for tex, 3 for tangent)
+    
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
 
 
     // Return a tuple of the VAO and the number of indices
@@ -266,6 +279,38 @@ unsigned int App::make_texture(const char* filename, const bool flipTex) {
     return texture;
 }
 
+unsigned int App::make_normal(const char* filename, const bool flipTex) {
+    int width, height, channels;
+    stbi_set_flip_vertically_on_load(flipTex);
+    unsigned char* data = stbi_load(
+        filename, &width, &height, &channels, STBI_rgb); // Use STBI_rgb for normal map (optional)
+
+    if (!data) {
+        std::cerr << "Failed to load texture: " << filename << std::endl;
+        return 0;  // Return 0 if texture loading fails
+    }
+
+    // Generate and bind the texture to texture unit 2
+    unsigned int texture;
+    glGenTextures(1, &texture);
+    textures.push_back(texture);
+    glActiveTexture(GL_TEXTURE2); // Activate texture unit 2
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    // Load texture data into OpenGL
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data); // GL_RGB format
+
+    // Free the image data after loading
+    stbi_image_free(data);
+
+    // Configure texture sampler with mipmaps
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glGenerateMipmap(GL_TEXTURE_2D); // Generate mipmaps
+}
+
 //ImGui variables
 unsigned int selectedEntityID = 0;
 
@@ -280,6 +325,8 @@ void App::run() {
 
     //while loop iterating on the renderer pipeline : 
 
+
+	shadowSystem->Initialize(lightComponents);
     while (!glfwWindowShouldClose(window)) {
         // Per-frame time logic
         // -------------------
@@ -314,83 +361,94 @@ void App::run() {
             break;
         }
         lightSystem->update(lightComponents, transformComponents, cameraID);
-        renderSystem->update(transformComponents, renderComponents);
 
-        // Start ImGui window for debugging
-        ImGui::Begin("Debug");
+        renderSystem->update(transformComponents, renderComponents, lightComponents);
+        shadowSystem->GenerateShadowMap(lightComponents, transformComponents, renderComponents, screenWidth, screenHeight, *cameraComponent);
 
-        // Display FPS
-        ImGui::Text("FPS: %f", 1.0f / deltaTime);
-
-        // --- Entity Tree Window ---
-        ImGui::Begin("Entity Tree");
-
-        // Loop through all entities to create a tree view
-        for (int entityID = 0; entityID < entity_count; entityID++) {
-            std::string entityLabel = entityNames.at(entityID);
-
-            // Display each entity as selectable
-            if (ImGui::Selectable(entityLabel.c_str(), selectedEntityID == entityID)) {
-                selectedEntityID = entityID; // Set the selected entity when clicked
-            }
-        }
-
-        ImGui::End(); // End of Entity Tree window
-
-        // --- Inspector Window ---
-        ImGui::Begin("Inspector");
-
-        // If an entity is selected, show its components
-        if (selectedEntityID < entity_count) {
-
-            // Display TransformComponent if present
-            if (transformComponents.find(selectedEntityID) != transformComponents.end()) {
-                ImGui::Text("Transform Component");
-                TransformComponent& transform = transformComponents[selectedEntityID];
-                ImGui::InputFloat3("Position", &transform.position[0]);
-                ImGui::InputFloat3("Rotation", &transform.eulers[0]);
-            }
-
-            // Display PhysicsComponent if present
-            if (physicsComponents.find(selectedEntityID) != physicsComponents.end()) {
-                ImGui::Text("Physics Component");
-                PhysicsComponent& physics = physicsComponents[selectedEntityID];
-                ImGui::InputFloat3("Velocity", &physics.velocity[0]);
-                ImGui::InputFloat3("Euler Velocity", &physics.eulerVelocity[0]);
-            }
-
-            // Display LightComponent if present
-            if (lightComponents.find(selectedEntityID) != lightComponents.end()) {
-                ImGui::Text("Light Component");
-                LightComponent& light = lightComponents[selectedEntityID];
-                ImGui::ColorEdit3("Light Color", &light.color[0]);
-                ImGui::SliderFloat("Intensity", &light.intensity, 0.0f, 10.0f);
-            }
-
-            // Display RenderComponent if present
-            if (renderComponents.find(selectedEntityID) != renderComponents.end()) {
-                ImGui::Text("Render Component");
-                RenderComponent& render = renderComponents[selectedEntityID];
-                ImGui::InputInt("Mesh ID", (int*)&render.mesh);
-            }
-        }
-        else {
-            ImGui::Text("No entity selected.");
-        }
-
-        ImGui::End(); // End of Inspector window
-
-		// Render ImGui
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-        // Swap buffers to display the frame
-        glfwSwapBuffers(window);
+		manageImGui();  
     }
 
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
+}
+
+void App::manageImGui() {
+
+    // Start ImGui window for debugging
+    ImGui::Begin("Debug");
+
+    // Display FPS
+    ImGui::Text("FPS: %f", 1.0f / deltaTime);
+
+    // --- Entity Tree Window ---
+    ImGui::Begin("Entity Tree");
+
+    // Loop through all entities to create a tree view
+    for (int entityID = 0; entityID < entity_count; entityID++) {
+        std::string entityLabel = entityNames.at(entityID);
+
+        // Display each entity as selectable
+        if (ImGui::Selectable(entityLabel.c_str(), selectedEntityID == entityID)) {
+            selectedEntityID = entityID; // Set the selected entity when clicked
+        }
+    }
+
+    ImGui::End(); // End of Entity Tree window
+
+    // --- Inspector Window ---
+    ImGui::Begin("Inspector");
+
+    // If an entity is selected, show its components
+    if (selectedEntityID < entity_count) {
+
+        // Display TransformComponent if present
+        if (transformComponents.find(selectedEntityID) != transformComponents.end()) {
+            ImGui::Text("Transform Component");
+            TransformComponent& transform = transformComponents[selectedEntityID];
+            ImGui::DragFloat3("Position", &transform.position[0]);
+            ImGui::DragFloat3("Rotation", &transform.eulers[0]);
+        }
+
+        // Display PhysicsComponent if present
+        if (physicsComponents.find(selectedEntityID) != physicsComponents.end()) {
+            ImGui::Text("Physics Component");
+            PhysicsComponent& physics = physicsComponents[selectedEntityID];
+            ImGui::DragFloat3("Velocity", &physics.velocity[0]);
+            ImGui::DragFloat3("Euler Velocity", &physics.eulerVelocity[0]);
+        }
+
+        // Display LightComponent if present
+        if (lightComponents.find(selectedEntityID) != lightComponents.end()) {
+            ImGui::Text("Light Component");
+            LightComponent& light = lightComponents[selectedEntityID];
+            ImGui::ColorEdit3("Light Color", &light.color[0]);
+            ImGui::SliderFloat("Intensity", &light.intensity, 0.0f, 10.0f);
+			ImGui::Checkbox("Is Directional", &light.isDirectional);
+            if (light.isDirectional == true) {
+                ImGui::DragFloat3("Light Direction", &light.direction[0], 0.1);
+            }
+        }
+
+        // Display RenderComponent if present
+        if (renderComponents.find(selectedEntityID) != renderComponents.end()) {
+            ImGui::Text("Render Component");
+            RenderComponent& render = renderComponents[selectedEntityID];
+            ImGui::InputInt("Mesh ID", (int*)&render.mesh);
+        }
+    }
+    else {
+        ImGui::Text("No entity selected.");
+    }
+
+    ImGui::End(); // End of Inspector window
+
+    // Render ImGui
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+    // Swap buffers to display the frame
+    glfwSwapBuffers(window);
 }
 
 
@@ -457,12 +515,21 @@ void App::set_up_opengl() {
         "shaders/shader.vert",
         "shaders/shader.frag");
 
+    shadowShader = make_shader(
+        "shaders/shadowShader.vert",
+        "shaders/shadowShader.frag");
+
+	depthMapDebugShader = make_shader(
+		"shaders/depthMap.vert",
+		"shaders/depthMap.frag");
+
 
 
     glUseProgram(shader);
     unsigned int projLocation = glGetUniformLocation(shader, "projection");
     //TODO : add configurable perspective :
-    glm::mat4 projection = glm::perspective(  45.0f, 1920.0f / 1080.0f, 0.01f, 1000.0f);
+    glm::mat4 projection = glm::perspective(  45.0f, (float)screenWidth / screenHeight, 0.01f, 100.0f);
+	cameraComponent->projectionMatrix = projection;
     glUniformMatrix4fv(projLocation, 1, GL_FALSE, glm::value_ptr(projection));
 }   
 
@@ -470,8 +537,11 @@ void App::make_systems() {
     motionSystem = new MotionSystem();
     cameraSystem = new CameraSystem(shader, window);
 	lightSystem = new LightSystem(shader);
+	shadowSystem = new ShadowSystem(shader,shadowShader, depthMapDebugShader);
     renderSystem = new RenderSystem(shader, window);
 }
+
+
 
 /// <summary>
 /// Callback function for when the window is resized
@@ -480,5 +550,9 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     // make sure the viewport matches the new window dimensions; note that width and 
     // height will be significantly larger than specified on retina displays.
+	screenWidth = width;
+	screenHeight = height;
+
+
     glViewport(0, 0, width, height);
 }

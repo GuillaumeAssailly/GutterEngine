@@ -176,8 +176,24 @@
     <ClInclude Include="src\view\shader.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="shaders\depthMap.frag">
+      <FileType>Document</FileType>
+      <DeploymentContent>false</DeploymentContent>
+    </None>
+    <None Include="shaders\depthMap.vert">
+      <FileType>Document</FileType>
+      <DeploymentContent>false</DeploymentContent>
+    </None>
     <None Include="shaders\shader.frag" />
     <None Include="shaders\shader.vert" />
+    <None Include="shaders\shadowShader.frag">
+      <FileType>Document</FileType>
+      <DeploymentContent>false</DeploymentContent>
+    </None>
+    <None Include="shaders\shadowShader.vert">
+      <FileType>Document</FileType>
+      <DeploymentContent>false</DeploymentContent>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="tex\basetex.png" />

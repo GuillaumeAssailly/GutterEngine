@@ -62,6 +62,7 @@ int main() {
 		render.mesh = std::get<0>(model);
 		render.indexCount = std::get<1>(model);
 		render.material = app->make_texture("obj/bowling/textures/Bowling_Pack_Diffuse.png", false);
+		render.normalMap = app->make_texture("obj/bowling/textures/Bowling_Pack_Normal.png", false);
 		app->renderComponents[boule] = render;
 
 		glm::vec3 first_pin = { 0.f, 0.142f, 20.60475f };
@@ -91,13 +92,14 @@ int main() {
 			std::tuple<unsigned int, unsigned int> model = app->make_model("obj/servoskull/quille.obj");
 
 			render.mesh = std::get<0>(model);
-			render.indexCount = std::get<1>(model);
+			render.indexCount = std::get<1>(model);	
+			render.normalMap = app->renderComponents[boule].normalMap;
 			app->renderComponents[quille] = render;
 		}
 
 		unsigned int cameraEntity = app->make_entity("Camera");
-		transform.position = first_pin;
-		transform.eulers = { 0.0f, 0.0f, 90.0f };
+		transform.position = { 2.632f, 0.638f, -2.827f };
+		transform.eulers = { 0.0f, -2.2f, 127.798f };
 		app->transformComponents[cameraEntity] = transform;
 
 		CameraComponent* camera = new CameraComponent();
@@ -106,55 +108,100 @@ int main() {
 
 		//First light : 
 		unsigned int lightEntity1 = app->make_entity("First Light");
-		transform.position = first_pin;
-		transform.eulers = { 0.0f, 0.0f, 0.0f };
+		transform.position = { 2.632f, 0.638f, -2.827f };
+		transform.eulers = { 0.0f, -2.2f, 127.798f };
 		app->transformComponents[lightEntity1] = transform;
 
-		physics.velocity = { 0.001f, 0.01f, 0.001f };
-		physics.eulerVelocity = { 52, 6, 50 };
+		physics.velocity = { 0.000f, 0.00f, 0.000f };
+		physics.eulerVelocity = { 0, 0, 0 };
 		app->physicsComponents[lightEntity1] = physics;
 
-		light.color = { 0.0f, 1.0f, 1.0f };
-		light.intensity = 1.0f;
+		light.color = { 1.0f, 1.0f, 1.0f };
+		light.intensity = 2.056f;
+		light.isDirectional = true;
+		light.direction = { -1.4f, -2.9f, 0.4f };
 		app->lightComponents[lightEntity1] = light;
 
 		std::tuple<unsigned int, unsigned int> defaultCube1 = app->make_cube_mesh({0.1f, 0.1f, 0.1f });
-		render.mesh = std::get<0>(defaultCube1);
+		//render.mesh = std::get<0>(defaultCube1);
 		render.indexCount = std::get<1>(defaultCube1);
 		render.material = app->make_texture("tex/lightTex.png", false);
-		app->renderComponents[lightEntity1] = render;
+		//app->renderComponents[lightEntity1] = render;
 
 
 		//Second light: 
-		unsigned int lightEntity2 = app->make_entity("Second Light");
-		transform.position = { 0.0f, 4.0f, 4.0f };
-		transform.eulers = { 0.0f, 0.0f, 0.0f };
-		app->transformComponents[lightEntity2] = transform;
+		//unsigned int lightEntity2 = app->make_entity("Second Light");
+		//transform.position = { 0.0f, 4.0f, 4.0f };
+		//transform.eulers = { 0.0f, 0.0f, 0.0f };
+		//app->transformComponents[lightEntity2] = transform;
 
-		light.color = { 1.0f, 1.0f, 1.0f };
-		light.intensity = 1.0f;
-		app->lightComponents[lightEntity2] = light;
+		//light.color = { 1.0f, 1.0f, 1.0f };
+		//light.intensity = 1.0f;
+		//app->lightComponents[lightEntity2] = light;
 
-		std::tuple<unsigned int, unsigned int> defaultCube2 = app->make_cube_mesh({ 0.1f, 0.1f, 0.1f });
-		render.mesh = std::get<0>(defaultCube2);
-		render.indexCount = std::get<1>(defaultCube2);
-		render.material = app->make_texture("tex/lightTex.png", false);
-		app->renderComponents[lightEntity2] = render;
+		//std::tuple<unsigned int, unsigned int> defaultCube2 = app->make_cube_mesh({ 0.1f, 0.1f, 0.1f });
+		//render.mesh = std::get<0>(defaultCube2);
+		//render.indexCount = std::get<1>(defaultCube2);
+		//render.material = app->make_texture("tex/lightTex.png", false);
+		//app->renderComponents[lightEntity2] = render;
 
 
 		////glorious t34 :
-		//unsigned int glaive = app->make_entity("T34");
-		//transform.position = { 0.0f, 0.0f, 0.0f };
-		//transform.eulers = { 270.0f, 0.0f, 0.0f };
-		//app->transformComponents[glaive] = transform;
+		unsigned int glaive = app->make_entity("T34");
+		transform.position = { 0.0f, 0.0f, 0.0f };
+		transform.eulers = { 270.0f, 0.0f, 0.0f };
+		app->transformComponents[glaive] = transform;
 
-		//
-		//std::tuple<unsigned int, unsigned int> t34 = app->make_model("obj/servoskull/t34.fbx");
+		
+		std::tuple<unsigned int, unsigned int> t34 = app->make_model("obj/servoskull/t34.fbx");
 
-		//render.mesh = std::get<0>(t34);
-		//render.indexCount = std::get<1>(t34);
-		//render.material = app->make_texture("obj/servoskull/text t34/Antracite_Base_color.png", false);
-		//app->renderComponents[glaive] = render;
+		render.mesh = std::get<0>(t34);
+		render.indexCount = std::get<1>(t34);
+		render.material = app->make_texture("obj/servoskull/text t34/Antracite_Base_color.png", false);
+		//render.normalMap = app->make_texture("obj/servoskull/text t34/Antracite_Normal_OpenGL.png", false);
+		app->renderComponents[glaive] = render;
+		/*
+		unsigned int glaive = app->make_entity("Store");
+		transform.position = { 0.0f, 0.0f, 0.0f };
+		transform.eulers = { 0.0f, 0.0f, 0.0f };
+		app->transformComponents[glaive] = transform;
+
+		
+		std::tuple<unsigned int, unsigned int> t34 = app->make_model("obj/cp/Store.obj");
+
+		render.mesh = std::get<0>(t34);
+		render.indexCount = std::get<1>(t34);
+		render.material = app->make_texture("obj/cp/textures/scene_Default_BaseColor.png", false);
+		render.normalMap = app->make_texture("obj/cp/textures/scene_Default_Normal.png", false);
+
+		*/
+		app->renderComponents[glaive] = render;
+
+		unsigned int road = app->make_entity("Road");
+		transform.position = { 0.0f, 0.0f, 0.0f };
+		transform.eulers = { 0.0f, 0.0f, 0.0f };
+		app->transformComponents[road] = transform;
+
+		
+		std::tuple<unsigned int, unsigned int> roadMesh = app->make_model("obj/cp/AsphaltRoad.obj");
+
+		render.mesh = std::get<0>(roadMesh);
+		render.indexCount = std::get<1>(roadMesh);
+		render.material = app->make_texture("obj/cp/textures/2K-asphalt_1-diffuse.jpeg", false);
+		app->renderComponents[road] = render;
+
+		unsigned int glass = app->make_entity("Glass");
+		transform.position = { 0.0f, 0.0f, 0.0f };
+		transform.eulers = { 0.0f, 0.0f, 0.0f };
+		app->transformComponents[glass] = transform;
+
+
+		std::tuple<unsigned int, unsigned int> glassMesh = app->make_model("obj/cp/Glass.obj");
+
+		render.mesh = std::get<0>(glassMesh);
+		render.indexCount = std::get<1>(glassMesh);
+		render.material = app->make_texture("obj/cp/textures/2K-asphalt_1-diffuse.jpeg", false);
+		app->renderComponents[glass] = render;
 
 
 		app->set_up_opengl();

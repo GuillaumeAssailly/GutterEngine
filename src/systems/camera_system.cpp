@@ -32,12 +32,13 @@ bool CameraSystem::update(
 
     up = glm::normalize(glm::cross(right, forwards));
 
-    glm::mat4 view = glm::lookAt(pos, pos + forwards, global_up);
+    cameraComponent.viewMatrix = glm::lookAt(pos, pos + forwards, global_up);
 
-    glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
+
+    glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(cameraComponent.viewMatrix));
 
     glm::vec3 dPos = { 0.0f, 0.0f, 0.0f };
-
+	
 
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
         if (!moving) {
@@ -106,7 +107,7 @@ bool CameraSystem::update(
         glfwSetCursorPos(window, mouse_x_ref, mouse_y_ref);
         
 
-        dEulers.z = -0.1f * static_cast<float>(mouse_x - mouse_x_ref);
+        dEulers.z = 0.1f * static_cast<float>(mouse_x - mouse_x_ref);
         dEulers.y = -0.1f * static_cast<float>(mouse_y - mouse_y_ref);
 
     eulers.y = glm::clamp(eulers.y + dEulers.y, -89.0f, 89.0f);

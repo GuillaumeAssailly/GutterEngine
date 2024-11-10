@@ -29,6 +29,16 @@ void LightSystem::update(std::unordered_map<unsigned int, LightComponent>&  ligh
 		std::string lightIntensityUniform = "intensity[" + std::to_string(i) + "]";
 		GLint lightIntensityLoc = glGetUniformLocation(shaderProgram, lightIntensityUniform.c_str());
 		glUniform1f(lightIntensityLoc, lights[i].intensity);
+
+		//Set isDirectional
+		std::string lightIsDirectionalUniform = "isDirectional[" + std::to_string(i) + "]";
+		GLint lightIsDirectionalLoc = glGetUniformLocation(shaderProgram, lightIsDirectionalUniform.c_str());
+		glUniform1i(lightIsDirectionalLoc, lights[i].isDirectional);
+
+		//Set Direction
+		std::string lightDirectionUniform = "directionalLightsDir[" + std::to_string(i) + "]";
+		GLint lightDirectionLoc = glGetUniformLocation(shaderProgram, lightDirectionUniform.c_str());
+		glUniform3fv(lightDirectionLoc, 1, glm::value_ptr(lights[i].direction));
 	}
 }
 

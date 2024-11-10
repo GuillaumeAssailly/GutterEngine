@@ -13,10 +13,12 @@
 #include "../view/shader.h"
 #include "../components/light_component.h"
 #include "../systems/light_system.h"
+#include "../systems/shadow_system.h"
 
 
 //Callbacks
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+
 
 
 class App {
@@ -29,6 +31,7 @@ public:
     std::tuple<unsigned int, unsigned int>  make_model(const char *);
 
     unsigned int make_texture(const char* filename, const bool );
+	unsigned int make_normal(const char* filename, const bool flipTex);
     void set_up_opengl();
     void make_systems();
     
@@ -54,6 +57,8 @@ private:
     std::vector<unsigned int> textures;
 
     unsigned int shader;
+    unsigned int shadowShader;
+    unsigned int depthMapDebugShader;
 
 	float deltaTime = 0.0f;
 	float lastFrame = 0.0f;
@@ -63,6 +68,10 @@ private:
     CameraSystem* cameraSystem;
     RenderSystem* renderSystem;
     LightSystem* lightSystem;
+	ShadowSystem* shadowSystem;
+
+
+    void manageImGui();
 
     
 };
