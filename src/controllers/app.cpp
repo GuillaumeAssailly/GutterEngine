@@ -1,4 +1,6 @@
 #include "app.h"
+#define ENABLE_VHACD_IMPLEMENTATION 1
+#include "VHACD.h"
 
 
 App::App() {
@@ -18,10 +20,47 @@ App::~App() {
     glfwTerminate();
 }
 
-unsigned int App::make_entity() {
-    return entity_count++;
-}
 
+// Fonction principale pour décomposer un maillage concave en plusieurs parties convexes
+void App::decomposeMeshWithVHACD(const std::string& inputFilePath, const std::string& outputDir, physx::PxPhysics* physics) {
+    std::vector<double> vertices;
+    std::vector<unsigned int> indices;
+
+
+    VHACD::IVHACD* interfaceVHACD = VHACD::CreateVHACD();
+    VHACD::IVHACD::Parameters params;
+
+    // Configure les paramètres en fonction des membres disponibles
+    params.m_callback = nullptr;                       // Interface optionnelle pour les callbacks de progression
+    params.m_logger = nullptr;                         // Interface optionnelle pour les messages de log
+    params.m_taskRunner = nullptr;                     // Interface optionnelle pour créer des tâches
+    params.m_maxConvexHulls = 64;                      // Nombre maximum de coques convexes
+    params.m_resolution = 400000;                      // Résolution des voxels
+    params.m_minimumVolumePercentErrorAllowed = 1.0;   // Pourcentage d'erreur de volume des voxels pour approximation
+    params.m_maxRecursionDepth = 10;                   // Profondeur maximale de récursion
+    params.m_shrinkWrap = true;                        // Réduction des positions des voxels sur le maillage source
+    params.m_fillMode = VHACD::FillMode::FLOOD_FILL;   // Mode de remplissage du maillage voxelisé
+    params.m_maxNumVerticesPerCH = 64;                 // Nombre max de sommets par coque convexe
+    params.m_asyncACD = true;                          // Décomposition asynchrone pour tirer parti des cœurs supplémentaires
+    params.m_minEdgeLength = 2;                        // Longueur minimale des arêtes de la voxelisation
+    params.m_findBestPlane = false;                    // Tentative expérimentale de séparation sur le meilleur plan
+
+    // Appliquer VHACD pour décomposer le maillage
+    bool success = interfaceVHACD->Compute(
+        vertices.data(),                       // Pointeur vers les données de sommets
+        static_cast<unsigned int>(vertices.size() / 3),  // Nombre de sommets
+        indices.data(),                        // Pointeur vers les indices des triangles
+        static_cast<unsigned int>(indices.size() / 3),   // Nombre de triangles
+        params                                 // Paramètres de décomposition
+    );
+
+    // Sauvegarder chaque morceau convexe dans un fichier .obj
+    //saveConvexHullToObj(interfaceVHACD, outputDir);
+
+    // Nettoyage
+    interfaceVHACD->Clean();
+    interfaceVHACD->Release();
+}
 
 
 static int totalFaces = 0;
@@ -38,16 +77,12 @@ void processNode(const aiScene* scene, aiNode* node, std::vector<float>& vertice
             vertices.push_back(mesh->mVertices[j].y);
             vertices.push_back(mesh->mVertices[j].z);
 
-            vertices.push_back(mesh->mNormals[j].x);
+            vertices.push_back(mesh->mNormals[j].x); 
             vertices.push_back(mesh->mNormals[j].y);
-            vertices.push_back(mesh->mNormals[j].z);
+            vertices.push_back(mesh->mNormals[j].z); 
 
-            vertices.push_back(mesh->mTextureCoords[0][j].x);
-            vertices.push_back(mesh->mTextureCoords[0][j].y);
-
-          
-        
-
+            vertices.push_back(mesh->mTextureCoords[0][j].x); 
+            vertices.push_back(mesh->mTextureCoords[0][j].y); 
         }
 
         // Extract indices
@@ -72,44 +107,64 @@ void processNode(const aiScene* scene, aiNode* node, std::vector<float>& vertice
 	
 }
 
-
-
-
-btConvexHullShape* createConvexMesh(const std::string& path) {
-    Assimp::Importer importer;
-    const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_JoinIdenticalVertices);
-
-    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-        std::cerr << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
-        return nullptr;
+struct Vec3Hash {
+    std::size_t operator()(const physx::PxVec3& vec) const {
+        return std::hash<float>()(vec.x) ^ std::hash<float>()(vec.y) ^ std::hash<float>()(vec.z);
     }
+};
 
-    // Création du maillage convexe
-    btConvexHullShape* convexShape = new btConvexHullShape();
+void processNode(const aiScene* scene, aiNode* node, std::vector<physx::PxVec3>& vertices, std::unordered_set<physx::PxVec3, Vec3Hash>& uniqueVertices) {
+    for (unsigned int i = 0; i < node->mNumMeshes; i++) {
+        aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 
-    // Parcourir tous les maillages du modèle
-    for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
-        aiMesh* mesh = scene->mMeshes[i];
+        if (mesh->mNumVertices > 0) {
+            for (unsigned int j = 0; j < mesh->mNumVertices; j++) {
+                physx::PxVec3 vertex = { mesh->mVertices[j].x, mesh->mVertices[j].y, mesh->mVertices[j].z };
 
-        // Ajouter chaque vertex au maillage convexe
-        for (unsigned int j = 0; j < mesh->mNumVertices; j++) {
-            aiVector3D vertex = mesh->mVertices[j];
-            convexShape->addPoint(btVector3(vertex.x, vertex.y, vertex.z), false);
+                // Vérifiez si le sommet est déjà présent
+                if (uniqueVertices.insert(vertex).second) {
+                    vertices.push_back(vertex);
+                }
+            }
+
+            std::cout << "Mesh name : " << node->mName.C_Str() << std::endl;
+            std::cout << "Faces number : " << mesh->mNumFaces << std::endl; // Correction ici, pour le nombre de faces
+            std::cout << "Vertices: " << vertices.size() << std::endl;
+        }
+        else {
+            std::cout << "Warning: Mesh " << node->mName.C_Str() << " has no vertices!" << std::endl;
         }
     }
 
-    // Recalculer l'AABB local après ajout des points
-    convexShape->recalcLocalAabb();
+    for (unsigned int i = 0; i < node->mNumChildren; i++) {
+        printf("Changement de child \n\n");
+        processNode(scene, node->mChildren[i], vertices, uniqueVertices);
+    }
+}
+physx::PxConvexMesh* App::make_physics_model(const char* filename) {
+    physx::PxConvexMesh* convexMesh = nullptr;
+    std::vector<physx::PxVec3> physxVertices;
+    std::unordered_set<physx::PxVec3, Vec3Hash> uniqueVertices;
 
-    return convexShape;
+    Assimp::Importer importer;
+    const aiScene* scene = importer.ReadFile(filename, aiProcess_OptimizeMeshes | aiProcess_Triangulate | aiProcess_FlipUVs);
+    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+        std::cout << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
+        exit(-1);
+    }
+
+    processNode(scene, scene->mRootNode, physxVertices, uniqueVertices);
+    printf("Taille: %d,    tailleUnique : %d\n", physxVertices.size(), uniqueVertices.size());
+
+    convexMesh = motionSystem->createMesh(physxVertices);
+
+    return convexMesh;
 }
 
-
-std::tuple<unsigned int, unsigned int, btConvexHullShape*> App::make_model(const char* filePath, bool concaveMesh) {
+std::tuple<unsigned int, unsigned int> App::make_model(const char* filePath) {
 
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
-    btConvexHullShape* objShape = nullptr;
 
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile( filePath, aiProcess_OptimizeMeshes | aiProcess_Triangulate | aiProcess_FlipUVs);
@@ -119,9 +174,6 @@ std::tuple<unsigned int, unsigned int, btConvexHullShape*> App::make_model(const
     }
 
     processNode(scene, scene->mRootNode, vertices, indices);
-
-    if(concaveMesh)
-        objShape = createConvexMesh("obj/servoskull/quille.dae");
 
     // Create VAO
     unsigned int VAO;
@@ -161,38 +213,7 @@ std::tuple<unsigned int, unsigned int, btConvexHullShape*> App::make_model(const
 
 
     // Return a tuple of the VAO and the number of indices
-    return std::make_tuple(VAO, indices.size(), objShape);
-}
-
-void App::make_object(std::tuple<unsigned int, unsigned int, btConvexHullShape*> model, unsigned int tex, glm::vec3 position, float massf, float friction, float restitution, glm::vec4 eulers, glm::vec3 inert)
-{
-    PhysicsComponent physics;
-    RenderComponent render;
-    btConvexHullShape* shape = std::get<2>(model);
-    btDefaultMotionState* motionState = new btDefaultMotionState(btTransform(
-        btQuaternion(eulers.x, eulers.y, eulers.z, 1),
-        btVector3(position.x, position.y, position.z)
-    ));
-
-    btScalar mass = massf; 
-    btVector3 inertia(inert.x, inert.y, inert.z);
-    shape->calculateLocalInertia(mass, inertia);
-
-    btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(mass, motionState, shape, inertia);
-    rigidBodyCI.m_restitution = 0.5f;
-    rigidBodyCI.m_friction = 0.8f;
-    physics.rigidBody = new btRigidBody(rigidBodyCI);
-    add_rigid_body(physics.rigidBody);
-
-    physicsComponents[entity_count] = physics;
-
-    render.mesh = std::get<0>(model);
-    render.indexCount = std::get<1>(model);
-    render.material = tex;
-
-    renderComponents[entity_count] = render;
-
-    make_entity();
+    return std::make_tuple(VAO, indices.size());
 }
 
 unsigned int App::make_cube_mesh(glm::vec3 size) {
@@ -329,9 +350,8 @@ void App::run() {
         }
 
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-            btVector3 force(0, 0, 80); // Force dirigée vers le haut
-            printf("Pressed\n\n");
-            physicsComponents[1].rigidBody->applyCentralForce(force);
+            physx::PxVec3 force(0, 0, 0.02);
+            motionSystem->applyForceToActor(physicsComponents[1].rigidBody, force);
         }
 
         // Update systems
@@ -343,6 +363,11 @@ void App::run() {
 
         renderSystem->update(transformComponents, renderComponents);
     }
+}
+
+unsigned int App::make_entity()
+{
+    return entity_count++;
 }
 
 
@@ -417,9 +442,14 @@ void App::make_systems() {
     renderSystem = new RenderSystem(shader, window);
 }
 
-void App::add_rigid_body(btRigidBody* rigidBody)
-{
-    motionSystem->addRigidBody(rigidBody);
+
+
+physx::PxRigidDynamic* App::createDynamic(const physx::PxGeometry& geometry, glm::vec3 material, glm::vec3 transform, float mass, float sleepT, float linearDamp, float angularDamp){
+    return motionSystem->createDynamic(geometry, material, transform, mass, sleepT,linearDamp, angularDamp);
+}
+
+void App::createStatic(const physx::PxGeometry& geometry, glm::vec3 material, glm::vec3 transform) {
+    motionSystem->createStatic(geometry, material, transform);
 }
 
 /// <summary>

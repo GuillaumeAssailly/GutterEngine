@@ -4,5 +4,5 @@
 struct PhysicsComponent {
     glm::vec3 velocity;
     glm::vec3 eulerVelocity;
-    btRigidBody* rigidBody;
+    physx::PxRigidDynamic* rigidBody;
 };

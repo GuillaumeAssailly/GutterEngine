@@ -24,15 +24,15 @@ public:
     void run();
     unsigned int make_entity();
     unsigned int make_cube_mesh(glm::vec3 size);
-    std::tuple<unsigned int, unsigned int, btConvexHullShape*>  make_model(const char *, bool = false);
-
-    void make_object(std::tuple<unsigned int, unsigned int, btConvexHullShape*> model, unsigned int tex, glm::vec3 position, float mass = 0.f, float friction = 0.5, float restitution = 0.5, glm::vec4 eulers = {0.f, 0.f, 0.f, 0.f}, glm::vec3 inertia = { 0.f, 0.f, 0.f });
+    std::tuple<unsigned int, unsigned int>  make_model(const char *);
 
     unsigned int make_texture(const char* filename, const bool );
     void set_up_opengl();
     void make_systems();
-    void add_rigid_body(btRigidBody* rigidBody);
-    
+    physx::PxConvexMesh* make_physics_model(const char* filename);
+    physx::PxRigidDynamic* createDynamic(const physx::PxGeometry& geometry, glm::vec3 material, glm::vec3 transform, float mass, float sleepT = 0.005f, float linearDamp = 0.0f, float angularDamp = 0.0f);
+    void createStatic(const physx::PxGeometry& geometry, glm::vec3 material, glm::vec3 transform);
+    void decomposeMeshWithVHACD(const std::string& inputFilePath, const std::string& outputDir, physx::PxPhysics* physics);
 
     //Components
     std::unordered_map<unsigned int, TransformComponent> transformComponents;
