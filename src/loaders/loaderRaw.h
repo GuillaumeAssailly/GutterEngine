@@ -2,5 +2,6 @@
 #include "loader.h"
 
 class LoaderRaw : public Loader {
-	void load(glm::vec3* vectors) const override;
+	void loadQuilles(App *app, TransformComponent transform, 
+		PhysicsComponent physics, RenderComponent render) const override;
 };

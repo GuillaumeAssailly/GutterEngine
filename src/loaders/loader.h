@@ -1,8 +1,10 @@
 #pragma once
 #include "../config.h"
+#include "../controllers/app.h"
 
 class Loader {
 public:
-    virtual void load(glm::vec3* vectors) const = 0; // Méthode virtuelle pure
+    virtual void loadQuilles(App *app, TransformComponent transform, 
+        PhysicsComponent physics, RenderComponent render) const = 0;
     virtual ~Loader() {}
 };

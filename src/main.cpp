@@ -68,27 +68,9 @@ int main() {
 		render.material = app->make_texture("obj/bowling/textures/Bowling_Pack_Diffuse.png", false);
 		app->renderComponents[boule] = render;
 
-		glm::vec3 first_pin = {0.f, 0.142f, 20.60475f};
-		glm::vec3 vectors[10]; 
-		loader->load(vectors);
-
-		for (int i = 0; i < 10; i++) {
-			unsigned int quille = app->make_entity("Quille " + std::to_string(i));
-			transform.position = vectors[i];
-			
-			transform.eulers = { 0, 0, 0 };
-			app->transformComponents[quille] = transform;
-
-			physics.velocity = { 0.0f, 0.0f, 0.0f };
-			physics.eulerVelocity = { 0.0f, 0.f, 0.f };
-			app->physicsComponents[quille] = physics;
-
-			std::tuple<unsigned int, unsigned int> model = app->make_model("obj/servoskull/quille.obj");
-
-			render.mesh = std::get<0>(model);
-			render.indexCount = std::get<1>(model);
-			app->renderComponents[quille] = render;
-		}
+		// Chargement des quilles
+		glm::vec3 first_pin = {0.f, 0.142f, 20.60475f}; 
+		loader->loadQuilles(app, transform, physics, render);
 
 		unsigned int cameraEntity = app->make_entity("Camera");
 		transform.position = first_pin;
