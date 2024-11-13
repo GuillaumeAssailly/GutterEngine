@@ -5,6 +5,7 @@
 #include "components/physics_component.h"
 #include "components/render_component.h"
 #include "components/transform_component.h"
+#include "components/light_component.h"
 
 int main() {
 
@@ -13,24 +14,12 @@ int main() {
 		TransformComponent transform;
 		RenderComponent render;
 		PhysicsComponent physics;
-
+		LightComponent light;
+		//TODO : check this 
 		app->set_up_opengl();
 		app->make_systems();
 
-		////BASE CUBE : 
-		/*unsigned int cubeEntity = app->make_entity();
-		transform.position = { 0.0f, 0.0f, 0.0f };
-		transform.eulers = { 0.0f, 0.0f, 0.0f };
-		app->transformComponents[cubeEntity] = transform;
-
-		physics.velocity = { 0.0f, 0.0f, 0.0f };
-		physics.eulerVelocity = { 0.0f, 0.0f, 0.0f };
-		app->physicsComponents[cubeEntity] = physics;
-
-		render.mesh = app->make_cube_mesh({ 0.25 , 0.25, 0.25 });
 		
-		render.material = app->make_texture("tex/basetex.png", false);
-		app->renderComponents[cubeEntity] = render;*/
 	
 		//boule
 		unsigned int lane = app->make_entity();
@@ -50,10 +39,9 @@ int main() {
 		render.material = app->make_texture("obj/servoskull/textures/lane.jpg", false);
 		app->renderComponents[lane] = render;
 
-		unsigned int boule = app->make_entity();
-		transform.position = { 0.1f, 2.f, 0.050f};
-		transform.eulers = {0.0f, 0.0f, 0.0f, 0.f};
-		transform.size = { 0.21f, 0.21f, 0.21f };
+		unsigned int boule = app->make_entity("Boule");
+		transform.position = { 0.0f, 0.105f, 3.0f};
+		transform.eulers = {0.0f, 0.0f, 0.0f };
 		app->transformComponents[boule] = transform;
 
 		physics.velocity = { 0.f, 0.0f, 0.f };
@@ -100,10 +88,10 @@ int main() {
 		float restitution = 0.2f;
 
 		for (int i = 0; i < 10; i++) {
-			unsigned int pin = app->make_entity();
+			unsigned int quille = app->make_entity("Quille " + std::to_string(i));
 			transform.position = vectors[i];
 			transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
-			app->transformComponents[pin] = transform;
+			app->transformComponents[quille] = transform;
 
 			physics.velocity = { 0.f, 0.0f, 0.f };
 			physics.eulerVelocity = { 0, 0, 0 };
@@ -111,23 +99,65 @@ int main() {
 			glm::vec3 pinMaterial = { 0.5f, 0.5f, 0.2f };
 
 			physics.rigidBody = app->motionSystem->createDynamic(meshes, pinMaterial, transform.position, 0.012f, 0.015f, 0.0f, 0.0f);
-			app->physicsComponents[pin] = physics;
+			app->physicsComponents[quille] = physics;
 
 
 			render.mesh = std::get<0>(pinModel);
 			render.indexCount = std::get<1>(pinModel);
-			app->renderComponents[pin] = render;
+			app->renderComponents[quille] = render;
 			
 		}
 
-		unsigned int cameraEntity = app->make_entity();
-		transform.position = { -3.0f, 1.0f, 0.0f };
-		transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f};
+		unsigned int cameraEntity = app->make_entity("Camera");
+		transform.position = first_pin;
+		transform.eulers = { 0.0f, 0.0f, 90.0f };
 		app->transformComponents[cameraEntity] = transform;
 
 		CameraComponent* camera = new CameraComponent();
 		app->cameraComponent = camera;
 		app->cameraID = cameraEntity;
+
+		//First light : 
+		unsigned int lightEntity1 = app->make_entity("First Light");
+		transform.position = first_pin;
+		transform.eulers = { 0.0f, 0.0f, 0.0f };
+		app->transformComponents[lightEntity1] = transform;
+
+		physics.velocity = { 0.001f, 0.01f, 0.001f };
+		physics.eulerVelocity = { 52, 6, 50 };
+		app->physicsComponents[lightEntity1] = physics;
+
+		light.color = { 0.0f, 1.0f, 1.0f };
+		light.intensity = 1.0f;
+		app->lightComponents[lightEntity1] = light;
+
+		std::tuple<unsigned int, unsigned int> defaultCube1 = app->make_cube_mesh({0.1f, 0.1f, 0.1f });
+		render.mesh = std::get<0>(defaultCube1);
+		render.indexCount = std::get<1>(defaultCube1);
+		render.material = app->make_texture("tex/lightTex.png", false);
+		app->renderComponents[lightEntity1] = render;
+
+
+		//Second light: 
+		unsigned int lightEntity2 = app->make_entity("Second Light");
+		transform.position = { 0.0f, 4.0f, 4.0f };
+		transform.eulers = { 0.0f, 0.0f, 0.0f };
+		app->transformComponents[lightEntity2] = transform;
+
+		light.color = { 1.0f, 1.0f, 1.0f };
+		light.intensity = 1.0f;
+		app->lightComponents[lightEntity2] = light;
+
+		std::tuple<unsigned int, unsigned int> defaultCube2 = app->make_cube_mesh({ 0.1f, 0.1f, 0.1f });
+		render.mesh = std::get<0>(defaultCube2);
+		render.indexCount = std::get<1>(defaultCube2);
+		render.material = app->make_texture("tex/lightTex.png", false);
+		app->renderComponents[lightEntity2] = render;
+
+
+		
+
+
 
 		app->run();
 
