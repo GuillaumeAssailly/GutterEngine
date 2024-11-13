@@ -111,7 +111,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\Natha\Documents\Visual Studio 2022\lib\PhysX\physx\bin\win.x86_64.vc143.mt\debug;C:\Users\Natha\Documents\Visual Studio 2022\lib\PhysX\physx\bin\win.x86_64.vc143.mt\release;C:\Users\Natha\Documents\Visual Studio 2022\lib\bullet3\build\lib\Debug;C:\Users\Natha\Documents\Visual Studio 2022\lib\glfw-3.4.bin.WIN64\lib-vc2022;C:\Users\Natha\Documents\Visual Studio 2022\lib\assimp-link\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\Natha\Documents\Visual Studio 2022\lib\v-hacd_x64-windows\v-hacd_x64-windows\lib;C:\Users\Natha\Documents\Visual Studio 2022\lib\PhysX\physx\bin\win.x86_64.vc143.mt\debug;C:\Users\Natha\Documents\Visual Studio 2022\lib\PhysX\physx\bin\win.x86_64.vc143.mt\release;C:\Users\Natha\Documents\Visual Studio 2022\lib\bullet3\build\lib\Debug;C:\Users\Natha\Documents\Visual Studio 2022\lib\glfw-3.4.bin.WIN64\lib-vc2022;C:\Users\Natha\Documents\Visual Studio 2022\lib\assimp-link\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>glfw3_mt.lib;opengl32.lib;user32.lib;gdi32.lib;shell32.lib;assimp-vc143-mtd.lib;PhysX_64.lib;PhysXCommon_64.lib;PhysXExtensions_static_64.lib;PhysXFoundation_64.lib;PhysXPvdSDK_static_64.lib;PhysXCooking_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -132,16 +132,13 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\Natha\Documents\Visual Studio 2022\lib\PhysX\physx\bin\win.x86_64.vc143.mt\debug;C:\Users\Natha\Documents\Visual Studio 2022\lib\PhysX\physx\bin\win.x86_64.vc143.mt\release;C:\Users\Natha\Documents\Visual Studio 2022\lib\bullet3\build\lib\Debug;C:\Users\Natha\Documents\Visual Studio 2022\lib\glfw-3.4.bin.WIN64\lib-vc2022;C:\Users\Natha\Documents\Visual Studio 2022\lib\assimp-link\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\Natha\Documents\Visual Studio 2022\lib\v-hacd_x64-windows\v-hacd_x64-windows\lib;C:\Users\Natha\Documents\Visual Studio 2022\lib\PhysX\physx\bin\win.x86_64.vc143.mt\debug;C:\Users\Natha\Documents\Visual Studio 2022\lib\PhysX\physx\bin\win.x86_64.vc143.mt\release;C:\Users\Natha\Documents\Visual Studio 2022\lib\bullet3\build\lib\Debug;C:\Users\Natha\Documents\Visual Studio 2022\lib\glfw-3.4.bin.WIN64\lib-vc2022;C:\Users\Natha\Documents\Visual Studio 2022\lib\assimp-link\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>glfw3_mt.lib;opengl32.lib;user32.lib;gdi32.lib;shell32.lib;assimp-vc143-mtd.lib;PhysX_64.lib;PhysXCommon_64.lib;PhysXExtensions_static_64.lib;PhysXFoundation_64.lib;PhysXPvdSDK_static_64.lib;PhysXCooking_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\config.cpp" />
     <ClCompile Include="src\controllers\app.cpp" />
-    <ClCompile Include="src\decomposition\FloatMath.cpp" />
-    <ClCompile Include="src\decomposition\InParser.cpp" />
-    <ClCompile Include="src\decomposition\wavefront.cpp" />
     <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\systems\camera_system.cpp" />
@@ -156,9 +153,6 @@
     <ClInclude Include="src\components\transform_component.h" />
     <ClInclude Include="src\config.h" />
     <ClInclude Include="src\controllers\app.h" />
-    <ClInclude Include="src\decomposition\FloatMath.h" />
-    <ClInclude Include="src\decomposition\InParser.h" />
-    <ClInclude Include="src\decomposition\wavefront.h" />
     <ClInclude Include="src\systems\camera_system.h" />
     <ClInclude Include="src\systems\motion_system.h" />
     <ClInclude Include="src\systems\render_system.h" />

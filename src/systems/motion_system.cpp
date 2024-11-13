@@ -1,7 +1,6 @@
 #include "motion_system.h"
 #define ENABLE_VHACD_IMPLEMENTATION 1
 #include "VHACD.h"
-#include "wavefront.h"
 
 MotionSystem::MotionSystem() {
     static physx::PxDefaultErrorCallback gDefaultErrorCallback;
@@ -89,12 +88,18 @@ void saveConvexHullToObj(VHACD::IVHACD* interfaceVHACD, const std::string& outpu
 }
 
 void MotionSystem::concaveToConvex(const char* filePath, std::string outputDir, std::string baseName) {
-    WavefrontObj w;
-    uint32_t tcount = w.loadObj(filePath);
-    if (tcount == 0)
-    {
-        printf("Failed to load valid mesh from wavefront OBJ file:%s\n", filePath);
+    Assimp::Importer importer;
+    const aiScene* scene = importer.ReadFile(filePath, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices);
+
+    if (!scene || !scene->HasMeshes()) {
+        printf("Failed to load valid mesh from file: %s\n", filePath);
+        return;
     }
+
+    const aiMesh* mesh = scene->mMeshes[0]; // On suppose qu'il y a au moins un maillage
+    uint32_t vertexCount = mesh->mNumVertices;
+    uint32_t triangleCount = mesh->mNumFaces;
+
     VHACD::IVHACD* interfaceVHACD = VHACD::CreateVHACD();
     if (!interfaceVHACD) {
         std::cerr << "Erreur : impossible de créer une instance de VHACD." << std::endl;
@@ -114,13 +119,22 @@ void MotionSystem::concaveToConvex(const char* filePath, std::string outputDir, 
     params.m_findBestPlane = false;                       // Plan standard pour un traitement plus rapide
 
 
-    double* points = new double[w.mVertexCount * 3];
-    for (uint32_t i = 0; i < w.mVertexCount * 3; i++)
-    {
-        points[i] = w.mVertices[i];
+    double* points = new double[vertexCount * 3];
+    for (uint32_t i = 0; i < vertexCount; ++i) {
+        points[i * 3] = mesh->mVertices[i].x;
+        points[i * 3 + 1] = mesh->mVertices[i].y;
+        points[i * 3 + 2] = mesh->mVertices[i].z;
     }
 
-    interfaceVHACD->Compute(points, w.mVertexCount, w.mIndices, w.mTriCount, params);
+    uint32_t* indices = new uint32_t[triangleCount * 3];
+    for (uint32_t i = 0; i < triangleCount; ++i) {
+        const aiFace& face = mesh->mFaces[i];
+        indices[i * 3] = face.mIndices[0];
+        indices[i * 3 + 1] = face.mIndices[1];
+        indices[i * 3 + 2] = face.mIndices[2];
+    }
+
+    interfaceVHACD->Compute(points, vertexCount, indices, triangleCount, params);
     saveConvexHullToObj(interfaceVHACD, outputDir, baseName);
 
     interfaceVHACD->Clean();
@@ -134,7 +148,7 @@ physx::PxRigidDynamic* MotionSystem::createDynamic(const std::vector<physx::PxCo
 
     for (auto& convexMesh : convexMeshes) {
         physx::PxConvexMeshGeometry geometry(convexMesh);
-        physx::PxShape* shape = mPhysics->createShape(geometry, *mPhysics->createMaterial(0.5f, 0.5f, 0.6f));
+        physx::PxShape* shape = mPhysics->createShape(geometry, *material);
         actor->attachShape(*shape);
         shape->release();
     }
@@ -143,8 +157,32 @@ physx::PxRigidDynamic* MotionSystem::createDynamic(const std::vector<physx::PxCo
     actor->setLinearDamping(linearDamp);
     actor->setAngularDamping(angularDamp);
 
-    physx::PxRigidBodyExt::updateMassAndInertia(*actor, mass);
+    physx::PxRigidBodyExt::setMassAndUpdateInertia(*actor, mass);
     mScene->addActor(*actor);
+
+    physx::PxTransform centerOfMassPose = actor->getCMassLocalPose();
+
+    // Afficher les coordonnées du centre de gravité
+    std::cout << "Centre de gravité (local) : "
+        << "x = " << centerOfMassPose.p.x << ", "
+        << "y = " << centerOfMassPose.p.y << ", "
+        << "z = " << centerOfMassPose.p.z << std::endl;
+
+    physx::PxVec3 offset(0, -0.00834391, 0);
+    physx::PxTransform centerOfMassOffset(offset);
+
+    // Définir le nouveau centre de masse
+    actor->setCMassLocalPose(centerOfMassOffset);
+
+    centerOfMassPose = actor->getCMassLocalPose();
+
+    // Afficher les coordonnées du centre de gravité
+    std::cout << "Centre de gravité (local) : "
+        << "x = " << centerOfMassPose.p.x << ", "
+        << "y = " << centerOfMassPose.p.y << ", "
+        << "z = " << centerOfMassPose.p.z << std::endl;
+
+
     return actor;
 }
 
@@ -153,7 +191,7 @@ physx::PxRigidDynamic* MotionSystem::createDynamic(const physx::PxGeometry& geom
     physx::PxTransform transform = { transf.x, transf.y, transf.z };
     physx::PxRigidDynamic* actor = mPhysics->createRigidDynamic(transform);
 
-    physx::PxShape* shape = mPhysics->createShape(geometry, *mPhysics->createMaterial(0.5f, 0.5f, 0.6f));
+    physx::PxShape* shape = mPhysics->createShape(geometry, *material);
     actor->attachShape(*shape);
     shape->release();
 
@@ -161,7 +199,7 @@ physx::PxRigidDynamic* MotionSystem::createDynamic(const physx::PxGeometry& geom
     actor->setLinearDamping(linearDamp);  // Amortissement linéaire modéré
     actor->setAngularDamping(angularDamp); // Amortissement angulaire modéré
 
-    physx::PxRigidBodyExt::updateMassAndInertia(*actor, mass);
+    physx::PxRigidBodyExt::setMassAndUpdateInertia(*actor, mass);
     mScene->addActor(*actor);
     return actor;
 }
@@ -253,8 +291,11 @@ void MotionSystem::update(
     float dt) {
     if (dt > 0.1)
         return;
-    mScene->simulate(dt);
-    mScene->fetchResults(true);
+    for (int i = 0; i < 10; i++){
+        mScene->simulate(dt/10);
+        mScene->fetchResults(true);
+    }
+
 
     for (auto& entity : physicsComponents) {
         PhysicsComponent& physicsComponent = entity.second;

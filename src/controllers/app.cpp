@@ -251,7 +251,7 @@ void App::run() {
         }
 
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-            physx::PxVec3 force(0, 0, 0.001);
+            physx::PxVec3 force(0, 0, 0.5);
             motionSystem->applyForceToActor(physicsComponents[1].rigidBody, force);
         }
 

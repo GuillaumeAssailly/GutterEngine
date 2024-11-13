@@ -73,7 +73,7 @@ int main() {
 		app->renderComponents[boule] = render;
 
 		
-		glm::vec3 first_pin = { 0.f, 0.15f, 5.f };
+		glm::vec3 first_pin = { 0.f, 0.3f, 5.f };
 		glm::vec3 vectors[10] = {
 			first_pin,
 			glm::vec3(first_pin.x + 0.1524f, first_pin.y, first_pin.z + 0.2635f),
@@ -87,15 +87,19 @@ int main() {
 			glm::vec3(first_pin.x - 0.4572f, first_pin.y, first_pin.z + 0.7905f)
 		};
 
+
+
+		//app->motionSystem->concaveToConvex("obj/servoskull/quille.obj", "obj/convexMesh/", "quille");
+
 		std::vector<physx::PxConvexMesh*> meshes;
-		app->motionSystem->loadObjToPhysX("obj/convexMesh/quille/decomp.obj", meshes);
+		app->motionSystem->loadObjToPhysX("obj/convexMesh/quille.obj", meshes);
 
 		std::tuple<unsigned int, unsigned int> pinModel = app->make_model("obj/servoskull/quille.obj");
 		float staticFriction = 0.8f;
 		float dynamicFriction = 0.6f;
 		float restitution = 0.2f;
 
-		for (int i = 0; i < 1; i++) {
+		for (int i = 0; i < 10; i++) {
 			unsigned int pin = app->make_entity();
 			transform.position = vectors[i];
 			transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
@@ -106,7 +110,7 @@ int main() {
 
 			glm::vec3 pinMaterial = { 0.5f, 0.5f, 0.2f };
 
-			physics.rigidBody = app->motionSystem->createDynamic(meshes, pinMaterial, transform.position, 1.5f, 0.005f, 0.0f, 0.0f);
+			physics.rigidBody = app->motionSystem->createDynamic(meshes, pinMaterial, transform.position, 0.012f, 0.015f, 0.0f, 0.0f);
 			app->physicsComponents[pin] = physics;
 
 
