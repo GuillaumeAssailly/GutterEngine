@@ -326,11 +326,13 @@ void App::run() {
         //Add here more lines to draw...
         lineSystem->render_lines_ref_frame_grid(type_reference_frame, grid_display, transformComponents[cameraID].position, shader);
 
-        // Start ImGui window for debugging
+        // Start //ImGui window for debugging
         ImGui::Begin("Debug");
 
         // Display FPS
         ImGui::Text("FPS: %f", 1.0f / deltaTime);
+
+        ImGui::End();
 
         // --- Entity Tree Window ---
         ImGui::Begin("Entity Tree");
@@ -465,7 +467,7 @@ void App::set_up_glfw() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 
-    window = glfwCreateWindow(1920, 1080, "Guillaume Engine", NULL, NULL);
+    window = glfwCreateWindow(1920, 1080, "Gutter Engine", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;

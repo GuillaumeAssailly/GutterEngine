@@ -107,8 +107,8 @@ void MotionSystem::concaveToConvex(const char* filePath, std::string outputDir, 
     }
 
     VHACD::IVHACD::Parameters params;
-    params.m_maxConvexHulls = 10;                         // Limite raisonnable pour obtenir des coques sans excès
-    params.m_resolution = 300000;                         // Bonne résolution pour un équilibre entre vitesse et précision
+    params.m_maxConvexHulls = 2;                         // Limite raisonnable pour obtenir des coques sans excès
+    params.m_resolution = 1000000;                         // Bonne résolution pour un équilibre entre vitesse et précision
     params.m_minimumVolumePercentErrorAllowed = 1.0;      // Tolérance modérée pour une approximation correcte
     params.m_maxRecursionDepth = 10;                      // Profondeur de récursion modérée
     params.m_shrinkWrap = true;                           // Réduction pour coller au modèle sans perte excessive
@@ -157,6 +157,9 @@ physx::PxRigidDynamic* MotionSystem::createDynamic(const std::vector<physx::PxCo
     actor->setLinearDamping(linearDamp);
     actor->setAngularDamping(angularDamp);
 
+    //actor->setRigidBodyFlag(physx::PxRigidBodyFlag::eENABLE_CCD, true);
+    actor->setSolverIterationCounts(8, 4);
+
     physx::PxRigidBodyExt::setMassAndUpdateInertia(*actor, mass);
     mScene->addActor(*actor);
 
@@ -168,7 +171,7 @@ physx::PxRigidDynamic* MotionSystem::createDynamic(const std::vector<physx::PxCo
         << "y = " << centerOfMassPose.p.y << ", "
         << "z = " << centerOfMassPose.p.z << std::endl;
 
-    physx::PxVec3 offset(0, -0.00834391, 0);
+    physx::PxVec3 offset(0, -0.0f, 0);
     physx::PxTransform centerOfMassOffset(offset);
 
     // Définir le nouveau centre de masse
@@ -200,6 +203,7 @@ physx::PxRigidDynamic* MotionSystem::createDynamic(const physx::PxGeometry& geom
     actor->setAngularDamping(angularDamp); // Amortissement angulaire modéré
 
     physx::PxRigidBodyExt::setMassAndUpdateInertia(*actor, mass);
+
     mScene->addActor(*actor);
     return actor;
 }
@@ -291,11 +295,8 @@ void MotionSystem::update(
     float dt) {
     if (dt > 0.1)
         return;
-    for (int i = 0; i < 10; i++){
-        mScene->simulate(dt/10);
-        mScene->fetchResults(true);
-    }
-
+    mScene->simulate(dt);
+    mScene->fetchResults(true);
 
     for (auto& entity : physicsComponents) {
         PhysicsComponent& physicsComponent = entity.second;
