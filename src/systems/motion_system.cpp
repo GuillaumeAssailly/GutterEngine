@@ -107,8 +107,8 @@ void MotionSystem::concaveToConvex(const char* filePath, std::string outputDir, 
     }
 
     VHACD::IVHACD::Parameters params;
-    params.m_maxConvexHulls = 2;                         // Limite raisonnable pour obtenir des coques sans excès
-    params.m_resolution = 1000000;                         // Bonne résolution pour un équilibre entre vitesse et précision
+    params.m_maxConvexHulls = 2;                          // Limite raisonnable pour obtenir des coques sans excès
+    params.m_resolution = 1000000;                        // Bonne résolution pour un équilibre entre vitesse et précision
     params.m_minimumVolumePercentErrorAllowed = 1.0;      // Tolérance modérée pour une approximation correcte
     params.m_maxRecursionDepth = 10;                      // Profondeur de récursion modérée
     params.m_shrinkWrap = true;                           // Réduction pour coller au modèle sans perte excessive
@@ -158,33 +158,19 @@ physx::PxRigidDynamic* MotionSystem::createDynamic(const std::vector<physx::PxCo
     actor->setAngularDamping(angularDamp);
 
     //actor->setRigidBodyFlag(physx::PxRigidBodyFlag::eENABLE_CCD, true);
-    actor->setSolverIterationCounts(8, 4);
+    actor->setSolverIterationCounts(255, 255);
 
     physx::PxRigidBodyExt::setMassAndUpdateInertia(*actor, mass);
     mScene->addActor(*actor);
 
     physx::PxTransform centerOfMassPose = actor->getCMassLocalPose();
 
-    // Afficher les coordonnées du centre de gravité
-    std::cout << "Centre de gravité (local) : "
-        << "x = " << centerOfMassPose.p.x << ", "
-        << "y = " << centerOfMassPose.p.y << ", "
-        << "z = " << centerOfMassPose.p.z << std::endl;
-
     physx::PxVec3 offset(0, -0.0f, 0);
     physx::PxTransform centerOfMassOffset(offset);
 
-    // Définir le nouveau centre de masse
     actor->setCMassLocalPose(centerOfMassOffset);
 
     centerOfMassPose = actor->getCMassLocalPose();
-
-    // Afficher les coordonnées du centre de gravité
-    std::cout << "Centre de gravité (local) : "
-        << "x = " << centerOfMassPose.p.x << ", "
-        << "y = " << centerOfMassPose.p.y << ", "
-        << "z = " << centerOfMassPose.p.z << std::endl;
-
 
     return actor;
 }
@@ -199,8 +185,8 @@ physx::PxRigidDynamic* MotionSystem::createDynamic(const physx::PxGeometry& geom
     shape->release();
 
     actor->setSleepThreshold(sleepT);
-    actor->setLinearDamping(linearDamp);  // Amortissement linéaire modéré
-    actor->setAngularDamping(angularDamp); // Amortissement angulaire modéré
+    actor->setLinearDamping(linearDamp);
+    actor->setAngularDamping(angularDamp);
 
     physx::PxRigidBodyExt::setMassAndUpdateInertia(*actor, mass);
 
@@ -284,7 +270,6 @@ void MotionSystem::loadObjToPhysX(const std::string& filePath, std::vector<physx
 
 void MotionSystem::applyForceToActor(physx::PxRigidDynamic* actor, const physx::PxVec3& force, const physx::PxForceMode::Enum mode) {
     if (actor) {
-        // Applique une force dans la direction spécifiée
         actor->addForce(force, mode);
     }
 }
@@ -305,8 +290,6 @@ void MotionSystem::update(
         physx::PxTransform pxTransform = physicsComponent.rigidBody->getGlobalPose();
 
         transform.position = glm::vec3(pxTransform.p.x, pxTransform.p.y, pxTransform.p.z);
-        //printf("Pos : %f, %f, %f\n", pxTransform.p.x, pxTransform.p.y, pxTransform.p.z);
         transform.eulers = glm::eulerAngles(glm::quat(pxTransform.q.w, pxTransform.q.x, pxTransform.q.y, pxTransform.q.z));
     }
-    //printf("\n");
 }

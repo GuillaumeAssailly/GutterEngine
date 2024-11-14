@@ -296,6 +296,8 @@ void App::run() {
         frameCount++;
         fpsTimeCounter += deltaTime;
 
+        accumulatedTime += deltaTime;
+
 
         // Calculate and display FPS in window title every second
         if (fpsTimeCounter >= 1.0f) {
@@ -314,7 +316,10 @@ void App::run() {
         }
 
         // Update systems
-        motionSystem->update(transformComponents, physicsComponents, deltaTime);
+        if (accumulatedTime >= 0.00833) {
+            motionSystem->update(transformComponents, physicsComponents, accumulatedTime);
+            accumulatedTime = 0.;
+        }
         bool should_close = cameraSystem->update(transformComponents, cameraID, *cameraComponent, deltaTime);
         if (should_close) {
             break;

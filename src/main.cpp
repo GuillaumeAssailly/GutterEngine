@@ -86,7 +86,7 @@ int main() {
 
 			glm::vec3 pinMaterial = { 0.5f, 0.5f, 0.5f };
 
-			physics.rigidBody = app->motionSystem->createDynamic(meshes, pinMaterial, transform.position, 1.5f, 0.04f, 0.2f, 0.3f);
+			physics.rigidBody = app->motionSystem->createDynamic(meshes, pinMaterial, transform.position, 1.5f, 0.01f, 0.2f, 0.3f);
 			app->physicsComponents[quille] = physics;
 
 
