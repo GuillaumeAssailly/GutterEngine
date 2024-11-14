@@ -37,6 +37,9 @@
     <ClCompile Include="src\loaders\loaderRaw.cpp">
       <Filter>src\loaders</Filter>
     </ClCompile>
+    <ClCompile Include="src\loaders\loaderJSON.cpp">
+      <Filter>src\loaders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\config.h">
@@ -85,6 +88,12 @@
       <Filter>src\loaders</Filter>
     </ClInclude>
     <ClInclude Include="src\loaders\loaderRaw.h">
+      <Filter>src\loaders</Filter>
+    </ClInclude>
+    <ClInclude Include="src\loaders\loaderJSON.h">
+      <Filter>src\loaders</Filter>
+    </ClInclude>
+    <ClInclude Include="src\loaders\json.hpp">
       <Filter>src\loaders</Filter>
     </ClInclude>
   </ItemGroup>

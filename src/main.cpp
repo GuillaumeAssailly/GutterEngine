@@ -9,6 +9,7 @@
 
 #include "loaders/loader.h"
 #include "loaders/loaderRaw.h"
+#include "loaders/loaderJSON.h"
 
 int main() {
 
@@ -18,7 +19,7 @@ int main() {
 		RenderComponent render;
 		PhysicsComponent physics;
 		LightComponent light;
-		Loader* loader = new LoaderRaw();
+		Loader* loader = new LoaderJSON();
 
 		////BASE CUBE : 
 		/*unsigned int cubeEntity = app->make_entity();
@@ -70,7 +71,7 @@ int main() {
 
 		// Chargement des quilles
 		glm::vec3 first_pin = {0.f, 0.142f, 20.60475f}; 
-		loader->loadQuilles(app, transform, physics, render);
+		loader->loadQuilles(app);
 
 		unsigned int cameraEntity = app->make_entity("Camera");
 		transform.position = first_pin;

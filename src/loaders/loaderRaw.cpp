@@ -1,8 +1,11 @@
 #include "loaderRaw.h"
 
-void LoaderRaw::loadQuilles(App *app, TransformComponent transform, 
-	PhysicsComponent physics, RenderComponent render) const
+void LoaderRaw::loadQuilles(App *app) const
 {
+	TransformComponent transform;
+	PhysicsComponent physics;
+	RenderComponent render;
+
 	glm::vec3 first_pin = { 0.f, 0.142f, 20.60475f };
 	glm::vec3 vectors[10];
 	vectors[0] = first_pin;
