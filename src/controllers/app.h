@@ -50,6 +50,7 @@ private:
     void set_up_glfw();
 
     unsigned int entity_count = 0;
+    bool hasPhysics = true;
     GLFWwindow* window;
 
     std::vector<unsigned int> VAOs;

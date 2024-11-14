@@ -266,6 +266,7 @@ unsigned int App::make_texture(const char* filename, const bool flipTex) {
 
 //ImGui variables
 unsigned int selectedEntityID = 0;
+physx::PxVec3 force = { 0.f, 0.f, 0.f };
 
 //Lines related variables
 short type_reference_frame = 2;
@@ -296,8 +297,8 @@ void App::run() {
         frameCount++;
         fpsTimeCounter += deltaTime;
 
-        accumulatedTime += deltaTime;
-
+        if(hasPhysics)
+            accumulatedTime += deltaTime;
 
         // Calculate and display FPS in window title every second
         if (fpsTimeCounter >= 1.0f) {
@@ -310,7 +311,7 @@ void App::run() {
             fpsTimeCounter = 0.0f;
         }
 
-        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+        if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS && hasPhysics) {
             physx::PxVec3 force(0, 0, 0.5);
             motionSystem->applyForceToActor(physicsComponents[1].rigidBody, force);
         }
@@ -354,11 +355,10 @@ void App::run() {
 
         ImGui::End(); // End of Entity Tree window
 
-        // --- Inspector Window ---
-        ImGui::Begin("Inspector");
-
         // If an entity is selected, show its components
-        if (selectedEntityID < entity_count) {
+        if (selectedEntityID < entity_count && selectedEntityID != -1) {
+            // --- Inspector Window ---
+            ImGui::Begin("Inspector");
 
             // Display TransformComponent if present
             if (transformComponents.find(selectedEntityID) != transformComponents.end()) {
@@ -372,7 +372,14 @@ void App::run() {
             if (physicsComponents.find(selectedEntityID) != physicsComponents.end()) {
                 ImGui::Text("Physics Component");
                 PhysicsComponent& physics = physicsComponents[selectedEntityID];
-                //TODO : Add modifiers velocity and eulervelocity
+                ImGui::InputFloat3("Force", &force.x);
+                if (hasPhysics && ImGui::Button("Apply Force")) {
+                    auto it = physicsComponents.find(selectedEntityID);
+                    if (it != physicsComponents.end()) {
+                        PhysicsComponent& physicsComponent = it->second;
+                        physicsComponent.rigidBody->addForce(force, physx::PxForceMode::eIMPULSE);
+                    }
+                }
             }
 
             // Display LightComponent if present
@@ -393,8 +400,31 @@ void App::run() {
         else {
             ImGui::Text("No entity selected.");
         }
+        if (ImGui::Button("Close")) {
+            selectedEntityID = -1;
+        }
 
         ImGui::End(); // End of Inspector window
+
+        // --- Physics Window
+        ImGui::Begin("Physics Window");
+
+        if (hasPhysics) {
+            ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.43f, 0.7f, 0.75f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.43f, 0.9f, 0.9f));
+            if (ImGui::Button(" Physics Activated ", ImVec2(-1.0f, 0.0f)))
+                hasPhysics = false;
+            ImGui::PopStyleColor(2);
+        }
+        else {
+            ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.0f, 0.7f, 0.75f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.0f, 0.9f, 0.9f));
+            if (ImGui::Button(" Physics Desactivated ", ImVec2(-1.0f, 0.0f)))
+                hasPhysics = true;
+            ImGui::PopStyleColor(2);
+        }
+
+        ImGui::End(); // End of Physics window
 
         // --- Settings Window ---
         ImGui::Begin("Settings");
@@ -402,7 +432,7 @@ void App::run() {
         switch (type_reference_frame) {
         case 2 :
             ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.43f, 0.7f, 0.75f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.43f, 1.0f, 1.0f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.43f, 0.9f, 0.9f));
             if (ImGui::Button(" Full Reference Frame ", ImVec2(-1.0f, 0.0f)))
                 type_reference_frame = 0;
             ImGui::PopStyleColor(2);
