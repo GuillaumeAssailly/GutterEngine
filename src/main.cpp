@@ -149,11 +149,6 @@ int main() {
 		render.material = app->make_texture("tex/lightTex.png", false);
 		app->renderComponents[lightEntity2] = render;
 
-
-		
-
-
-
 		app->run();
 
 		delete app;
