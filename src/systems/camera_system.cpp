@@ -45,8 +45,8 @@ bool CameraSystem::update(
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) dPos.x -= 1.0f;
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) dPos.y -= 1.0f;
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) dPos.y += 1.0f;
-        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) dPos.z += 1.0f;
-        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) dPos.z -= 1.0f;
+        if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) dPos.z -= 1.0f;
+        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) dPos.z += 1.0f;
 
         if (glm::length(dPos) > 0.1f) {
             dPos = glm::normalize(dPos);

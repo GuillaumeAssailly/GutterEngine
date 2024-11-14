@@ -15,10 +15,9 @@ int main() {
 		RenderComponent render;
 		PhysicsComponent physics;
 		LightComponent light;
-		//TODO : check this 
+
 		app->set_up_opengl();
 		app->make_systems();
-
 		
 	
 		//boule
@@ -43,9 +42,6 @@ int main() {
 		transform.position = { 0.0f, 0.105f, 3.0f};
 		transform.eulers = {0.0f, 0.0f, 0.0f , 0.f};
 		app->transformComponents[boule] = transform;
-
-		physics.velocity = { 0.f, 0.0f, 0.f };
-		physics.eulerVelocity = { 0, 0, 0};
 		
 		glm::vec3 ballMaterial = { 0.05f, 0.05f, 0.2f };
 		const physx::PxSphereGeometry ballGeometry(0.105f);
@@ -88,9 +84,6 @@ int main() {
 			transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
 			app->transformComponents[quille] = transform;
 
-			physics.velocity = { 0.f, 0.0f, 0.f };
-			physics.eulerVelocity = { 0, 0, 0 };
-
 			glm::vec3 pinMaterial = { 0.5f, 0.5f, 0.5f };
 
 			physics.rigidBody = app->motionSystem->createDynamic(meshes, pinMaterial, transform.position, 1.5f, 0.04f, 0.2f, 0.3f);
@@ -117,10 +110,6 @@ int main() {
 		transform.position = first_pin;
 		transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f};
 		app->transformComponents[lightEntity1] = transform;
-
-		physics.velocity = { 0.001f, 0.01f, 0.001f };
-		physics.eulerVelocity = { 52, 6, 50 };
-		app->physicsComponents[lightEntity1] = physics;
 
 		light.color = { 0.0f, 1.0f, 1.0f };
 		light.intensity = 1.0f;

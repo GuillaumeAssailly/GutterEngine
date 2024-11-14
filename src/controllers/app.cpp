@@ -367,8 +367,7 @@ void App::run() {
             if (physicsComponents.find(selectedEntityID) != physicsComponents.end()) {
                 ImGui::Text("Physics Component");
                 PhysicsComponent& physics = physicsComponents[selectedEntityID];
-                ImGui::InputFloat3("Velocity", &physics.velocity[0]);
-                ImGui::InputFloat3("Euler Velocity", &physics.eulerVelocity[0]);
+                //TODO : Add modifiers velocity and eulervelocity
             }
 
             // Display LightComponent if present
