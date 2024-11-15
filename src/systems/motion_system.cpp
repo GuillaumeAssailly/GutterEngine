@@ -141,7 +141,7 @@ void MotionSystem::concaveToConvex(const char* filePath, std::string outputDir, 
     interfaceVHACD->Release();
 }
 
-physx::PxRigidDynamic* MotionSystem::createDynamic(const std::vector<physx::PxConvexMesh*>& convexMeshes, glm::vec3 mat, glm::vec3 transf, float mass, float sleepT, float linearDamp, float angularDamp) {
+physx::PxRigidDynamic* MotionSystem::createDynamic(const std::vector<physx::PxConvexMesh*>& convexMeshes, glm::vec3 mat, glm::vec3 transf, float mass, float sleepT, float linearDamp, float angularDamp, int solverPosition, int solverVelocity) {
     physx::PxMaterial* material = mPhysics->createMaterial(mat.x, mat.y, mat.z);
     physx::PxTransform transform = { transf.x, transf.y, transf.z };
     physx::PxRigidDynamic* actor = mPhysics->createRigidDynamic(transform);
@@ -157,25 +157,20 @@ physx::PxRigidDynamic* MotionSystem::createDynamic(const std::vector<physx::PxCo
     actor->setLinearDamping(linearDamp);
     actor->setAngularDamping(angularDamp);
 
-    //actor->setRigidBodyFlag(physx::PxRigidBodyFlag::eENABLE_CCD, true);
-    actor->setSolverIterationCounts(255, 255);
+    actor->setSolverIterationCounts(solverPosition, solverVelocity);
 
     physx::PxRigidBodyExt::setMassAndUpdateInertia(*actor, mass);
     mScene->addActor(*actor);
 
-    physx::PxTransform centerOfMassPose = actor->getCMassLocalPose();
-
-    physx::PxVec3 offset(0, -0.0f, 0);
+    /*physx::PxTransform centerOfMassPose = actor->getCMassLocalPose();
+    physx::PxVec3 offset(0.f, 0.f, 0.f);
     physx::PxTransform centerOfMassOffset(offset);
-
-    actor->setCMassLocalPose(centerOfMassOffset);
-
-    centerOfMassPose = actor->getCMassLocalPose();
+    actor->setCMassLocalPose(centerOfMassOffset);*/
 
     return actor;
 }
 
-physx::PxRigidDynamic* MotionSystem::createDynamic(const physx::PxGeometry& geometry, glm::vec3 mat, glm::vec3 transf, float mass, float sleepT, float linearDamp, float angularDamp) {
+physx::PxRigidDynamic* MotionSystem::createDynamic(const physx::PxGeometry& geometry, glm::vec3 mat, glm::vec3 transf, float mass, float sleepT, float linearDamp, float angularDamp, int solverPosition, int solverVelocity) {
     physx::PxMaterial* material = mPhysics->createMaterial(mat.x, mat.y, mat.z);
     physx::PxTransform transform = { transf.x, transf.y, transf.z };
     physx::PxRigidDynamic* actor = mPhysics->createRigidDynamic(transform);
@@ -188,20 +183,43 @@ physx::PxRigidDynamic* MotionSystem::createDynamic(const physx::PxGeometry& geom
     actor->setLinearDamping(linearDamp);
     actor->setAngularDamping(angularDamp);
 
+    actor->setSolverIterationCounts(solverPosition, solverVelocity);
+
     physx::PxRigidBodyExt::setMassAndUpdateInertia(*actor, mass);
 
     mScene->addActor(*actor);
+
+    /*physx::PxTransform centerOfMassPose = actor->getCMassLocalPose();
+    physx::PxVec3 offset(0.f, 0.f, 0.f);
+    physx::PxTransform centerOfMassOffset(offset);
+    actor->setCMassLocalPose(centerOfMassOffset);*/
+
     return actor;
 }
 
 void MotionSystem::createStatic(const physx::PxGeometry& geometry, glm::vec3 mat, glm::vec3 transf) {
     physx::PxMaterial* material = mPhysics->createMaterial(mat.x, mat.y, mat.z);
     physx::PxTransform transform = { transf.x, transf.y, transf.z };
-    physx::PxRigidStatic* body = mPhysics->createRigidStatic(transform);
+    physx::PxRigidStatic* actor = mPhysics->createRigidStatic(transform);
+
     physx::PxShape* shape = mPhysics->createShape(geometry, *material);
-    body->attachShape(*shape);
+    actor->attachShape(*shape);
     shape->release();
-    mScene->addActor(*body);
+    mScene->addActor(*actor);
+}
+
+void MotionSystem::createStatic(const std::vector<physx::PxConvexMesh*>& convexMeshes, glm::vec3 mat, glm::vec3 transf) {
+    physx::PxMaterial* material = mPhysics->createMaterial(mat.x, mat.y, mat.z);
+    physx::PxTransform transform = { transf.x, transf.y, transf.z };
+    physx::PxRigidStatic* actor = mPhysics->createRigidStatic(transform);
+
+    for (auto& convexMesh : convexMeshes) {
+        physx::PxConvexMeshGeometry geometry(convexMesh);
+        physx::PxShape* shape = mPhysics->createShape(geometry, *material);
+        actor->attachShape(*shape);
+        shape->release();
+    }
+    mScene->addActor(*actor);
 }
 
 void MotionSystem::loadObjToPhysX(const std::string& filePath, std::vector<physx::PxConvexMesh*>& convexMeshes) {

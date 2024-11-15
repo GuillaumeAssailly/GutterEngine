@@ -41,6 +41,8 @@ int main() {
 		render.mesh = std::get<0>(laneModel);
 		render.indexCount = std::get<1>(laneModel);
 		render.material = app->make_texture("obj/servoskull/textures/lane.jpg", false);
+		app->addRenderModel("Lane", render.mesh, render.indexCount);
+		app->addTexture("Lane", render.material);
 		app->renderComponents[lane] = render;
 
 		unsigned int boule = app->make_entity("Boule");
@@ -59,6 +61,9 @@ int main() {
 		render.mesh = std::get<0>(ballModel);
 		render.indexCount = std::get<1>(ballModel);
 		render.material = app->make_texture("obj/bowling/textures/Bowling_Pack_Diffuse.png", false);
+		app->addRenderModel("Ball", render.mesh, render.indexCount);
+		app->addTexture("Ball", render.material);
+		app->addTexture("Quille", render.material);
 		app->renderComponents[boule] = render;
 		
 		glm::vec3 first_pin = { 0.f, 0.22f, 15.f };
@@ -91,6 +96,8 @@ int main() {
 		render.mesh = std::get<0>(defaultCube1);
 		render.indexCount = std::get<1>(defaultCube1);
 		render.material = app->make_texture("tex/lightTex.png", false);
+		app->addRenderModel("Light", render.mesh, render.indexCount);
+		app->addTexture("Light", render.material);
 		app->renderComponents[lightEntity1] = render;
 
 

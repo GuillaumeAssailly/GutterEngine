@@ -261,6 +261,8 @@ unsigned int App::make_texture(const char* filename, const bool flipTex) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+    
+
     return texture;
 }
 
@@ -273,7 +275,40 @@ glm::vec2 targetDamping;
 float targetSleepT = 0.f;
 physx::PxVec3 targetCMass;
 
+// Imgui Create Entity Variables
+    //Global
+char newEntityName[128] = "NewObject";
+static bool addTransform = false;
+static bool addPhysics = false;
+static bool addRender = false;
+static bool addLight = false;
 
+    // Transform
+static glm::vec3 newPosition = { 0,0,0 };
+static glm::quat newEulers = { 0,0,0,0 };
+
+    // Physics
+static int isStatic = 1;
+static int geometry = 0;
+static physx::PxVec3 boxSize = { 0, 0, 0 };
+static float sphereRadius = 0.0f;
+static unsigned int selectedModelIndex = 0;
+static float newEntityStaticFriction = 0.5f;
+static float newEntityDynamicFriction = 0.5f;
+static float newEntityRestitution = 0.5f;
+static float newEntityMass = 1.f;
+static int newEntitySolverPosition = 4;
+static int newEntitySolverVelocity = 4;
+static float newEntityLinearDamping = 0.5f;
+static float newEntityAngularDamping = 0.5f;
+static float newEntitySleepT = 0.1f;
+
+static unsigned int selectedRModelIndex = 0;
+static unsigned int selectedTexturesIndex = 0;
+
+    // Light
+static glm::vec3 newEntityColor = { 0,0,0 };
+static float newEntityIntensity = 0.f;
 
 //Lines related variables
 short type_reference_frame = 2;
@@ -304,7 +339,7 @@ void App::run() {
         frameCount++;
         fpsTimeCounter += deltaTime;
 
-        if(hasPhysics)
+        if (hasPhysics)
             accumulatedTime += deltaTime;
 
         // Calculate and display FPS in window title every second
@@ -395,7 +430,7 @@ void App::run() {
                 if (ImGui::InputFloat2("Damping", &targetDamping.x)) {
                     physics.rigidBody->setLinearDamping(targetDamping.x);
                     physics.rigidBody->setAngularDamping(targetDamping.y);
-                }  
+                }
                 if (ImGui::InputFloat("Sleep Threshold", &targetSleepT))
                     physics.rigidBody->setSleepThreshold(targetSleepT);
                 if (ImGui::InputFloat2("Solver Iters", &targetSolverIteration.x)) {
@@ -435,6 +470,197 @@ void App::run() {
         }
 
         ImGui::End(); // End of Inspector window
+
+        ImGui::Begin("Object Creator");
+
+        // Entrer le nom de l’objet
+        ImGui::InputText("Object Name", newEntityName, IM_ARRAYSIZE(newEntityName));
+
+        ImGui::Text("Transform Component");
+        ImGui::InputFloat3("Position", &newPosition.x);
+        ImGui::InputFloat4("Rotation", &newEulers.x);
+        ImGui::Checkbox("Physics Component", &addPhysics);
+        if (addPhysics) {
+            ImGui::Text("Select a physics mode");
+            ImGui::RadioButton("Static", &isStatic, 1);
+            ImGui::SameLine();
+            ImGui::RadioButton("Dynamic", &isStatic, 0);
+
+            ImGui::Text("Select a geometry");
+            ImGui::RadioButton("Custom", &geometry, 0);
+            ImGui::SameLine();
+            ImGui::RadioButton("Box", &geometry, 1);
+            ImGui::SameLine();
+            ImGui::RadioButton("Sphere", &geometry, 2);
+
+            switch (geometry) {
+            case 0:
+                if (selectedModelIndex >= 0 && selectedModelIndex < physicsModels.size()) {               
+                    if (ImGui::BeginCombo("Select Physical Mesh", physicsModels[selectedModelIndex].first.c_str())) {
+                        for (int i = 0; i < physicsModels.size(); i++) {
+                            const std::string& modelName = physicsModels[i].first;
+                            bool isSelected = (selectedModelIndex == i);
+                            if (ImGui::Selectable(modelName.c_str(), isSelected))
+                                selectedModelIndex = i;
+
+                            if (isSelected)
+                                ImGui::SetItemDefaultFocus();
+                        }
+                        ImGui::EndCombo();
+                    }                  
+                }
+                break;
+            case 1:
+                ImGui::InputFloat3("Size", &boxSize.x);
+                break;
+            case 2:
+                ImGui::InputFloat("Radius", &sphereRadius);
+            }
+
+            ImGui::Text("Settings");
+            ImGui::InputFloat("Static Friction", &newEntityStaticFriction);
+            ImGui::InputFloat("Dynamic Friction", &newEntityDynamicFriction);
+            ImGui::InputFloat("Restitution", &newEntityRestitution);
+
+            ImGui::InputFloat("Mass", &newEntityMass);
+            ImGui::InputFloat("Sleep Threshold", &newEntitySleepT);
+
+            ImGui::InputFloat("Linear Damping", &newEntityLinearDamping);
+            ImGui::InputFloat("Angular Damping", &newEntityAngularDamping);
+
+            ImGui::InputInt("Position Solver", &newEntitySolverPosition);
+            ImGui::InputInt("Velocity Solver", &newEntitySolverVelocity);
+        }
+
+        ImGui::Checkbox("Render Component", &addRender);
+        if (addRender) {
+            if (selectedRModelIndex >= 0 && selectedRModelIndex < renderModels.size()) {
+                if (ImGui::BeginCombo("Select Rendering Mesh", std::get<0>(renderModels[selectedRModelIndex]).c_str())) {
+                    for (int i = 0; i < renderModels.size(); i++) {
+                        const std::string& modelName = std::get<0>(renderModels[i]);
+                        bool isSelected = (selectedRModelIndex == i);
+                        if (ImGui::Selectable(modelName.c_str(), isSelected))
+                            selectedRModelIndex = i;
+
+                        if (isSelected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                }
+            }
+            if (selectedTexturesIndex >= 0 && selectedTexturesIndex < texturesList.size()) {
+                if (ImGui::BeginCombo("Select Texture", texturesList[selectedTexturesIndex].first.c_str())) {
+                    for (int i = 0; i < texturesList.size(); i++) {
+                        const std::string& modelName = texturesList[i].first;
+                        bool isSelected = (selectedTexturesIndex == i);
+                        if (ImGui::Selectable(modelName.c_str(), isSelected))
+                            selectedTexturesIndex = i;
+
+                        if (isSelected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                }
+            }
+        }
+        ImGui::Checkbox("Light Component", &addLight);
+        if (addLight) {
+            ImGui::ColorEdit3("Light Color", &newEntityColor.x);
+            ImGui::SliderFloat("Intensity", &newEntityIntensity, 0.0f, 10.0f);
+        }
+
+        if (ImGui::Button("Create Object")) {
+            unsigned int id = make_entity(newEntityName);
+            TransformComponent transform;
+            transform.position = newPosition;
+            transform.eulers = newEulers;
+            transformComponents[id] = transform;
+
+            if (addPhysics) {
+                PhysicsComponent physics;
+                glm::vec3 material = { newEntityStaticFriction, newEntityDynamicFriction, newEntityRestitution };
+                const physx::PxBoxGeometry boxGeometry(physx::PxVec3(boxSize.x / 2.0f, boxSize.y / 2.0f, boxSize.z / 2.0f));
+                const physx::PxSphereGeometry sphereGeometry(sphereRadius);
+                switch (geometry) {
+                case 0:
+                    if(!isStatic)
+                        physics.rigidBody = motionSystem->createDynamic(physicsModels[selectedModelIndex].second, material, newPosition, newEntityMass, newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping);
+                    else
+                        motionSystem->createStatic(physicsModels[selectedModelIndex].second, material, newPosition);
+                    break;
+                case 1:
+                    if (!isStatic)
+                        physics.rigidBody = motionSystem->createDynamic(boxGeometry, material, newPosition, newEntityMass, newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping);
+                    else
+                        motionSystem->createStatic(boxGeometry, material, newPosition);
+                    break;
+                case 2:
+                    if (!isStatic)
+                        physics.rigidBody = motionSystem->createDynamic(sphereGeometry, material, newPosition, newEntityMass, newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping);
+                    else
+                        motionSystem->createStatic(sphereGeometry, material, newPosition);
+                    break;
+                }
+                if(!isStatic)
+                    physicsComponents[id] = physics;
+            }
+            if (addRender) {
+                RenderComponent render;
+                render.mesh = std::get<1>(renderModels[selectedRModelIndex]);
+                render.indexCount = std::get<2>(renderModels[selectedRModelIndex]);
+                render.material = texturesList[selectedTexturesIndex].second;
+                renderComponents[id] = render;
+            }
+            if (addLight) {
+                LightComponent light;
+                light.color = newEntityColor;
+                light.intensity = newEntityIntensity;
+                lightComponents[id] = light;
+            }
+
+            /*strcpy_s(newEntityName, sizeof(newEntityName), "NewObject");
+            addTransform = false;
+            addPhysics = false;
+            addRender = false;
+            addLight = false;
+
+            // Transform
+            glm::vec3 newPosition = { 0,0,0 };
+            glm::quat newEulers = { 0,0,0,0 };
+
+            // Physics
+            isStatic = 1;
+            geometry = 0;
+            boxSize = { 0, 0, 0 };
+            sphereRadius = 0.0f;
+            selectedModelIndex = 0;
+            newEntityStaticFriction = 0.5f;
+            newEntityDynamicFriction = 0.5f;
+            newEntityRestitution = 0.5f;
+            newEntityMass = 1.f;
+            newEntitySolverPosition = 4;
+            newEntitySolverVelocity = 4;
+            newEntityLinearDamping = 0.5f;
+            newEntityAngularDamping = 0.5f;
+            newEntitySleepT = 0.1f;
+
+            selectedRModelIndex = 0;
+            selectedTexturesIndex = 0;
+
+            // Light
+            newEntityColor = { 0,0,0 };
+            newEntityIntensity = 0.f;
+
+            // Réinitialiser les champs
+            addTransform = false;
+            addPhysics = false;
+            addRender = false;*/
+
+
+
+        }
+
+        ImGui::End();
 
         // --- Physics Window
         ImGui::Begin("Physics Window");
@@ -597,6 +823,21 @@ void App::make_systems() {
 	lightSystem = new LightSystem(shader);
     renderSystem = new RenderSystem(shader, window);
     lineSystem = new LineSystem();
+}
+
+void App::addPhysicsModel(std::string name, std::vector<physx::PxConvexMesh*> mesh)
+{
+    physicsModels.push_back(std::make_pair(name, mesh));
+}
+
+void App::addRenderModel(std::string name, unsigned int VAO, unsigned int size)
+{
+    renderModels.push_back(std::make_tuple(name, VAO, size));
+}
+
+void App::addTexture(std::string name, unsigned int tex)
+{
+    texturesList.push_back(std::make_pair(name, tex));
 }
 
 /// <summary>
