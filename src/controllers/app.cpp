@@ -388,6 +388,8 @@ void App::manageImGui() {
     // Display FPS
     ImGui::Text("FPS: %f", 1.0f / deltaTime);
 
+    ImGui::End();
+
     // --- Entity Tree Window ---
     ImGui::Begin("Entity Tree");
 
