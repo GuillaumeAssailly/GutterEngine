@@ -267,6 +267,13 @@ unsigned int App::make_texture(const char* filename, const bool flipTex) {
 //ImGui variables
 unsigned int selectedEntityID = 0;
 physx::PxVec3 force = { 0.f, 0.f, 0.f };
+float targetMass;
+glm::vec2 targetSolverIteration;
+glm::vec2 targetDamping;
+float targetSleepT = 0.f;
+physx::PxVec3 targetCMass;
+
+
 
 //Lines related variables
 short type_reference_frame = 2;
@@ -350,6 +357,7 @@ void App::run() {
             // Display each entity as selectable
             if (ImGui::Selectable(entityLabel.c_str(), selectedEntityID == entityID)) {
                 selectedEntityID = entityID; // Set the selected entity when clicked
+
             }
         }
 
@@ -372,6 +380,28 @@ void App::run() {
             if (physicsComponents.find(selectedEntityID) != physicsComponents.end()) {
                 ImGui::Text("Physics Component");
                 PhysicsComponent& physics = physicsComponents[selectedEntityID];
+                targetMass = physics.rigidBody->getMass();
+                physx::PxU32 minPositionIters, minVelocityIters;
+                physics.rigidBody->getSolverIterationCounts(minPositionIters, minVelocityIters);
+                targetSolverIteration = { minPositionIters, minVelocityIters };
+                targetDamping = { physics.rigidBody->getLinearDamping(), physics.rigidBody->getAngularDamping() };
+                targetSleepT = physics.rigidBody->getSleepThreshold();
+                targetCMass = physics.rigidBody->getCMassLocalPose().p;
+
+                if (ImGui::InputFloat("Mass", &targetMass))
+                    physx::PxRigidBodyExt::setMassAndUpdateInertia(*physics.rigidBody, targetMass);
+                if (ImGui::InputFloat3("CMass", &targetCMass.x))
+                    physics.rigidBody->setCMassLocalPose(physx::PxTransform(targetCMass));
+                if (ImGui::InputFloat2("Damping", &targetDamping.x)) {
+                    physics.rigidBody->setLinearDamping(targetDamping.x);
+                    physics.rigidBody->setAngularDamping(targetDamping.y);
+                }  
+                if (ImGui::InputFloat("Sleep Threshold", &targetSleepT))
+                    physics.rigidBody->setSleepThreshold(targetSleepT);
+                if (ImGui::InputFloat2("Solver Iters", &targetSolverIteration.x)) {
+                    physics.rigidBody->setSolverIterationCounts(targetSolverIteration.x, targetSolverIteration.x);
+                }
+
                 ImGui::InputFloat3("Force", &force.x);
                 if (hasPhysics && ImGui::Button("Apply Force")) {
                     auto it = physicsComponents.find(selectedEntityID);
