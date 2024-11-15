@@ -98,8 +98,8 @@ int main() {
 		}
 
 		unsigned int cameraEntity = app->make_entity("Camera");
-		transform.position = { 2.632f, 0.638f, -2.827f };
-		transform.eulers = { 0.0f, -2.2f, 127.798f };
+		transform.position = {-0.0f, 0.279f, 20.155f};
+		transform.eulers = { 0.0f, -13.4f, 268.698f};
 		app->transformComponents[cameraEntity] = transform;
 
 		CameraComponent* camera = new CameraComponent();
@@ -108,7 +108,7 @@ int main() {
 
 		//First light : 
 		unsigned int lightEntity1 = app->make_entity("First Light");
-		transform.position = { 2.632f, 0.638f, -2.827f };
+		transform.position = { 1.0f, 0.638f, 20.173f };
 		transform.eulers = { 0.0f, -2.2f, 127.798f };
 		app->transformComponents[lightEntity1] = transform;
 
@@ -117,14 +117,14 @@ int main() {
 		app->physicsComponents[lightEntity1] = physics;
 
 		light.color = { 1.0f, 1.0f, 1.0f };
-		light.intensity = 2.056f;
+		light.intensity = 1.174f;
 		light.isDirectional = true;
-		light.direction = { -1.4f, -2.9f, 0.4f };
+		light.direction = { -2.2f, -1.4f, 0.6f};
 		app->lightComponents[lightEntity1] = light;
 
 		std::tuple<unsigned int, unsigned int> defaultCube1 = app->make_cube_mesh({0.1f, 0.1f, 0.1f });
 		//render.mesh = std::get<0>(defaultCube1);
-		render.indexCount = std::get<1>(defaultCube1);
+		//render.indexCount = std::get<1>(defaultCube1);
 		render.material = app->make_texture("tex/lightTex.png", false);
 		//app->renderComponents[lightEntity1] = render;
 
@@ -160,21 +160,7 @@ int main() {
 		render.material = app->make_texture("obj/servoskull/text t34/Antracite_Base_color.png", false);
 		render.normalMap = app->make_texture("obj/servoskull/text t34/Antracite_Normal_OpenGL.png", false);
 		app->renderComponents[glaive] = render;
-		/*
-		unsigned int glaive = app->make_entity("Store");
-		transform.position = { 0.0f, 0.0f, 0.0f };
-		transform.eulers = { 0.0f, 0.0f, 0.0f };
-		app->transformComponents[glaive] = transform;
-
-		
-		std::tuple<unsigned int, unsigned int> t34 = app->make_model("obj/cp/Store.obj");
-
-		render.mesh = std::get<0>(t34);
-		render.indexCount = std::get<1>(t34);
-		render.material = app->make_texture("obj/cp/textures/scene_Default_BaseColor.png", false);
-		render.normalMap = app->make_texture("obj/cp/textures/scene_Default_Normal.png", false);
-
-		*/
+	
 		app->renderComponents[glaive] = render;
 
 		unsigned int road = app->make_entity("Road");

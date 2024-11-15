@@ -70,7 +70,7 @@ float shadowCalculation(vec4 fragPosLightSpace) {
     }
 
     // Average the shadow factor over all samples to get a softer shadow
-    shadow /= (samples * samples);
+    //shadow /= (samples * samples);
 
     // Return the final shadow factor
     return shadow;
@@ -123,10 +123,9 @@ void main()
 
 
         //Calculate the shadow factor
-        //float shadow = shadowCalculation(FragPosLightSpace);
+        float shadow = shadowCalculation(FragPosLightSpace);
         
-        float shadow = 0.0;
-
+       
         // Ambient lighting
         ambient += ambientStrength * lightColor[i] * intensity[i] * attenuation;
 
@@ -158,6 +157,7 @@ void main()
     // Apply the final color with Phong lighting and texture
     FragColor = texColor * vec4(phong, 1.0);
 
-    FragColor = vec4(norm * 0.5 + 0.5, 1.0);
+    //Debug normal : 
+    //FragColor = vec4(norm * 0.5 + 0.5, 1.0);
 
 }

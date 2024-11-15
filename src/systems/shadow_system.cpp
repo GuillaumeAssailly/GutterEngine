@@ -18,8 +18,8 @@ ShadowSystem::ShadowSystem(unsigned int baseShader, unsigned int sShader, unsign
 
 void ShadowSystem::Initialize(std::unordered_map<unsigned int, LightComponent>& lightComponents)
 {
-   
-      
+
+
 
     for (auto& entity : lightComponents) {
         LightComponent& light = entity.second;
@@ -43,7 +43,7 @@ void ShadowSystem::Initialize(std::unordered_map<unsigned int, LightComponent>& 
     }
 
     //Initialize the debug shader:  
-    
+
     glGenVertexArrays(1, &quadVAO);
     glGenBuffers(1, &quadVBO);
     glBindVertexArray(quadVAO);
@@ -76,14 +76,14 @@ void ShadowSystem::RenderDepthMap(unsigned int depthMap, int screenWidth, int sc
     glBindVertexArray(0);
 
     // Reset the viewport to the full screen
-    glViewport(0, 0, screenWidth, screenHeight );
+    glViewport(0, 0, screenWidth, screenHeight);
 }
 
 
 void ShadowSystem::GenerateShadowMap(std::unordered_map<unsigned int, LightComponent>& lightComponents,
     std::unordered_map<unsigned int, TransformComponent>& transformComponents,
     std::unordered_map<unsigned int, RenderComponent>& renderComponents, int screenWidth, int screenHeight,
-   CameraComponent& camera
+    CameraComponent& camera
 )
 {
 
@@ -99,8 +99,8 @@ void ShadowSystem::GenerateShadowMap(std::unordered_map<unsigned int, LightCompo
         glClear(GL_DEPTH_BUFFER_BIT);
 
         //Set up light's view and proj matrix : 
-       // glm::mat4 lightProjection, lightView;
-       // glm::mat4& lightSpaceMatrix = light.lightSpaceMatrix;
+        glm::mat4 lightProjection, lightView;
+        glm::mat4& lightSpaceMatrix = light.lightSpaceMatrix;
 
         //Default values for light projection and view matrices :
 
@@ -110,81 +110,15 @@ void ShadowSystem::GenerateShadowMap(std::unordered_map<unsigned int, LightCompo
         lightView = glm::lookAt(transformComponents[entityID].position, transformComponents[entityID].position + glm::normalize(light.direction), glm::vec3(0.0f, 1.0f, 0.0f));
         CalculateShadowOrthoBounds(lightView, camera, left, right, bottom, top, near_plane, far_plane);*/
 
-     /* 
+
         lightView = glm::lookAt(transformComponents[entityID].position, transformComponents[entityID].position + glm::normalize(light.direction), glm::vec3(0.0f, 1.0f, 0.0f));
 
-   
-
-        lightProjection = glm::ortho(-3.0f, 3.0f, -3.0f, 3.0f, 0.01f,8.0f);
 
 
-        lightSpaceMatrix = lightProjection * lightView;*/
+        lightProjection = glm::ortho(-3.0f, 3.0f, -3.0f, 3.0f, 0.01f, 8.0f);
 
 
-        //Calculate the viewMatrix from the frustum center and light direction
-        auto cameraFrustum = getFrustumCornersWorldSpace(camera.projectionMatrix, camera.viewMatrix);
-        glm::vec3 center(0.0f);
-        // Sum up all the corners
-        for (const auto& corner : cameraFrustum)
-        {
-            center += glm::vec3(corner);
-        }
-
-        // Divide by the number of corners to get the average
-        center /= static_cast<float>(cameraFrustum.size());
-
-        auto lightViewMatrix = glm::lookAt((center - glm::normalize(lightComponents[entityID].direction)), center, glm::vec3(0.0f, 1.0f, 0.0f));
-
-        // Get the longest radius in world space
-        GLfloat radius = glm::length(center - glm::vec3(cameraFrustum[6])); // Convert to glm::vec3
-        for (unsigned int i = 0; i < 8; ++i)
-        {
-            GLfloat distance = glm::length(glm::vec3(cameraFrustum[i]) - center); // Convert to glm::vec3
-            radius = glm::max(radius, distance);
-        }
-        radius = std::ceil(radius);
-
-        //Create the AABB from the radius
-        glm::vec3 maxOrtho = center + glm::vec3(radius);
-        glm::vec3 minOrtho = center - glm::vec3(radius);
-
-        //Get the AABB in light view space
-        maxOrtho = glm::vec3(lightViewMatrix * glm::vec4(maxOrtho, 1.0f));
-        minOrtho = glm::vec3(lightViewMatrix * glm::vec4(minOrtho, 1.0f));
-
-        //Just checking when debugging to make sure the AABB is the same size
-        GLfloat lengthofTemp = glm::length(maxOrtho - minOrtho);
-
-        //Store the far and near planes
-        auto far = maxOrtho.z;
-        auto near = minOrtho.z;
-
-        //auto lightOrthoMatrix = glm::ortho(minOrtho.x, maxOrtho.x, minOrtho.y, maxOrtho.y, near, far);
-        lightViewMatrix = glm::lookAt(transformComponents[entityID].position, transformComponents[entityID].position + glm::normalize(light.direction), glm::vec3(0.0f, 1.0f, 0.0f));
-        auto lightOrthoMatrix = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.001f, 8.0f);
-
-        //For more accurate near and far planes, clip the scenes AABB with the orthographic frustum
-        //calculateNearAndFar();
-
-        // Create the rounding matrix, by projecting the world-space origin and determining
-        // the fractional offset in texel space
-       /* glm::mat4 shadowMatrix = lightOrthoMatrix * lightViewMatrix;
-        glm::vec4 shadowOrigin = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-        shadowOrigin = shadowMatrix * shadowOrigin;
-        GLfloat storedW = shadowOrigin.w;
-        shadowOrigin = shadowOrigin * 4096.0f / 2.0f;
-
-        glm::vec4 roundedOrigin = glm::round(shadowOrigin);
-        glm::vec4 roundOffset = roundedOrigin - shadowOrigin;
-        roundOffset = roundOffset * 2.0f / 4096.0f;
-        roundOffset.z = 0.0f;
-        roundOffset.w = 0.0f;
-
-        glm::mat4 shadowProj = lightOrthoMatrix;
-        shadowProj[3] += roundOffset;
-        lightOrthoMatrix = shadowProj;*/
-
-        auto lightSpaceMatrix = lightOrthoMatrix * lightViewMatrix;
+        lightSpaceMatrix = lightProjection * lightView;
 
         //Pass the light space matrix to the shadow shader : 
         glUniformMatrix4fv(glGetUniformLocation(shadowShader, "lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));

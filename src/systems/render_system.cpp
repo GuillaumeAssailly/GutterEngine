@@ -60,9 +60,7 @@ void RenderSystem::update(
         // Bind the vertex array (VAO)
         glBindVertexArray(entity.second.mesh);
 
-        // Now we need to draw using indices. We assume that the VAO has the EBO already set up.
-        // To render with the EBO, we use glDrawElements instead of glDrawArrays.
-        glDrawElements(GL_TRIANGLES, entity.second.indexCount, GL_UNSIGNED_INT, 0); // Update this with the number of indices
+        glDrawElements(GL_TRIANGLES, entity.second.indexCount, GL_UNSIGNED_INT, 0); 
 
     }
 
