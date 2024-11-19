@@ -26,15 +26,14 @@ public:
     ~App();
     void run();
     unsigned int make_entity(const std::string&);
-    std::tuple<unsigned int, unsigned int> make_cube_mesh(glm::vec3 size);
-    std::tuple<unsigned int, unsigned int>  make_model(const char *);
+    std::pair<unsigned int, unsigned int> make_cube_mesh(glm::vec3 size);
+    std::pair<unsigned int, unsigned int>  make_model(const char *);
 
     unsigned int make_texture(const char* filename, const bool );
     void set_up_opengl();
     void make_systems();
-    void addPhysicsModel(std::string, std::vector<physx::PxConvexMesh*>);
-    void addRenderModel(std::string, unsigned int, unsigned int);
-    void addTexture(std::string, unsigned int);
+    void loadModelsAndTextures();
+    void loadEntities();
 
     //Components
 	std::unordered_map<unsigned int, std::string> entityNames;
@@ -44,9 +43,6 @@ public:
     unsigned int cameraID;
     std::unordered_map<unsigned int, LightComponent> lightComponents;
     std::unordered_map<unsigned int, RenderComponent> renderComponents;
-    
-
-    MotionSystem* motionSystem;
 
 private:
     void set_up_glfw();
@@ -55,9 +51,9 @@ private:
     bool hasPhysics = true;
     GLFWwindow* window;
 
-    std::vector<std::pair<std::string, std::vector<physx::PxConvexMesh*>>> physicsModels;
-    std::vector<std::tuple<std::string, unsigned int, unsigned int>> renderModels;
-    std::vector<std::pair<std::string, unsigned int>> texturesList;
+    std::unordered_map<std::string, std::vector<physx::PxConvexMesh*>> physicsModels;
+    std::unordered_map<std::string, std::pair<unsigned int, unsigned int>> renderModels;
+    std::unordered_map<std::string, unsigned int> texturesList;
 
     std::vector<unsigned int> VAOs;
     std::vector<unsigned int> VBOs;
@@ -71,6 +67,7 @@ private:
 
     //Systems
     CameraSystem* cameraSystem;
+    MotionSystem* motionSystem;
     RenderSystem* renderSystem;
     LightSystem* lightSystem;
     LineSystem* lineSystem;

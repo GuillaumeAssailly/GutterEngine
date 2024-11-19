@@ -20,7 +20,7 @@ void LoaderJSON::loadQuilles(App* app) const {
     );
     
     std::vector<physx::PxConvexMesh*> meshes;
-    app->motionSystem->loadObjToPhysX(jsonData["meshPath"].get<std::string>(), meshes);
+    //app->motionSystem->loadObjToPhysX(jsonData["meshPath"].get<std::string>(), meshes);
 
     // Parcourir toutes les quilles du fichier JSON
     for (const auto& pinData : jsonData["pins"]) {
@@ -39,8 +39,8 @@ void LoaderJSON::loadQuilles(App* app) const {
         app->transformComponents[quille] = transform;
 
         auto& rb = pinData["rigidBody"];
-        PhysicsComponent physics;
-        physics.rigidBody = app->motionSystem->createDynamic(
+        //PhysicsComponent physics;
+        /*physics.rigidBody = app->motionSystem->createDynamic(
             meshes,
             pinMaterial,
             transform.position,
@@ -48,8 +48,8 @@ void LoaderJSON::loadQuilles(App* app) const {
             rb["staticFriction"].get<float>(),
             rb["dynamicFriction"].get<float>(),
             rb["restitution"].get<float>()
-        );
-        app->physicsComponents[quille] = physics;
+        );*/
+        //app->physicsComponents[quille] = physics;
 
         std::tuple<unsigned int, unsigned int> model = app->make_model(pinData["modelPath"].get<std::string>().c_str());
         render.mesh = std::get<0>(model);

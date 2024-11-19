@@ -46,10 +46,6 @@ void processNode(const aiScene* scene, aiNode* node, std::vector<float>& vertice
 
             vertices.push_back(mesh->mTextureCoords[0][j].x);
             vertices.push_back(mesh->mTextureCoords[0][j].y);
-
-          
-        
-
         }
 
         // Extract indices
@@ -74,7 +70,7 @@ void processNode(const aiScene* scene, aiNode* node, std::vector<float>& vertice
 	
 }
 
-std::tuple<unsigned int, unsigned int> App::make_model(const char* filePath) {
+std::pair<unsigned int, unsigned int> App::make_model(const char* filePath) {
 
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
@@ -126,10 +122,10 @@ std::tuple<unsigned int, unsigned int> App::make_model(const char* filePath) {
 
 
     // Return a tuple of the VAO and the number of indices
-    return std::make_tuple(VAO, indices.size());
+    return std::make_pair(VAO, indices.size());
 }
 
-std::tuple<unsigned int, unsigned int> App::make_cube_mesh(glm::vec3 size) {
+std::pair<unsigned int, unsigned int> App::make_cube_mesh(glm::vec3 size) {
 
     // Cube vertex data: each vertex has a position, normal, and texture coordinate
     // The cube will be centered at (0, 0, 0) and scaled by the given size
@@ -225,8 +221,8 @@ std::tuple<unsigned int, unsigned int> App::make_cube_mesh(glm::vec3 size) {
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 
-    // Return a tuple of the VAO and the number of indices
-    return std::make_tuple(VAO, indices.size());
+    // Return a pair of the VAO and the number of indices
+    return std::make_pair(VAO, indices.size());
 }
 
 unsigned int App::make_texture(const char* filename, const bool flipTex) {
@@ -292,7 +288,7 @@ static int isStatic = 1;
 static int geometry = 0;
 static physx::PxVec3 boxSize = { 0, 0, 0 };
 static float sphereRadius = 0.0f;
-static unsigned int selectedModelIndex = 0;
+static std::string selectedModelName = "";
 static float newEntityStaticFriction = 0.5f;
 static float newEntityDynamicFriction = 0.5f;
 static float newEntityRestitution = 0.5f;
@@ -303,12 +299,14 @@ static float newEntityLinearDamping = 0.5f;
 static float newEntityAngularDamping = 0.5f;
 static float newEntitySleepT = 0.1f;
 
-static unsigned int selectedRModelIndex = 0;
-static unsigned int selectedTexturesIndex = 0;
+static std::string selectedRModelName = "";
+static std::string selectedTexturesName = "";
 
     // Light
 static glm::vec3 newEntityColor = { 0,0,0 };
 static float newEntityIntensity = 0.f;
+
+static std::string error_msg = "";
 
 //Lines related variables
 short type_reference_frame = 2;
@@ -403,6 +401,7 @@ void App::run() {
             // --- Inspector Window ---
             ImGui::Begin("Inspector");
 
+
             // Display TransformComponent if present
             if (transformComponents.find(selectedEntityID) != transformComponents.end()) {
                 ImGui::Text("Transform Component");
@@ -461,19 +460,14 @@ void App::run() {
                 RenderComponent& render = renderComponents[selectedEntityID];
                 ImGui::InputInt("Mesh ID", (int*)&render.mesh);
             }
+            if (ImGui::Button("Close")) {
+                selectedEntityID = -1;
+            }
+            ImGui::End();    // End of Inspector window
         }
-        else {
-            ImGui::Text("No entity selected.");
-        }
-        if (ImGui::Button("Close")) {
-            selectedEntityID = -1;
-        }
-
-        ImGui::End(); // End of Inspector window
 
         ImGui::Begin("Object Creator");
 
-        // Entrer le nom de l’objet
         ImGui::InputText("Object Name", newEntityName, IM_ARRAYSIZE(newEntityName));
 
         ImGui::Text("Transform Component");
@@ -495,19 +489,19 @@ void App::run() {
 
             switch (geometry) {
             case 0:
-                if (selectedModelIndex >= 0 && selectedModelIndex < physicsModels.size()) {               
-                    if (ImGui::BeginCombo("Select Physical Mesh", physicsModels[selectedModelIndex].first.c_str())) {
-                        for (int i = 0; i < physicsModels.size(); i++) {
-                            const std::string& modelName = physicsModels[i].first;
-                            bool isSelected = (selectedModelIndex == i);
-                            if (ImGui::Selectable(modelName.c_str(), isSelected))
-                                selectedModelIndex = i;
-
-                            if (isSelected)
-                                ImGui::SetItemDefaultFocus();
+                if (ImGui::BeginCombo("Select Physical Mesh", selectedModelName.c_str())) {
+                    for (const auto& pair : physicsModels) {
+                        const std::string& modelName = pair.first;
+                        const auto& meshes = pair.second;
+                        bool isSelected = (modelName == selectedModelName);
+                        if (ImGui::Selectable(modelName.c_str(), isSelected)) {
+                            selectedModelName = modelName;
                         }
-                        ImGui::EndCombo();
-                    }                  
+
+                        if (isSelected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
                 }
                 break;
             case 1:
@@ -534,33 +528,33 @@ void App::run() {
 
         ImGui::Checkbox("Render Component", &addRender);
         if (addRender) {
-            if (selectedRModelIndex >= 0 && selectedRModelIndex < renderModels.size()) {
-                if (ImGui::BeginCombo("Select Rendering Mesh", std::get<0>(renderModels[selectedRModelIndex]).c_str())) {
-                    for (int i = 0; i < renderModels.size(); i++) {
-                        const std::string& modelName = std::get<0>(renderModels[i]);
-                        bool isSelected = (selectedRModelIndex == i);
-                        if (ImGui::Selectable(modelName.c_str(), isSelected))
-                            selectedRModelIndex = i;
-
-                        if (isSelected)
-                            ImGui::SetItemDefaultFocus();
+            if (ImGui::BeginCombo("Select Rendering Mesh", selectedRModelName.c_str())) {
+                for (const auto& pair : renderModels) {
+                    const std::string& modelName = pair.first;
+                    const auto& meshes = pair.second;
+                    bool isSelected = (modelName == selectedRModelName);
+                    if (ImGui::Selectable(modelName.c_str(), isSelected)) {
+                        selectedRModelName = modelName;
                     }
-                    ImGui::EndCombo();
+
+                    if (isSelected)
+                        ImGui::SetItemDefaultFocus();
                 }
+                ImGui::EndCombo();
             }
-            if (selectedTexturesIndex >= 0 && selectedTexturesIndex < texturesList.size()) {
-                if (ImGui::BeginCombo("Select Texture", texturesList[selectedTexturesIndex].first.c_str())) {
-                    for (int i = 0; i < texturesList.size(); i++) {
-                        const std::string& modelName = texturesList[i].first;
-                        bool isSelected = (selectedTexturesIndex == i);
-                        if (ImGui::Selectable(modelName.c_str(), isSelected))
-                            selectedTexturesIndex = i;
-
-                        if (isSelected)
-                            ImGui::SetItemDefaultFocus();
+            if (ImGui::BeginCombo("Select Texture", selectedTexturesName.c_str())) {
+                for (const auto& pair : texturesList) {
+                    const std::string& modelName = pair.first;
+                    const auto& meshes = pair.second;
+                    bool isSelected = (modelName == selectedTexturesName);
+                    if (ImGui::Selectable(modelName.c_str(), isSelected)) {
+                        selectedTexturesName = modelName;
                     }
-                    ImGui::EndCombo();
+
+                    if (isSelected)
+                        ImGui::SetItemDefaultFocus();
                 }
+                ImGui::EndCombo();
             }
         }
         ImGui::Checkbox("Light Component", &addLight);
@@ -570,53 +564,63 @@ void App::run() {
         }
 
         if (ImGui::Button("Create Object")) {
-            unsigned int id = make_entity(newEntityName);
-            TransformComponent transform;
-            transform.position = newPosition;
-            transform.eulers = newEulers;
-            transformComponents[id] = transform;
+            if (!((selectedModelName == "" && addPhysics && geometry == 0) || ((selectedRModelName == "" || selectedTexturesName == "") && addRender))) {
+                unsigned int id = make_entity(newEntityName);
+                TransformComponent transform;
+                transform.position = newPosition;
+                transform.eulers = newEulers;
+                transformComponents[id] = transform;
 
-            if (addPhysics) {
-                PhysicsComponent physics;
-                glm::vec3 material = { newEntityStaticFriction, newEntityDynamicFriction, newEntityRestitution };
-                const physx::PxBoxGeometry boxGeometry(physx::PxVec3(boxSize.x / 2.0f, boxSize.y / 2.0f, boxSize.z / 2.0f));
-                const physx::PxSphereGeometry sphereGeometry(sphereRadius);
-                switch (geometry) {
-                case 0:
-                    if(!isStatic)
-                        physics.rigidBody = motionSystem->createDynamic(physicsModels[selectedModelIndex].second, material, newPosition, newEntityMass, newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping);
-                    else
-                        motionSystem->createStatic(physicsModels[selectedModelIndex].second, material, newPosition);
-                    break;
-                case 1:
+                if (addPhysics) {
+                    PhysicsComponent physics;
+                    glm::vec3 material = { newEntityStaticFriction, newEntityDynamicFriction, newEntityRestitution };
+                    const physx::PxBoxGeometry boxGeometry(physx::PxVec3(boxSize.x / 2.f, boxSize.y / 2.f, boxSize.z / 2.f));
+                    const physx::PxSphereGeometry sphereGeometry(sphereRadius);
+
+
+                    switch (geometry) {
+                    case 0:
+                        if (!isStatic)
+                            physics.rigidBody = motionSystem->createDynamic(physicsModels[selectedModelName], material, newPosition, newEntityMass, newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping);
+                        else
+                            motionSystem->createStatic(physicsModels[selectedModelName], material, newPosition);
+                        break;
+                    case 1:
+                        if (!isStatic)
+                            physics.rigidBody = motionSystem->createDynamic(boxGeometry, material, newPosition, newEntityMass, newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping);
+                        else
+                            motionSystem->createStatic(boxGeometry, material, newPosition);
+                        break;
+                    case 2:
+                        if (!isStatic)
+                            physics.rigidBody = motionSystem->createDynamic(sphereGeometry, material, newPosition, newEntityMass, newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping);
+                        else
+                            motionSystem->createStatic(sphereGeometry, material, newPosition);
+                        break;
+                    }
                     if (!isStatic)
-                        physics.rigidBody = motionSystem->createDynamic(boxGeometry, material, newPosition, newEntityMass, newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping);
-                    else
-                        motionSystem->createStatic(boxGeometry, material, newPosition);
-                    break;
-                case 2:
-                    if (!isStatic)
-                        physics.rigidBody = motionSystem->createDynamic(sphereGeometry, material, newPosition, newEntityMass, newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping);
-                    else
-                        motionSystem->createStatic(sphereGeometry, material, newPosition);
-                    break;
+                        physicsComponents[id] = physics;
                 }
-                if(!isStatic)
-                    physicsComponents[id] = physics;
+                if (addRender) {
+                    RenderComponent render;
+                    render.mesh = renderModels[selectedRModelName].first;
+                    render.indexCount = renderModels[selectedRModelName].second;
+                    render.material = texturesList[selectedTexturesName];
+                    renderComponents[id] = render;
+                }
+                if (addLight) {
+                    LightComponent light;
+                    light.color = newEntityColor;
+                    light.intensity = newEntityIntensity;
+                    lightComponents[id] = light;
+                }
+                error_msg = "";
             }
-            if (addRender) {
-                RenderComponent render;
-                render.mesh = std::get<1>(renderModels[selectedRModelIndex]);
-                render.indexCount = std::get<2>(renderModels[selectedRModelIndex]);
-                render.material = texturesList[selectedTexturesIndex].second;
-                renderComponents[id] = render;
+            else {
+                error_msg = "Please fill all the fields";               
             }
-            if (addLight) {
-                LightComponent light;
-                light.color = newEntityColor;
-                light.intensity = newEntityIntensity;
-                lightComponents[id] = light;
-            }
+           
+            
 
             /*strcpy_s(newEntityName, sizeof(newEntityName), "NewObject");
             addTransform = false;
@@ -659,6 +663,7 @@ void App::run() {
 
 
         }
+        ImGui::Text(error_msg.c_str());
 
         ImGui::End();
 
@@ -825,19 +830,146 @@ void App::make_systems() {
     lineSystem = new LineSystem();
 }
 
-void App::addPhysicsModel(std::string name, std::vector<physx::PxConvexMesh*> mesh)
+void App::loadModelsAndTextures()
 {
-    physicsModels.push_back(std::make_pair(name, mesh));
+    // Lane
+    std::pair<unsigned int, unsigned int> laneModel = make_model("obj/servoskull/lane.obj");
+    renderModels["Lane"] = laneModel;
+    texturesList["Lane"] = make_texture("obj/servoskull/textures/lane.jpg", false);
+
+    // Ball
+    std::pair<unsigned int, unsigned int> ballModel = make_model("obj/servoskull/boule.obj");
+    renderModels["Ball"] = ballModel;
+    texturesList["Ball"] = make_texture("obj/bowling/textures/Bowling_Pack_Diffuse.png", false);
+
+    // Pin
+    //motionSystem->concaveToConvex("obj/servoskull/quille.obj", "obj/convexMesh/", "quille");
+    std::vector<physx::PxConvexMesh*> meshes;
+    motionSystem->loadObjToPhysX("obj/convexMesh/quille.obj", meshes);
+
+    std::pair<unsigned int, unsigned int> pinModel = make_model("obj/servoskull/quille.obj");
+    physicsModels["Pin"] = meshes;
+    renderModels["Pin"] = pinModel;
+    texturesList["Pin"] = make_texture("obj/bowling/textures/Bowling_Pack_Diffuse.png", false);
+
+    // Light
+    std::pair<unsigned int, unsigned int> defaultCubeModel = make_cube_mesh({ 0.1f, 0.1f, 0.1f });
+    renderModels["Light"] = defaultCubeModel;
+    texturesList["Light"] = make_texture("tex/lightTex.png", false);
 }
 
-void App::addRenderModel(std::string name, unsigned int VAO, unsigned int size)
+void App::loadEntities()
 {
-    renderModels.push_back(std::make_tuple(name, VAO, size));
-}
+    TransformComponent transform;
+    RenderComponent render;
+    PhysicsComponent physics;
+    LightComponent light;
 
-void App::addTexture(std::string name, unsigned int tex)
-{
-    texturesList.push_back(std::make_pair(name, tex));
+    // Lane
+    unsigned int lane = make_entity("Lane");
+    transform.position = { 0.f, 0.f, 9.f };
+    transform.eulers = { 0.f, 0.f, 0.0f, 0.f };
+    transform.size = { 1.0f, 0.168f, 18.0f };
+    transformComponents[lane] = transform;
+
+    glm::vec3 laneMaterial = { 0.05f, 0.05f, 0.0f };
+    physx::PxBoxGeometry laneGeometry(physx::PxVec3(transform.size.x / 2.0f, transform.size.y / 2.0f, transform.size.z / 2.0f));
+
+    motionSystem->createStatic(laneGeometry, laneMaterial, transform.position);
+
+    render.mesh = renderModels["Lane"].first;
+    render.indexCount = renderModels["Lane"].second;
+    render.material = texturesList["Lane"];
+    renderComponents[lane] = render;
+
+    // Ball
+    unsigned int boule = make_entity("Ball");
+    transform.position = { 0.0f, 0.105f, 3.0f };
+    transform.eulers = { 0.0f, 0.0f, 0.0f , 0.f };
+    transformComponents[boule] = transform;
+
+    glm::vec3 ballMaterial = { 0.05f, 0.05f, 0.2f };
+    const physx::PxSphereGeometry ballGeometry(0.105f);
+
+    physics.rigidBody = motionSystem->createDynamic(ballGeometry, ballMaterial, transform.position, 6.8f);
+    physicsComponents[boule] = physics;
+
+    std::tuple<unsigned int, unsigned int> ballModel = make_model("obj/servoskull/boule.obj");
+
+    render.mesh = renderModels["Ball"].first;
+    render.indexCount = renderModels["Ball"].second;
+    render.material = texturesList["Ball"];
+    renderComponents[boule] = render;
+
+    // Pins
+    glm::vec3 first_pin = { 0.f, 0.22f, 15.f };
+    glm::vec3 vectors[10];
+    vectors[0] = first_pin;
+    vectors[1] = glm::vec3(first_pin.x + 0.1524f, first_pin.y, first_pin.z + 0.2635f);
+    vectors[2] = glm::vec3(first_pin.x - 0.1524f, first_pin.y, first_pin.z + 0.2635f);
+    vectors[3] = glm::vec3(first_pin.x - 0.3048f, first_pin.y, first_pin.z + 0.527f);
+    vectors[4] = glm::vec3(first_pin.x, first_pin.y, first_pin.z + 0.527f);
+    vectors[5] = glm::vec3(first_pin.x + 0.3048f, first_pin.y, first_pin.z + 0.527f);
+    vectors[6] = glm::vec3(first_pin.x + 0.1524f, first_pin.y, first_pin.z + 0.7905f);
+    vectors[7] = glm::vec3(first_pin.x - 0.1524f, first_pin.y, first_pin.z + 0.7905f);
+    vectors[8] = glm::vec3(first_pin.x + 0.4572f, first_pin.y, first_pin.z + 0.7905f);
+    vectors[9] = glm::vec3(first_pin.x - 0.4572f, first_pin.y, first_pin.z + 0.7905f);
+
+    glm::vec3 pinMaterial = { 0.5f, 0.5f, 0.5f };
+    for (int i = 0; i < 10; i++) {
+        unsigned int pin = make_entity("Pin " + std::to_string(i));
+        transform.position = vectors[i];
+        transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
+        transformComponents[pin] = transform;
+
+        physics.rigidBody = motionSystem->createDynamic(physicsModels["Pin"], pinMaterial, transform.position, 1.5f, 0.01f, 0.2f, 0.3f, 255, 255);
+        physicsComponents[pin] = physics;
+
+        render.mesh = renderModels["Pin"].first;
+        render.indexCount = renderModels["Pin"].second;
+        renderComponents[pin] = render;
+    }
+
+    // Camera
+    unsigned int cameraEntity = make_entity("Camera");
+    transform.position = first_pin;
+    transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
+    transformComponents[cameraEntity] = transform;
+
+    CameraComponent* camera = new CameraComponent();
+    cameraComponent = camera;
+    cameraID = cameraEntity;
+
+    //First light
+    unsigned int lightEntity1 = make_entity("First Light");
+    transform.position = first_pin;
+    transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
+    transformComponents[lightEntity1] = transform;
+
+    light.color = { 0.0f, 1.0f, 1.0f };
+    light.intensity = 1.0f;
+    lightComponents[lightEntity1] = light;
+
+    render.mesh = renderModels["Light"].first;
+    render.indexCount = renderModels["Light"].second;
+    render.material = texturesList["Light"];
+    renderComponents[lightEntity1] = render;
+
+    //Second light: 
+    unsigned int lightEntity2 = make_entity("Second Light");
+    transform.position = { 0.0f, 4.0f, 4.0f };
+    transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
+    transformComponents[lightEntity2] = transform;
+
+    light.color = { 1.0f, 1.0f, 1.0f };
+    light.intensity = 1.0f;
+    lightComponents[lightEntity2] = light;
+
+    render.mesh = renderModels["Light"].first;
+    render.indexCount = renderModels["Light"].second;
+    render.material = texturesList["Light"];
+    renderComponents[lightEntity2] = render;
+
 }
 
 /// <summary>
