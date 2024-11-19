@@ -102,6 +102,9 @@
     <ClInclude Include="src\loaders\json.hpp">
       <Filter>src\loaders</Filter>
     </ClInclude>
+    <ClInclude Include="src\components\static_physics_component.h">
+      <Filter>src\components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\shader.frag">

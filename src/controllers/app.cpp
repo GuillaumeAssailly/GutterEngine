@@ -863,6 +863,7 @@ void App::loadEntities()
     TransformComponent transform;
     RenderComponent render;
     PhysicsComponent physics;
+    StaticPhysicsComponent SPhysics;
     LightComponent light;
 
     // Lane
@@ -875,7 +876,8 @@ void App::loadEntities()
     glm::vec3 laneMaterial = { 0.05f, 0.05f, 0.0f };
     physx::PxBoxGeometry laneGeometry(physx::PxVec3(transform.size.x / 2.0f, transform.size.y / 2.0f, transform.size.z / 2.0f));
 
-    motionSystem->createStatic(laneGeometry, laneMaterial, transform.position);
+    SPhysics.rigidBody = motionSystem->createStatic(laneGeometry, laneMaterial, transform.position);
+    staticPhysicsComponents[lane] = SPhysics;
 
     render.mesh = renderModels["Lane"].first;
     render.indexCount = renderModels["Lane"].second;

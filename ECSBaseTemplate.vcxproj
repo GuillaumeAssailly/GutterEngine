@@ -165,6 +165,7 @@
     </ClInclude>
     <ClInclude Include="src\components\physics_component.h" />
     <ClInclude Include="src\components\render_component.h" />
+    <ClInclude Include="src\components\static_physics_component.h" />
     <ClInclude Include="src\components\transform_component.h" />
     <ClInclude Include="src\config.h" />
     <ClInclude Include="src\controllers\app.h" />

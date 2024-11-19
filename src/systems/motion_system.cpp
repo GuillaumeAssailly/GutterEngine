@@ -197,7 +197,7 @@ physx::PxRigidDynamic* MotionSystem::createDynamic(const physx::PxGeometry& geom
     return actor;
 }
 
-void MotionSystem::createStatic(const physx::PxGeometry& geometry, glm::vec3 mat, glm::vec3 transf) {
+physx::PxRigidStatic* MotionSystem::createStatic(const physx::PxGeometry& geometry, glm::vec3 mat, glm::vec3 transf) {
     physx::PxMaterial* material = mPhysics->createMaterial(mat.x, mat.y, mat.z);
     physx::PxTransform transform = { transf.x, transf.y, transf.z };
     physx::PxRigidStatic* actor = mPhysics->createRigidStatic(transform);
@@ -206,9 +206,10 @@ void MotionSystem::createStatic(const physx::PxGeometry& geometry, glm::vec3 mat
     actor->attachShape(*shape);
     shape->release();
     mScene->addActor(*actor);
+    return actor;
 }
 
-void MotionSystem::createStatic(const std::vector<physx::PxConvexMesh*>& convexMeshes, glm::vec3 mat, glm::vec3 transf) {
+physx::PxRigidStatic* MotionSystem::createStatic(const std::vector<physx::PxConvexMesh*>& convexMeshes, glm::vec3 mat, glm::vec3 transf) {
     physx::PxMaterial* material = mPhysics->createMaterial(mat.x, mat.y, mat.z);
     physx::PxTransform transform = { transf.x, transf.y, transf.z };
     physx::PxRigidStatic* actor = mPhysics->createRigidStatic(transform);
@@ -220,6 +221,7 @@ void MotionSystem::createStatic(const std::vector<physx::PxConvexMesh*>& convexM
         shape->release();
     }
     mScene->addActor(*actor);
+    return actor;
 }
 
 void MotionSystem::loadObjToPhysX(const std::string& filePath, std::vector<physx::PxConvexMesh*>& convexMeshes) {

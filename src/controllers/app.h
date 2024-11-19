@@ -3,6 +3,7 @@
 
 #include "../components/camera_component.h"
 #include "../components/physics_component.h"
+#include "../components/static_physics_component.h"
 #include "../components/render_component.h"
 #include "../components/transform_component.h"
 
@@ -39,6 +40,7 @@ public:
 	std::unordered_map<unsigned int, std::string> entityNames;
     std::unordered_map<unsigned int, TransformComponent> transformComponents;
     std::unordered_map<unsigned int, PhysicsComponent> physicsComponents;
+    std::unordered_map<unsigned int, StaticPhysicsComponent> staticPhysicsComponents;
     CameraComponent* cameraComponent;
     unsigned int cameraID;
     std::unordered_map<unsigned int, LightComponent> lightComponents;
