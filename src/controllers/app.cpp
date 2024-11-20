@@ -857,47 +857,49 @@ void App::run() {
             auto camera = transformComponents[cameraID];
             glm::mat4 cameraView = cameraSystem->GetViewMatrix();
             glm::mat4 cameraProjection = cameraSystem->GetProjectionMatrix();
-            glm::mat4 transformSelectedEntity = glm::translate(glm::mat4(1.0f), transformComponents[selectedEntityID].position) * glm::toMat4(transformComponents[selectedEntityID].eulers) * glm::scale(glm::mat4(1.0f), transformComponents[selectedEntityID].size);
+            glm::mat4 transformSelectedEntity = glm::translate(glm::mat4(1.0f), transformComponents[selectedEntityID].position) *
+                glm::toMat4(transformComponents[selectedEntityID].eulers) *
+                glm::scale(glm::mat4(1.0f), transformComponents[selectedEntityID].size);
 
-            ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection), (ImGuizmo::OPERATION)gizmo_type, (ImGuizmo::MODE)gizmo_world, glm::value_ptr(transformSelectedEntity));
+            // Manipulation de l'entité sélectionnée avec ImGuizmo
+            ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
+                (ImGuizmo::OPERATION)gizmo_type, (ImGuizmo::MODE)gizmo_world,
+                glm::value_ptr(transformSelectedEntity));
 
-            // TODO: Make rotation and scale work
-            if (ImGuizmo::IsUsing() && gizmo_type == ImGuizmo::OPERATION::TRANSLATE)
+            if (ImGuizmo::IsUsing())
             {
                 glm::vec3 translation, rotation, scale;
+
                 DecomposeTransform(transformSelectedEntity, translation, rotation, scale);
-                
-                if(physicsComponents.find(selectedEntityID) != physicsComponents.end())
+
+                glm::quat currentRotation = glm::quat(rotation);
+
+                if (physicsComponents.find(selectedEntityID) != physicsComponents.end())
                 {
-                    physx::PxTransform transform;
-                    transform = physicsComponents[selectedEntityID].rigidBody->getGlobalPose();
-                    transformComponents[selectedEntityID].position = translation;
+                    physx::PxTransform transform = physicsComponents[selectedEntityID].rigidBody->getGlobalPose();
+
                     transform.p.x = translation.x;
                     transform.p.y = translation.y;
                     transform.p.z = translation.z;
+
+                    transform.q = physx::PxQuat(currentRotation.x, currentRotation.y, currentRotation.z, currentRotation.w);
                     physicsComponents[selectedEntityID].rigidBody->setGlobalPose(transform);
+
+                    transformComponents[selectedEntityID].position = translation;
+                    transformComponents[selectedEntityID].eulers = currentRotation;
+                    transformComponents[selectedEntityID].size = scale;
                 }
                 else
+                {
                     transformComponents[selectedEntityID].position = translation;
-
-                /*
-                float deltaRotationX = rotation.x - transformComponents[selectedEntityID].eulers.x;
-                float deltaRotationY = rotation.y - transformComponents[selectedEntityID].eulers.y;
-                float deltaRotationZ = rotation.z - transformComponents[selectedEntityID].eulers.z;
-                transformComponents[selectedEntityID].eulers.x = deltaRotationX;
-                transformComponents[selectedEntityID].eulers.y = deltaRotationY;
-                transformComponents[selectedEntityID].eulers.z = deltaRotationZ;
-
-                transformComponents[selectedEntityID].size = scale;
-                */
+                    transformComponents[selectedEntityID].eulers = currentRotation;
+                }
             }
         }
 
-		// Render ImGui
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        // Swap buffers to display the frame
         glfwSwapBuffers(window);
     }
 
