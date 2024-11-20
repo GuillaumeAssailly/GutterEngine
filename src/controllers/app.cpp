@@ -914,7 +914,7 @@ void App::loadEntities()
     camera.aspectRatio = 16.0f / 9.0f;
     camera.nearPlane = 0.1f;
     camera.farPlane = 100.0f;
-    camera.sensitivity = 0.1f;
+    camera.sensitivity = 0.5f;
     cameraComponents[ball] = camera;
 
     // Pins
@@ -952,11 +952,11 @@ void App::loadEntities()
     transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
     transformComponents[cameraEntity] = transform;
     
-    camera.fov = 60.0f;
+    camera.fov = 45.0f;
     camera.aspectRatio = 16.0f / 9.0f;
     camera.nearPlane = 0.1f;
     camera.farPlane = 100.0f;
-    camera.sensitivity = 0.1f;
+    camera.sensitivity = 0.5f;
     cameraComponents[cameraEntity] = camera;
     cameraID = cameraEntity;
 
