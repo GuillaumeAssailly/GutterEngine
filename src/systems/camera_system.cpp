@@ -29,7 +29,7 @@ bool CameraSystem::update(
 
     // Compute the view direction vectors based on the camera's rotation
     glm::mat4 rotationMatrix = glm::mat4_cast(rotation);
-    glm::vec3 forward = glm::normalize(rotationMatrix * glm::vec4(0.0f, 0.0f, 1.0f, 0.0f));
+    glm::vec3 forward = glm::normalize(rotationMatrix * camera.initialForward);
     glm::vec3 right = glm::normalize(rotationMatrix * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f));
     glm::vec3 up = glm::normalize(rotationMatrix * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f));
     glm::vec3 target = pos + forward;

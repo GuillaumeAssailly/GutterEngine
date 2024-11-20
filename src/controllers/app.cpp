@@ -360,6 +360,8 @@ void App::run() {
             if (!pKeyWasPressed) {
                 if (cameraID == 12)
                     cameraID = 1;
+                else if (cameraID == 1)
+                    cameraID = 2;
                 else
                     cameraID = 12;
 
@@ -915,6 +917,7 @@ void App::loadEntities()
     camera.nearPlane = 0.1f;
     camera.farPlane = 100.0f;
     camera.sensitivity = 0.5f;
+    camera.initialForward = { 0,0,1,0 };
     cameraComponents[ball] = camera;
 
     // Pins
@@ -944,6 +947,14 @@ void App::loadEntities()
         render.mesh = renderModels["Pin"].first;
         render.indexCount = renderModels["Pin"].second;
         renderComponents[pin] = render;
+
+        camera.fov = 45.0f;
+        camera.aspectRatio = 16.0f / 9.0f;
+        camera.nearPlane = 0.1f;
+        camera.farPlane = 100.0f;
+        camera.sensitivity = 0.5f;
+        camera.initialForward = { 0,0,-1,0 };
+        cameraComponents[pin] = camera;
     }
 
     // Camera
@@ -957,6 +968,7 @@ void App::loadEntities()
     camera.nearPlane = 0.1f;
     camera.farPlane = 100.0f;
     camera.sensitivity = 0.5f;
+    camera.initialForward = { 0,0,1,0 };
     cameraComponents[cameraEntity] = camera;
     cameraID = cameraEntity;
 
