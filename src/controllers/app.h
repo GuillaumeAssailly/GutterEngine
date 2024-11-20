@@ -41,7 +41,7 @@ public:
     std::unordered_map<unsigned int, TransformComponent> transformComponents;
     std::unordered_map<unsigned int, PhysicsComponent> physicsComponents;
     std::unordered_map<unsigned int, StaticPhysicsComponent> staticPhysicsComponents;
-    CameraComponent* cameraComponent;
+    std::unordered_map<unsigned int, CameraComponent> cameraComponents;
     unsigned int cameraID;
     std::unordered_map<unsigned int, LightComponent> lightComponents;
     std::unordered_map<unsigned int, RenderComponent> renderComponents;

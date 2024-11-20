@@ -356,12 +356,17 @@ void App::run() {
             motionSystem->applyForceToActor(physicsComponents[1].rigidBody, force);
         }
 
+        if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
+            if (cameraID == 12) cameraID = 1;
+            else cameraID = 12;
+        }
+
         // Update systems
         if (accumulatedTime >= 0.00833) {
             motionSystem->update(transformComponents, physicsComponents, accumulatedTime);
             accumulatedTime = 0.;
         }
-        bool should_close = cameraSystem->update(transformComponents, cameraID, *cameraComponent, deltaTime);
+        bool should_close = cameraSystem->update(transformComponents, cameraComponents, cameraID, deltaTime);
         if (should_close) {
             break;
         }
@@ -812,14 +817,6 @@ void App::set_up_opengl() {
     shader = make_shader(
         "shaders/shader.vert",
         "shaders/shader.frag");
-
-
-
-    glUseProgram(shader);
-    unsigned int projLocation = glGetUniformLocation(shader, "projection");
-    //TODO : add configurable perspective :
-    glm::mat4 projection = glm::perspective(  45.0f, 1920.0f / 1080.0f, 0.01f, 1000.0f);
-    glUniformMatrix4fv(projLocation, 1, GL_FALSE, glm::value_ptr(projection));
 }   
 
 void App::make_systems() {
@@ -865,6 +862,7 @@ void App::loadEntities()
     PhysicsComponent physics;
     StaticPhysicsComponent SPhysics;
     LightComponent light;
+    CameraComponent camera;
 
     // Lane
     unsigned int lane = make_entity("Lane");
@@ -885,23 +883,30 @@ void App::loadEntities()
     renderComponents[lane] = render;
 
     // Ball
-    unsigned int boule = make_entity("Ball");
+    unsigned int ball = make_entity("Ball");
     transform.position = { 0.0f, 0.105f, 3.0f };
     transform.eulers = { 0.0f, 0.0f, 0.0f , 0.f };
-    transformComponents[boule] = transform;
+    transformComponents[ball] = transform;
 
     glm::vec3 ballMaterial = { 0.05f, 0.05f, 0.2f };
     const physx::PxSphereGeometry ballGeometry(0.105f);
 
     physics.rigidBody = motionSystem->createDynamic(ballGeometry, ballMaterial, transform.position, 6.8f);
-    physicsComponents[boule] = physics;
+    physicsComponents[ball] = physics;
 
     std::tuple<unsigned int, unsigned int> ballModel = make_model("obj/servoskull/boule.obj");
 
     render.mesh = renderModels["Ball"].first;
     render.indexCount = renderModels["Ball"].second;
     render.material = texturesList["Ball"];
-    renderComponents[boule] = render;
+    renderComponents[ball] = render;
+
+    camera.fov = 60.0f;
+    camera.aspectRatio = 16.0f / 9.0f;
+    camera.nearPlane = 0.1f;
+    camera.farPlane = 100.0f;
+    camera.sensitivity = 0.1f;
+    cameraComponents[ball] = camera;
 
     // Pins
     glm::vec3 first_pin = { 0.f, 0.22f, 15.f };
@@ -937,9 +942,13 @@ void App::loadEntities()
     transform.position = first_pin;
     transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
     transformComponents[cameraEntity] = transform;
-
-    CameraComponent* camera = new CameraComponent();
-    cameraComponent = camera;
+    
+    camera.fov = 60.0f;
+    camera.aspectRatio = 16.0f / 9.0f;
+    camera.nearPlane = 0.1f;
+    camera.farPlane = 100.0f;
+    camera.sensitivity = 0.1f;
+    cameraComponents[cameraEntity] = camera;
     cameraID = cameraEntity;
 
     //First light

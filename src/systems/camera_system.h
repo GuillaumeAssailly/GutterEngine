@@ -10,10 +10,20 @@ public:
 
     bool update(
         std::unordered_map<unsigned int, TransformComponent>& transformComponents,
-        unsigned int cameraID, CameraComponent& cameraComponent, float dt);
+        std::unordered_map<unsigned int, CameraComponent>& cameraComponents,
+        unsigned int cameraID, float dt);
 
 private:
     unsigned int viewLocation;
+    GLint projectionLocation;
+
+    double lastMouseX = 0.0, lastMouseY = 0.0; // Dernières positions de la souris
+    bool firstMouseMovement = true;
+
+    float pitchTotal = 0;
+    bool firstMouse = true;
+    float deltaX = 0, deltaY = 0;
+    float lastX = 0.0f, lastY = 0.0f;
 
     bool moving = false;
     double mouse_x_ref = .0f;
