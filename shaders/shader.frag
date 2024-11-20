@@ -42,6 +42,10 @@ float shadowCalculation(vec4 fragPosLightSpace) {
     vec3 shadowCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     shadowCoords = shadowCoords * 0.5 + 0.5;
 
+    if (shadowCoords.z > 1.0 || shadowCoords.z < 0.0 || shadowCoords.x < 0.0 || shadowCoords.x > 1.0 || shadowCoords.y < 0.0 || shadowCoords.y > 1.0) {
+        return 0.0; // Fully lit if outside the shadow map bounds (we currently consider nothing is shadowed outside of shadowmap range).
+    }
+
     // Get current fragment depth in light space
     float currentDepth = shadowCoords.z;
 
@@ -70,7 +74,7 @@ float shadowCalculation(vec4 fragPosLightSpace) {
     }
 
     // Average the shadow factor over all samples to get a softer shadow
-    //shadow /= (samples * samples);
+    shadow /= (samples * 2);
 
     // Return the final shadow factor
     return shadow;

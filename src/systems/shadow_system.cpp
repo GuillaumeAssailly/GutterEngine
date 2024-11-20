@@ -111,11 +111,11 @@ void ShadowSystem::GenerateShadowMap(std::unordered_map<unsigned int, LightCompo
         CalculateShadowOrthoBounds(lightView, camera, left, right, bottom, top, near_plane, far_plane);*/
 
 
-        lightView = glm::lookAt(transformComponents[entityID].position, transformComponents[entityID].position + glm::normalize(light.direction), glm::vec3(0.0f, 1.0f, 0.0f));
+        lightView = glm::lookAt(transformComponents[12].position, transformComponents[12].position + glm::normalize(light.direction), glm::vec3(0.0f, 1.0f, 0.0f));
 
 
 
-        lightProjection = glm::ortho(-3.0f, 3.0f, -3.0f, 3.0f, 0.01f, 8.0f);
+        lightProjection = glm::ortho(-6.0f, 6.0f, -6.0f, 6.0f, -5.0f, 8.0f);
 
 
         lightSpaceMatrix = lightProjection * lightView;
