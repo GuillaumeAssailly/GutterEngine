@@ -357,8 +357,17 @@ void App::run() {
         }
 
         if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
-            if (cameraID == 12) cameraID = 1;
-            else cameraID = 12;
+            if (!pKeyWasPressed) {
+                if (cameraID == 12)
+                    cameraID = 1;
+                else
+                    cameraID = 12;
+
+                pKeyWasPressed = true;
+            }
+        }
+        else {
+            pKeyWasPressed = false;
         }
 
         // Update systems
