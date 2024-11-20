@@ -264,8 +264,84 @@ unsigned int App::make_texture(const char* filename, const bool flipTex) {
     return texture;
 }
 
+// TODO: Place this function in a specific ImGui file
+bool App::DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale)
+{
+    // From glm::decompose in matrix_decompose.inl
+
+    using namespace glm;
+    using T = float;
+
+    mat4 LocalMatrix(transform);
+
+    // Normalize the matrix.
+    if (epsilonEqual(LocalMatrix[3][3], static_cast<float>(0), epsilon<T>()))
+        return false;
+
+    // First, isolate perspective.  This is the messiest.
+    if (
+        epsilonNotEqual(LocalMatrix[0][3], static_cast<T>(0), epsilon<T>()) ||
+        epsilonNotEqual(LocalMatrix[1][3], static_cast<T>(0), epsilon<T>()) ||
+        epsilonNotEqual(LocalMatrix[2][3], static_cast<T>(0), epsilon<T>()))
+    {
+        // Clear the perspective partition
+        LocalMatrix[0][3] = LocalMatrix[1][3] = LocalMatrix[2][3] = static_cast<T>(0);
+        LocalMatrix[3][3] = static_cast<T>(1);
+    }
+
+    // Next take care of translation (easy).
+    translation = vec3(LocalMatrix[3]);
+    LocalMatrix[3] = vec4(0, 0, 0, LocalMatrix[3].w);
+
+    vec3 Row[3], Pdum3;
+
+    // Now get scale and shear.
+    for (length_t i = 0; i < 3; ++i)
+        for (length_t j = 0; j < 3; ++j)
+            Row[i][j] = LocalMatrix[i][j];
+
+    // Compute X scale factor and normalize first row.
+    scale.x = length(Row[0]);
+    Row[0] = detail::scale(Row[0], static_cast<T>(1));
+    scale.y = length(Row[1]);
+    Row[1] = detail::scale(Row[1], static_cast<T>(1));
+    scale.z = length(Row[2]);
+    Row[2] = detail::scale(Row[2], static_cast<T>(1));
+
+    // At this point, the matrix (in rows[]) is orthonormal.
+    // Check for a coordinate system flip.  If the determinant
+    // is -1, then negate the matrix and the scaling factors.
+#if 0
+    Pdum3 = cross(Row[1], Row[2]); // v3Cross(row[1], row[2], Pdum3);
+    if (dot(Row[0], Pdum3) < 0)
+    {
+        for (length_t i = 0; i < 3; i++)
+        {
+            scale[i] *= static_cast<T>(-1);
+            Row[i] *= static_cast<T>(-1);
+        }
+    }
+#endif
+
+    rotation.y = asin(-Row[0][2]);
+    if (cos(rotation.y) != 0) {
+        rotation.x = atan2(Row[1][2], Row[2][2]);
+        rotation.z = atan2(Row[0][1], Row[0][0]);
+    }
+    else {
+        rotation.x = atan2(-Row[2][0], Row[1][1]);
+        rotation.z = 0;
+    }
+
+
+    return true;
+}
+
+
 //ImGui variables
 unsigned int selectedEntityID = 0;
+int gizmo_type = -1;
+bool gizmo_world = true;
 
 //Lines related variables
 short type_reference_frame = 2;
@@ -287,6 +363,7 @@ void App::run() {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+        ImGuizmo::BeginFrame();
 
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
@@ -325,6 +402,7 @@ void App::run() {
         //Draw Lines
         //Add here more lines to draw...
         lineSystem->render_lines_ref_frame_grid(type_reference_frame, grid_display, transformComponents[cameraID].position, shader);
+
 
         // Start //ImGui window for debugging
         ImGui::Begin("Debug");
@@ -393,7 +471,7 @@ void App::run() {
 
         // --- Settings Window ---
         ImGui::Begin("Settings");
-
+        ImGui::Text("Reference Frame");
         switch (type_reference_frame) {
         case 2 :
             ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.43f, 0.7f, 0.75f));
@@ -418,6 +496,7 @@ void App::run() {
             break;
         }
 
+        ImGui::Text("Grid");
         if (grid_display)
         {
             ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.43f, 0.7f, 0.75f));
@@ -438,7 +517,79 @@ void App::run() {
             if (ImGui::Button(" Hidden Grid ", ImVec2(-1.0f, 0.0f)))
                 grid_display = true;
         }
+
+        // TODO: Make rotation and scale work
+        ImGui::Text("Gizmo Settings");
+        switch (gizmo_type) {
+        case ImGuizmo::OPERATION::SCALE:
+            if (ImGui::Button(" Scaling #LOCK ", ImVec2(-1.0f, 0.0f)))
+                gizmo_type = -1;
+            break;
+        case ImGuizmo::OPERATION::ROTATE:
+            if (ImGui::Button(" Rotation #LOCK ", ImVec2(-1.0f, 0.0f)))
+                gizmo_type = ImGuizmo::OPERATION::SCALE;
+            break;
+        case ImGuizmo::OPERATION::TRANSLATE:
+            if (ImGui::Button(" Translation ", ImVec2(-1.0f, 0.0f)))
+            {
+                gizmo_type = ImGuizmo::OPERATION::ROTATE;
+            }
+            break;
+        default:
+            if (ImGui::Button(" None ", ImVec2(-1.0f, 0.0f)))
+                gizmo_type = ImGuizmo::OPERATION::TRANSLATE;
+            break;
+        }
+
+        if (ImGui::Button((gizmo_world) ? " Gizmo World " : " Gizmo Local ", ImVec2(-1.0f, 0.0f)))
+            gizmo_world = !gizmo_world;
+
         ImGui::End(); // End of Settings window
+
+
+        // ImGuizmo
+        if (gizmo_type != -1) {
+            ImGuizmo::SetOrthographic(false);
+            ImGuiIO& io = ImGui::GetIO();
+            ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
+
+            auto camera = transformComponents[cameraID];
+            glm::mat4 cameraView = glm::lookAt(transformComponents[cameraID].position, transformComponents[cameraID].position + cameraComponent->forwards, cameraComponent->up);
+            glm::mat4 cameraProjection = glm::perspective(45.0f, io.DisplaySize.x / io.DisplaySize.y, 0.01f, 1000.0f);
+            glm::mat4 transformSelectedEntity = glm::translate(glm::mat4(1.0f), transformComponents[selectedEntityID].position) * glm::toMat4(transformComponents[selectedEntityID].eulers) * glm::scale(glm::mat4(1.0f), transformComponents[selectedEntityID].size);
+
+            ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection), (ImGuizmo::OPERATION)gizmo_type, (ImGuizmo::MODE)gizmo_world, glm::value_ptr(transformSelectedEntity));
+
+            // TODO: Make rotation and scale work
+            if (ImGuizmo::IsUsing() && gizmo_type == ImGuizmo::OPERATION::TRANSLATE)
+            {
+                glm::vec3 translation, rotation, scale;
+                DecomposeTransform(transformSelectedEntity, translation, rotation, scale);
+                
+                if(physicsComponents.find(selectedEntityID) != physicsComponents.end())
+                {
+                    physx::PxTransform transform;
+                    transform = physicsComponents[selectedEntityID].rigidBody->getGlobalPose();
+                    transform.p.x = translation.x;
+                    transform.p.y = translation.y;
+                    transform.p.z = translation.z;
+                    physicsComponents[selectedEntityID].rigidBody->setGlobalPose(transform);
+                }
+                else
+                    transformComponents[selectedEntityID].position = translation;
+
+                /*
+                float deltaRotationX = rotation.x - transformComponents[selectedEntityID].eulers.x;
+                float deltaRotationY = rotation.y - transformComponents[selectedEntityID].eulers.y;
+                float deltaRotationZ = rotation.z - transformComponents[selectedEntityID].eulers.z;
+                transformComponents[selectedEntityID].eulers.x = deltaRotationX;
+                transformComponents[selectedEntityID].eulers.y = deltaRotationY;
+                transformComponents[selectedEntityID].eulers.z = deltaRotationZ;
+
+                transformComponents[selectedEntityID].size = scale;
+                */
+            }
+        }
 
 		// Render ImGui
 		ImGui::Render();
