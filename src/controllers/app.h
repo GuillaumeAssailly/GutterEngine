@@ -3,6 +3,7 @@
 
 #include "../components/camera_component.h"
 #include "../components/physics_component.h"
+#include "../components/static_physics_component.h"
 #include "../components/render_component.h"
 #include "../components/transform_component.h"
 
@@ -26,25 +27,24 @@ public:
     ~App();
     void run();
     unsigned int make_entity(const std::string&);
-    std::tuple<unsigned int, unsigned int> make_cube_mesh(glm::vec3 size);
-    std::tuple<unsigned int, unsigned int>  make_model(const char *);
+    std::pair<unsigned int, unsigned int> make_cube_mesh(glm::vec3 size);
+    std::pair<unsigned int, unsigned int>  make_model(const char *);
 
     unsigned int make_texture(const char* filename, const bool );
     void set_up_opengl();
     void make_systems();
-    physx::PxConvexMesh* make_physics_model(const char* filename);
+    void loadModelsAndTextures();
+    void loadEntities();
 
     //Components
 	std::unordered_map<unsigned int, std::string> entityNames;
     std::unordered_map<unsigned int, TransformComponent> transformComponents;
     std::unordered_map<unsigned int, PhysicsComponent> physicsComponents;
-    CameraComponent* cameraComponent;
+    std::unordered_map<unsigned int, StaticPhysicsComponent> staticPhysicsComponents;
+    std::unordered_map<unsigned int, CameraComponent> cameraComponents;
     unsigned int cameraID;
     std::unordered_map<unsigned int, LightComponent> lightComponents;
     std::unordered_map<unsigned int, RenderComponent> renderComponents;
-    
-
-    MotionSystem* motionSystem;
 
 private:
     void set_up_glfw();
@@ -53,7 +53,12 @@ private:
     bool DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale);
 
     unsigned int entity_count = 0;
+    bool hasPhysics = true;
     GLFWwindow* window;
+
+    std::unordered_map<std::string, std::vector<physx::PxConvexMesh*>> physicsModels;
+    std::unordered_map<std::string, std::pair<unsigned int, unsigned int>> renderModels;
+    std::unordered_map<std::string, unsigned int> texturesList;
 
     std::vector<unsigned int> VAOs;
     std::vector<unsigned int> VBOs;
@@ -63,9 +68,11 @@ private:
 
 	float deltaTime = 0.0f;
 	float lastFrame = 0.0f;
+    float accumulatedTime = 0.0f;
 
     //Systems
     CameraSystem* cameraSystem;
+    MotionSystem* motionSystem;
     RenderSystem* renderSystem;
     LightSystem* lightSystem;
     LineSystem* lineSystem;

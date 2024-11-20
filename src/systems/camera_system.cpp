@@ -5,22 +5,42 @@ CameraSystem::CameraSystem(unsigned int shader, GLFWwindow* window) {
 
     glUseProgram(shader);
     viewLocation = glGetUniformLocation(shader, "view");
+    projectionLocation = glGetUniformLocation(shader, "projection");
 }
 
 bool CameraSystem::update(
     std::unordered_map<unsigned int, TransformComponent>& transformComponents,
-    unsigned int cameraID, CameraComponent& cameraComponent, float dt) {
+    std::unordered_map<unsigned int, CameraComponent>& cameraComponents,
+    unsigned int cameraID, float dt){
 
     glm::vec3& pos = transformComponents[cameraID].position;
     glm::quat& rotation = transformComponents[cameraID].eulers;
 
-    glm::mat4 rotationMatrix = glm::mat4_cast(rotation);
-    cameraComponent.forwards = glm::vec3(rotationMatrix[2]);
-    cameraComponent.up = { 0,1,0 };
-    cameraComponent.right = glm::vec3(rotationMatrix[0]);
+    CameraComponent camera = cameraComponents[cameraID];
 
-    glm::mat4 view = glm::lookAt(pos, pos + cameraComponent.forwards, cameraComponent.up);
-    glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
+    float fov = camera.fov;
+    float aspectRatio = camera.aspectRatio;
+    float farPlane = camera.farPlane;
+    float nearPlane = camera.nearPlane;
+    float sensitivity = camera.sensitivity;
+
+    glm::mat4 rotationMatrix = glm::mat4_cast(rotation);
+    glm::vec3 forward = glm::normalize(rotationMatrix * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f));
+    glm::vec3 right = glm::normalize(rotationMatrix * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f));
+    glm::vec3 up = glm::normalize(rotationMatrix * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f));
+    glm::vec3 target = pos + forward;
+
+    viewMatrix = glm::lookAt(pos, target, up);
+
+    projectionMatrix = glm::perspective(
+        glm::radians(camera.fov),
+        camera.aspectRatio,
+        camera.nearPlane,
+        camera.farPlane
+    );
+
+    glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+    glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         return true;
@@ -43,8 +63,8 @@ bool CameraSystem::update(
 
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) dPos.x += 1.0f;
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) dPos.x -= 1.0f;
-        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) dPos.y -= 1.0f;
-        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) dPos.y += 1.0f;
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) dPos.y += 1.0f;
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) dPos.y -= 1.0f;
         if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) dPos.z -= 1.0f;
         if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) dPos.z += 1.0f;
 
@@ -58,25 +78,33 @@ bool CameraSystem::update(
 
             float speed = baseSpeed * speedMultiplier * dt;
 
-            pos += speed * dPos.x * cameraComponent.forwards;
-            pos += speed * dPos.y * cameraComponent.right;
-            pos += speed * dPos.z * cameraComponent.up;
+            pos += speed * dPos.x * forward;
+            pos += speed * dPos.y * right;
+            pos += speed * dPos.z * up;
         }
 
         double mouse_x, mouse_y;
         glfwGetCursorPos(window, &mouse_x, &mouse_y);
         glfwSetCursorPos(window, mouse_x_ref, mouse_y_ref);
 
-        float sensitivity = 0.5f; 
+        float sensitivity = 0.5f;
         float yaw = sensitivity * static_cast<float>(mouse_x - mouse_x_ref) * dt;
-        float pitch = -sensitivity * static_cast<float>(mouse_y - mouse_y_ref) * dt;
+        float pitch = sensitivity * static_cast<float>(mouse_y - mouse_y_ref) * dt;
 
         glm::quat yawRotation = glm::angleAxis(-yaw, glm::vec3(0.0f, 1.0f, 0.0f));
-        glm::quat pitchRotation = glm::angleAxis(-pitch, cameraComponent.right);
+        glm::quat pitchRotation = glm::angleAxis(-pitch, glm::vec3(1.0f, 0.0f, 0.0f));
 
-        rotation = glm::normalize(pitchRotation * yawRotation * rotation);
+        rotation = glm::normalize(yawRotation * rotation * pitchRotation);
     }
 
     glfwPollEvents();
     return false;
+}
+
+glm::mat4 CameraSystem::GetViewMatrix() {
+    return viewMatrix;
+}
+
+glm::mat4 CameraSystem::GetProjectionMatrix() {
+    return projectionMatrix;
 }

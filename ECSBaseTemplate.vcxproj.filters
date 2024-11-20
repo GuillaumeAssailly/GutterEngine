@@ -37,6 +37,12 @@
     <ClCompile Include="src\systems\line_system.cpp">
       <Filter>src\systems</Filter>
     </ClCompile>
+    <ClCompile Include="src\loaders\loaderRaw.cpp">
+      <Filter>src\loaders</Filter>
+    </ClCompile>
+    <ClCompile Include="src\loaders\loaderJSON.cpp">
+      <Filter>src\loaders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\config.h">
@@ -84,6 +90,21 @@
     <ClInclude Include="src\systems\line_system.h">
       <Filter>src\systems</Filter>
     </ClInclude>
+    <ClInclude Include="src\loaders\loader.h">
+      <Filter>src\loaders</Filter>
+    </ClInclude>
+    <ClInclude Include="src\loaders\loaderRaw.h">
+      <Filter>src\loaders</Filter>
+    </ClInclude>
+    <ClInclude Include="src\loaders\loaderJSON.h">
+      <Filter>src\loaders</Filter>
+    </ClInclude>
+    <ClInclude Include="src\loaders\json.hpp">
+      <Filter>src\loaders</Filter>
+    </ClInclude>
+    <ClInclude Include="src\components\static_physics_component.h">
+      <Filter>src\components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\shader.frag">
@@ -114,6 +135,9 @@
     </Filter>
     <Filter Include="tex">
       <UniqueIdentifier>{b6e41553-143c-4e2e-ac32-a7d82cf1b3e3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\loaders">
+      <UniqueIdentifier>{2de84cf5-039c-4dd3-ac06-6652bd426e20}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -141,6 +141,8 @@
       <DeploymentContent>false</DeploymentContent>
     </ClCompile>
     <ClCompile Include="src\glad.c" />
+    <ClCompile Include="src\loaders\loaderJSON.cpp" />
+    <ClCompile Include="src\loaders\loaderRaw.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\systems\camera_system.cpp" />
     <ClCompile Include="src\systems\light_system.cpp">
@@ -163,12 +165,17 @@
     </ClInclude>
     <ClInclude Include="src\components\physics_component.h" />
     <ClInclude Include="src\components\render_component.h" />
+    <ClInclude Include="src\components\static_physics_component.h" />
     <ClInclude Include="src\components\transform_component.h" />
     <ClInclude Include="src\config.h" />
     <ClInclude Include="src\controllers\app.h" />
     <ClInclude Include="src\controllers\mesh_manager.h">
       <DeploymentContent>false</DeploymentContent>
     </ClInclude>
+    <ClInclude Include="src\loaders\json.hpp" />
+    <ClInclude Include="src\loaders\loader.h" />
+    <ClInclude Include="src\loaders\loaderJSON.h" />
+    <ClInclude Include="src\loaders\loaderRaw.h" />
     <ClInclude Include="src\systems\camera_system.h" />
     <ClInclude Include="src\systems\light_system.h">
       <DeploymentContent>false</DeploymentContent>
