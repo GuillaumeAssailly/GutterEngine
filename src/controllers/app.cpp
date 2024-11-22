@@ -433,11 +433,6 @@ void App::run() {
             motionSystem->applyForceToActor(physicsComponents[1].rigidBody, force);
         }
 
-        if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
-            if (cameraID == 12) cameraID = 1;
-            else cameraID = 12;
-        }
-
         // Update systems
         if (accumulatedTime >= 0.00833) {
             motionSystem->update(transformComponents, physicsComponents, accumulatedTime);
@@ -770,6 +765,20 @@ void App::run() {
 
         ImGui::End(); // End of Physics window
 
+
+        // --- Camera Window
+        ImGui::Begin("Current Camera");
+
+        for (auto const& camera : cameraComponents) {
+            std::string entityLabel = entityNames.at(camera.first);
+            if (ImGui::Selectable(entityLabel.c_str(), cameraID == camera.first)) {
+                cameraID = camera.first;
+            }
+        }
+
+        ImGui::End(); // End of Camera window
+
+
         // --- Settings Window ---
         ImGui::Begin("Settings");
         ImGui::Text("Reference Frame");
@@ -819,7 +828,7 @@ void App::run() {
                 grid_display = true;
         }
 
-        // TODO: Make rotation and scale work
+        // TODO: Make scale work
         ImGui::Text("Gizmo Settings");
         switch (gizmo_type) {
         case ImGuizmo::OPERATION::SCALE:
@@ -827,7 +836,7 @@ void App::run() {
                 gizmo_type = -1;
             break;
         case ImGuizmo::OPERATION::ROTATE:
-            if (ImGui::Button(" Rotation #LOCK ", ImVec2(-1.0f, 0.0f)))
+            if (ImGui::Button(" Rotation ", ImVec2(-1.0f, 0.0f)))
                 gizmo_type = ImGuizmo::OPERATION::SCALE;
             break;
         case ImGuizmo::OPERATION::TRANSLATE:
@@ -884,16 +893,21 @@ void App::run() {
 
                     transform.q = physx::PxQuat(currentRotation.x, currentRotation.y, currentRotation.z, currentRotation.w);
                     physicsComponents[selectedEntityID].rigidBody->setGlobalPose(transform);
+                }
+                else if (staticPhysicsComponents.find(selectedEntityID) != staticPhysicsComponents.end()) {
+                    physx::PxTransform transform = staticPhysicsComponents[selectedEntityID].rigidBody->getGlobalPose();
 
-                    transformComponents[selectedEntityID].position = translation;
-                    transformComponents[selectedEntityID].eulers = currentRotation;
-                    transformComponents[selectedEntityID].size = scale;
+                    transform.p.x = translation.x;
+                    transform.p.y = translation.y;
+                    transform.p.z = translation.z;
+
+                    transform.q = physx::PxQuat(currentRotation.x, currentRotation.y, currentRotation.z, currentRotation.w);
+                    staticPhysicsComponents[selectedEntityID].rigidBody->setGlobalPose(transform);                    
                 }
-                else
-                {
-                    transformComponents[selectedEntityID].position = translation;
-                    transformComponents[selectedEntityID].eulers = currentRotation;
-                }
+
+                transformComponents[selectedEntityID].position = translation;
+                transformComponents[selectedEntityID].eulers = currentRotation;
+                transformComponents[selectedEntityID].size = scale;
             }
         }
 
