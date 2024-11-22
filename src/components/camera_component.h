@@ -7,4 +7,5 @@ struct CameraComponent {
     float nearPlane;
     float farPlane;
     float sensitivity;
+    glm::vec4 initialForward;
 };

@@ -1073,7 +1073,8 @@ void App::loadEntities()
     camera.aspectRatio = 16.0f / 9.0f;
     camera.nearPlane = 0.1f;
     camera.farPlane = 100.0f;
-    camera.sensitivity = 0.1f;
+    camera.sensitivity = 0.5f;
+    camera.initialForward = { 0,0,1,0 };
     cameraComponents[ball] = camera;
 
     // Pins
@@ -1103,6 +1104,14 @@ void App::loadEntities()
         render.mesh = renderModels["Pin"].first;
         render.indexCount = renderModels["Pin"].second;
         renderComponents[pin] = render;
+
+        camera.fov = 45.0f;
+        camera.aspectRatio = 16.0f / 9.0f;
+        camera.nearPlane = 0.1f;
+        camera.farPlane = 100.0f;
+        camera.sensitivity = 0.5f;
+        camera.initialForward = { 0,0,-1,0 };
+        cameraComponents[pin] = camera;
     }
 
     // Camera
@@ -1111,11 +1120,12 @@ void App::loadEntities()
     transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
     transformComponents[cameraEntity] = transform;
     
-    camera.fov = 60.0f;
+    camera.fov = 45.0f;
     camera.aspectRatio = 16.0f / 9.0f;
     camera.nearPlane = 0.1f;
     camera.farPlane = 100.0f;
-    camera.sensitivity = 0.1f;
+    camera.sensitivity = 0.5f;
+    camera.initialForward = { 0,0,1,0 };
     cameraComponents[cameraEntity] = camera;
     cameraID = cameraEntity;
 
