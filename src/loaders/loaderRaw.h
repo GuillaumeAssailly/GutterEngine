@@ -2,5 +2,7 @@
 #include "loader.h"
 
 class LoaderRaw : public Loader {
-	void loadQuilles(App *app) const override;
+public :
+	void loadQuilles(App *app, CameraComponent *camera) const override;
+	void loadEntities(App* app) const override;
 };

@@ -35,6 +35,10 @@ public:
     void make_systems();
     void loadModelsAndTextures();
     void loadEntities();
+    MotionSystem * getMotionSystem();
+    std::unordered_map<std::string, std::pair<unsigned int, unsigned int>> getRenderModels() const;
+    std::unordered_map<std::string, unsigned int> getTexturesList() const;
+    std::unordered_map<std::string, std::vector<physx::PxConvexMesh*>> getPhysicsModels() const;
 
     //Components
 	std::unordered_map<unsigned int, std::string> entityNames;
