@@ -35,8 +35,8 @@ bool CameraSystem::update(
     glm::vec3 target = pos + forward;
 
     // Calculate the view matrix (camera orientation) and projection matrix (perspective transformation)
-    glm::mat4 viewMatrix = glm::lookAt(pos, target, up);
-    glm::mat4 projectionMatrix = glm::perspective(
+    viewMatrix = glm::lookAt(pos, target, up);
+    projectionMatrix = glm::perspective(
         glm::radians(camera.fov), camera.aspectRatio, camera.nearPlane, camera.farPlane);
 
     // Send matrices to the shader
@@ -108,4 +108,12 @@ bool CameraSystem::update(
 
     glfwPollEvents();
     return false;
+}
+
+glm::mat4 CameraSystem::GetViewMatrix() {
+    return viewMatrix;
+}
+
+glm::mat4 CameraSystem::GetProjectionMatrix() {
+    return projectionMatrix;
 }

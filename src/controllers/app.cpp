@@ -262,8 +262,84 @@ unsigned int App::make_texture(const char* filename, const bool flipTex) {
     return texture;
 }
 
+// TODO: Place this function in a specific ImGui file
+bool App::DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale)
+{
+    // From glm::decompose in matrix_decompose.inl
+
+    using namespace glm;
+    using T = float;
+
+    mat4 LocalMatrix(transform);
+
+    // Normalize the matrix.
+    if (epsilonEqual(LocalMatrix[3][3], static_cast<float>(0), epsilon<T>()))
+        return false;
+
+    // First, isolate perspective.  This is the messiest.
+    if (
+        epsilonNotEqual(LocalMatrix[0][3], static_cast<T>(0), epsilon<T>()) ||
+        epsilonNotEqual(LocalMatrix[1][3], static_cast<T>(0), epsilon<T>()) ||
+        epsilonNotEqual(LocalMatrix[2][3], static_cast<T>(0), epsilon<T>()))
+    {
+        // Clear the perspective partition
+        LocalMatrix[0][3] = LocalMatrix[1][3] = LocalMatrix[2][3] = static_cast<T>(0);
+        LocalMatrix[3][3] = static_cast<T>(1);
+    }
+
+    // Next take care of translation (easy).
+    translation = vec3(LocalMatrix[3]);
+    LocalMatrix[3] = vec4(0, 0, 0, LocalMatrix[3].w);
+
+    vec3 Row[3], Pdum3;
+
+    // Now get scale and shear.
+    for (length_t i = 0; i < 3; ++i)
+        for (length_t j = 0; j < 3; ++j)
+            Row[i][j] = LocalMatrix[i][j];
+
+    // Compute X scale factor and normalize first row.
+    scale.x = length(Row[0]);
+    Row[0] = detail::scale(Row[0], static_cast<T>(1));
+    scale.y = length(Row[1]);
+    Row[1] = detail::scale(Row[1], static_cast<T>(1));
+    scale.z = length(Row[2]);
+    Row[2] = detail::scale(Row[2], static_cast<T>(1));
+
+    // At this point, the matrix (in rows[]) is orthonormal.
+    // Check for a coordinate system flip.  If the determinant
+    // is -1, then negate the matrix and the scaling factors.
+#if 0
+    Pdum3 = cross(Row[1], Row[2]); // v3Cross(row[1], row[2], Pdum3);
+    if (dot(Row[0], Pdum3) < 0)
+    {
+        for (length_t i = 0; i < 3; i++)
+        {
+            scale[i] *= static_cast<T>(-1);
+            Row[i] *= static_cast<T>(-1);
+        }
+    }
+#endif
+
+    rotation.y = asin(-Row[0][2]);
+    if (cos(rotation.y) != 0) {
+        rotation.x = atan2(Row[1][2], Row[2][2]);
+        rotation.z = atan2(Row[0][1], Row[0][0]);
+    }
+    else {
+        rotation.x = atan2(-Row[2][0], Row[1][1]);
+        rotation.z = 0;
+    }
+
+
+    return true;
+}
+
+
 //ImGui variables
 unsigned int selectedEntityID = 0;
+int gizmo_type = -1;
+bool gizmo_world = true;
 physx::PxVec3 force = { 0.f, 0.f, 0.f };
 float targetMass;
 glm::vec2 targetSolverIteration;
@@ -328,6 +404,7 @@ void App::run() {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+        ImGuizmo::BeginFrame();
 
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
@@ -356,22 +433,6 @@ void App::run() {
             motionSystem->applyForceToActor(physicsComponents[1].rigidBody, force);
         }
 
-        if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
-            if (!pKeyWasPressed) {
-                if (cameraID == 12)
-                    cameraID = 1;
-                else if (cameraID == 1)
-                    cameraID = 2;
-                else
-                    cameraID = 12;
-
-                pKeyWasPressed = true;
-            }
-        }
-        else {
-            pKeyWasPressed = false;
-        }
-
         // Update systems
         if (accumulatedTime >= 0.00833) {
             motionSystem->update(transformComponents, physicsComponents, accumulatedTime);
@@ -387,6 +448,7 @@ void App::run() {
         //Draw Lines
         //Add here more lines to draw...
         lineSystem->render_lines_ref_frame_grid(type_reference_frame, grid_display, transformComponents[cameraID].position, shader);
+
 
         // Start //ImGui window for debugging
         ImGui::Begin("Debug");
@@ -703,9 +765,23 @@ void App::run() {
 
         ImGui::End(); // End of Physics window
 
+
+        // --- Camera Window
+        ImGui::Begin("Current Camera");
+
+        for (auto const& camera : cameraComponents) {
+            std::string entityLabel = entityNames.at(camera.first);
+            if (ImGui::Selectable(entityLabel.c_str(), cameraID == camera.first)) {
+                cameraID = camera.first;
+            }
+        }
+
+        ImGui::End(); // End of Camera window
+
+
         // --- Settings Window ---
         ImGui::Begin("Settings");
-
+        ImGui::Text("Reference Frame");
         switch (type_reference_frame) {
         case 2 :
             ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.43f, 0.7f, 0.75f));
@@ -730,6 +806,7 @@ void App::run() {
             break;
         }
 
+        ImGui::Text("Grid");
         if (grid_display)
         {
             ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.43f, 0.7f, 0.75f));
@@ -750,13 +827,93 @@ void App::run() {
             if (ImGui::Button(" Hidden Grid ", ImVec2(-1.0f, 0.0f)))
                 grid_display = true;
         }
+
+        // TODO: Make scale work
+        ImGui::Text("Gizmo Settings");
+        switch (gizmo_type) {
+        case ImGuizmo::OPERATION::SCALE:
+            if (ImGui::Button(" Scaling #LOCK ", ImVec2(-1.0f, 0.0f)))
+                gizmo_type = -1;
+            break;
+        case ImGuizmo::OPERATION::ROTATE:
+            if (ImGui::Button(" Rotation ", ImVec2(-1.0f, 0.0f)))
+                gizmo_type = ImGuizmo::OPERATION::SCALE;
+            break;
+        case ImGuizmo::OPERATION::TRANSLATE:
+            if (ImGui::Button(" Translation ", ImVec2(-1.0f, 0.0f)))
+            {
+                gizmo_type = ImGuizmo::OPERATION::ROTATE;
+            }
+            break;
+        default:
+            if (ImGui::Button(" None ", ImVec2(-1.0f, 0.0f)))
+                gizmo_type = ImGuizmo::OPERATION::TRANSLATE;
+            break;
+        }
+
+        if (ImGui::Button((gizmo_world) ? " Gizmo World " : " Gizmo Local ", ImVec2(-1.0f, 0.0f)))
+            gizmo_world = !gizmo_world;
+
         ImGui::End(); // End of Settings window
 
-		// Render ImGui
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        // Swap buffers to display the frame
+        // ImGuizmo
+        if (gizmo_type != -1) {
+            ImGuizmo::SetOrthographic(false);
+            ImGuiIO& io = ImGui::GetIO();
+            ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
+
+            auto camera = transformComponents[cameraID];
+            glm::mat4 cameraView = cameraSystem->GetViewMatrix();
+            glm::mat4 cameraProjection = cameraSystem->GetProjectionMatrix();
+            glm::mat4 transformSelectedEntity = glm::translate(glm::mat4(1.0f), transformComponents[selectedEntityID].position) *
+                glm::toMat4(transformComponents[selectedEntityID].eulers) *
+                glm::scale(glm::mat4(1.0f), transformComponents[selectedEntityID].size);
+
+            // Manipulation de l'entité sélectionnée avec ImGuizmo
+            ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
+                (ImGuizmo::OPERATION)gizmo_type, (ImGuizmo::MODE)gizmo_world,
+                glm::value_ptr(transformSelectedEntity));
+
+            if (ImGuizmo::IsUsing())
+            {
+                glm::vec3 translation, rotation, scale;
+
+                DecomposeTransform(transformSelectedEntity, translation, rotation, scale);
+
+                glm::quat currentRotation = glm::quat(rotation);
+
+                if (physicsComponents.find(selectedEntityID) != physicsComponents.end())
+                {
+                    physx::PxTransform transform = physicsComponents[selectedEntityID].rigidBody->getGlobalPose();
+
+                    transform.p.x = translation.x;
+                    transform.p.y = translation.y;
+                    transform.p.z = translation.z;
+
+                    transform.q = physx::PxQuat(currentRotation.x, currentRotation.y, currentRotation.z, currentRotation.w);
+                    physicsComponents[selectedEntityID].rigidBody->setGlobalPose(transform);
+                }
+                else if (staticPhysicsComponents.find(selectedEntityID) != staticPhysicsComponents.end()) {
+                    physx::PxTransform transform = staticPhysicsComponents[selectedEntityID].rigidBody->getGlobalPose();
+
+                    transform.p.x = translation.x;
+                    transform.p.y = translation.y;
+                    transform.p.z = translation.z;
+
+                    transform.q = physx::PxQuat(currentRotation.x, currentRotation.y, currentRotation.z, currentRotation.w);
+                    staticPhysicsComponents[selectedEntityID].rigidBody->setGlobalPose(transform);                    
+                }
+
+                transformComponents[selectedEntityID].position = translation;
+                transformComponents[selectedEntityID].eulers = currentRotation;
+                transformComponents[selectedEntityID].size = scale;
+            }
+        }
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         glfwSwapBuffers(window);
     }
 

@@ -49,8 +49,10 @@ public:
 private:
     void set_up_glfw();
 
+    // TODO: Place this function in a specific ImGui file
+    bool DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale);
+
     unsigned int entity_count = 0;
-    bool pKeyWasPressed = false;
     bool hasPhysics = true;
     GLFWwindow* window;
 
