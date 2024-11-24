@@ -5,9 +5,16 @@
     "b": 0.5
   },
   "meshPath": "obj/convexMesh/quille.obj",
+  "PinCamera": {
+    "fov": 45.0,
+    "aspectRatio": 1.777777778,
+    "nearPlane": 0.1,
+    "farPlane": 100.0,
+    "sensitivity": 0.5
+  },
   "pins": [
     {
-      "id": "Quille 0",
+      "id": "Pin 0",
       "position": {
         "x": 0.0,
         "y": 0.22,
@@ -23,11 +30,10 @@
         "staticFriction": 0.01,
         "dynamicFriction": 0.2,
         "restitution": 0.3
-      },
-      "modelPath": "obj/servoskull/quille.obj"
+      }
     },
     {
-      "id": "Quille 1",
+      "id": "Pin 1",
       "position": {
         "x": 0.1524,
         "y": 0.22,
@@ -43,11 +49,10 @@
         "staticFriction": 0.01,
         "dynamicFriction": 0.2,
         "restitution": 0.3
-      },
-      "modelPath": "obj/servoskull/quille.obj"
+      }
     },
     {
-      "id": "Quille 2",
+      "id": "Pin 2",
       "position": {
         "x": -0.1524,
         "y": 0.22,
@@ -63,11 +68,10 @@
         "staticFriction": 0.01,
         "dynamicFriction": 0.2,
         "restitution": 0.3
-      },
-      "modelPath": "obj/servoskull/quille.obj"
+      }
     },
     {
-      "id": "Quille 3",
+      "id": "Pin 3",
       "position": {
         "x": -0.3048,
         "y": 0.22,
@@ -83,11 +87,10 @@
         "staticFriction": 0.01,
         "dynamicFriction": 0.2,
         "restitution": 0.3
-      },
-      "modelPath": "obj/servoskull/quille.obj"
+      }
     },
     {
-      "id": "Quille 4",
+      "id": "Pin 4",
       "position": {
         "x": 0.0,
         "y": 0.22,
@@ -103,11 +106,10 @@
         "staticFriction": 0.01,
         "dynamicFriction": 0.2,
         "restitution": 0.3
-      },
-      "modelPath": "obj/servoskull/quille.obj"
+      }
     },
     {
-      "id": "Quille 5",
+      "id": "Pin 5",
       "position": {
         "x": 0.3048,
         "y": 0.22,
@@ -123,11 +125,10 @@
         "staticFriction": 0.01,
         "dynamicFriction": 0.2,
         "restitution": 0.3
-      },
-      "modelPath": "obj/servoskull/quille.obj"
+      }
     },
     {
-      "id": "Quille 6",
+      "id": "Pin 6",
       "position": {
         "x": 0.1524,
         "y": 0.22,
@@ -143,11 +144,10 @@
         "staticFriction": 0.01,
         "dynamicFriction": 0.2,
         "restitution": 0.3
-      },
-      "modelPath": "obj/servoskull/quille.obj"
+      }
     },
     {
-      "id": "Quille 7",
+      "id": "Pin 7",
       "position": {
         "x": -0.1524,
         "y": 0.22,
@@ -163,11 +163,10 @@
         "staticFriction": 0.01,
         "dynamicFriction": 0.2,
         "restitution": 0.3
-      },
-      "modelPath": "obj/servoskull/quille.obj"
+      }
     },
     {
-      "id": "Quille 8",
+      "id": "Pin 8",
       "position": {
         "x": 0.4572,
         "y": 0.22,
@@ -183,11 +182,10 @@
         "staticFriction": 0.01,
         "dynamicFriction": 0.2,
         "restitution": 0.3
-      },
-      "modelPath": "obj/servoskull/quille.obj"
+      }
     },
     {
-      "id": "Quille 9",
+      "id": "Pin 9",
       "position": {
         "x": -0.4572,
         "y": 0.22,
@@ -203,8 +201,46 @@
         "staticFriction": 0.01,
         "dynamicFriction": 0.2,
         "restitution": 0.3
-      },
-      "modelPath": "obj/servoskull/quille.obj"
+      }
     }
-  ]
+  ],
+
+  "ball": {
+    "id": "Ball",
+    "position": {
+      "x": 0.0,
+      "y": 0.105,
+      "z": 3.0
+    },
+    "rotation": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "material": {
+      "r": 0.05,
+      "g": 0.05,
+      "b": 0.2
+    },
+    "geometry": {
+      "type": "sphere",
+      "radius": 0.105
+    },
+    "rigidBody": {
+      "mass": 6.8
+    },
+    "modelPath": "obj/servoskull/boule.obj",
+    "render": {
+      "meshName": "Ball",
+      "textureName": "Ball"
+    },
+    "camera": {
+      "fov": 60.0,
+      "aspectRatio": 1.777777778,
+      "nearPlane": 0.1,
+      "farPlane": 100.0,
+      "sensitivity": 0.1
+    }
+  }
+
 }

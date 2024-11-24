@@ -14,13 +14,14 @@
 int main() {
 
 		App* app = new App();
-		LoaderRaw* loader = new LoaderRaw();
+		Loader* loader = new LoaderRaw();
 
 		app->set_up_opengl();
 		app->make_systems();
 		
 		app->loadModelsAndTextures();
 		loader->loadEntities(app);
+		//app->loadEntities();
 
 		app->run();
 

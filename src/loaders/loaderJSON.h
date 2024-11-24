@@ -5,8 +5,13 @@
 #include <string>
 #include "json.hpp"
 
+using json = nlohmann::json;
+
 class LoaderJSON : public Loader {
+	private :
+		json jsonData;
+		void loadQuilles(App* app, CameraComponent* camera) const override;
+		void loadBall(App* app, CameraComponent* camera) const override;
 	public :
-		void loadQuilles(App* app, CameraComponent *camera) const override;
-		void loadEntities(App* app) const override;
+		LoaderJSON();
 };
