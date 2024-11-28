@@ -115,10 +115,13 @@ void main()
         
         vec3 lightDir;
         float attenuation = 1.0;
-
+        float shadow = 0.0f;
         if(isDirectional[i])
         {
             lightDir = normalize(-directionalLightsDir[i]);
+            
+            //Calculate the shadow factor
+            shadow = shadowCalculation(FragPosLightSpace);
         } else {
             lightDir = normalize(lightPos[i] - FragPos);
             float distance = length(lightPos[i] - FragPos);
@@ -126,8 +129,6 @@ void main()
         }
 
 
-        //Calculate the shadow factor
-        float shadow = shadowCalculation(FragPosLightSpace);
         
        
         // Ambient lighting
