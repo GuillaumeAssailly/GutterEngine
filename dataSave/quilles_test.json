@@ -1,0 +1,210 @@
+{
+  "pinMaterial": {
+    "r": 0.5,
+    "g": 0.5,
+    "b": 0.5
+  },
+  "meshPath": "obj/convexMesh/quille.obj",
+  "pins": [
+    {
+      "id": "Quille 0",
+      "position": {
+        "x": 0.0,
+        "y": 0.22,
+        "z": 15.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rigidBody": {
+        "mass": 1.5,
+        "staticFriction": 0.01,
+        "dynamicFriction": 0.2,
+        "restitution": 0.3
+      },
+      "modelPath": "obj/servoskull/quille.obj"
+    },
+    {
+      "id": "Quille 1",
+      "position": {
+        "x": 0.1524,
+        "y": 0.22,
+        "z": 15.2635
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rigidBody": {
+        "mass": 1.5,
+        "staticFriction": 0.01,
+        "dynamicFriction": 0.2,
+        "restitution": 0.3
+      },
+      "modelPath": "obj/servoskull/quille.obj"
+    },
+    {
+      "id": "Quille 2",
+      "position": {
+        "x": -0.1524,
+        "y": 0.22,
+        "z": 15.2635
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rigidBody": {
+        "mass": 1.5,
+        "staticFriction": 0.01,
+        "dynamicFriction": 0.2,
+        "restitution": 0.3
+      },
+      "modelPath": "obj/servoskull/quille.obj"
+    },
+    {
+      "id": "Quille 3",
+      "position": {
+        "x": -0.3048,
+        "y": 0.22,
+        "z": 15.527
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rigidBody": {
+        "mass": 1.5,
+        "staticFriction": 0.01,
+        "dynamicFriction": 0.2,
+        "restitution": 0.3
+      },
+      "modelPath": "obj/servoskull/quille.obj"
+    },
+    {
+      "id": "Quille 4",
+      "position": {
+        "x": 0.0,
+        "y": 0.22,
+        "z": 15.527
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rigidBody": {
+        "mass": 1.5,
+        "staticFriction": 0.01,
+        "dynamicFriction": 0.2,
+        "restitution": 0.3
+      },
+      "modelPath": "obj/servoskull/quille.obj"
+    },
+    {
+      "id": "Quille 5",
+      "position": {
+        "x": 0.3048,
+        "y": 0.22,
+        "z": 15.527
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rigidBody": {
+        "mass": 1.5,
+        "staticFriction": 0.01,
+        "dynamicFriction": 0.2,
+        "restitution": 0.3
+      },
+      "modelPath": "obj/servoskull/quille.obj"
+    },
+    {
+      "id": "Quille 6",
+      "position": {
+        "x": 0.1524,
+        "y": 0.22,
+        "z": 15.7905
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rigidBody": {
+        "mass": 1.5,
+        "staticFriction": 0.01,
+        "dynamicFriction": 0.2,
+        "restitution": 0.3
+      },
+      "modelPath": "obj/servoskull/quille.obj"
+    },
+    {
+      "id": "Quille 7",
+      "position": {
+        "x": -0.1524,
+        "y": 0.22,
+        "z": 15.7905
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rigidBody": {
+        "mass": 1.5,
+        "staticFriction": 0.01,
+        "dynamicFriction": 0.2,
+        "restitution": 0.3
+      },
+      "modelPath": "obj/servoskull/quille.obj"
+    },
+    {
+      "id": "Quille 8",
+      "position": {
+        "x": 0.4572,
+        "y": 0.22,
+        "z": 15.7905
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rigidBody": {
+        "mass": 1.5,
+        "staticFriction": 0.01,
+        "dynamicFriction": 0.2,
+        "restitution": 0.3
+      },
+      "modelPath": "obj/servoskull/quille.obj"
+    },
+    {
+      "id": "Quille 9",
+      "position": {
+        "x": -0.4572,
+        "y": 0.22,
+        "z": 15.7905
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rigidBody": {
+        "mass": 1.5,
+        "staticFriction": 0.01,
+        "dynamicFriction": 0.2,
+        "restitution": 0.3
+      },
+      "modelPath": "obj/servoskull/quille.obj"
+    }
+  ]
+}

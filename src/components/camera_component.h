@@ -2,9 +2,10 @@
 #include "../config.h"
 
 struct CameraComponent {
-    glm::vec3 right;
-    glm::vec3 up;
-    glm::vec3 forwards;
-	glm::mat4 viewMatrix;
-	glm::mat4 projectionMatrix;
+    float fov;
+    float aspectRatio;
+    float nearPlane;
+    float farPlane;
+    float sensitivity;
+    glm::vec4 initialForward;
 };

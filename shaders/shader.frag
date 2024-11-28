@@ -20,6 +20,7 @@ uniform vec3 ambientStrength;  // Ambient reflectivity
 uniform vec3 diffuseStrength;  // Diffuse reflectivity
 uniform vec3 specularStrength; // Specular reflectivity
 uniform float shininess;       // Shininess factor
+uniform bool isLine;           // Drawing a line or not
 uniform int hasNormalMap;
 
 // Light properties
@@ -82,8 +83,11 @@ float shadowCalculation(vec4 fragPosLightSpace) {
 
 void main()
 {
-    // Combine textures using mix
-    vec4 texColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), 0.5);
+    if (isLine) {
+        FragColor = vec4(lineColor, 1.0);
+    } else {
+        // Combine textures using mix
+        vec4 texColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), 0.5);
 
     vec3 norm;
     if(hasNormalMap == 1){
@@ -105,13 +109,13 @@ void main()
     }
     
 
-    // Initialize lighting components
-    vec3 ambient = vec3(0.0);
-    vec3 diffuse = vec3(0.0);
-    vec3 specular = vec3(0.0);
+        // Initialize lighting components
+        vec3 ambient = vec3(0.0);
+        vec3 diffuse = vec3(0.0);
+        vec3 specular = vec3(0.0);
 
-    // Loop over all lights
-    for (int i = 0; i < numLights; i++) {
+        // Loop over all lights
+        for (int i = 0; i < numLights; i++) {
         
         vec3 lightDir;
         float attenuation = 1.0;
@@ -138,8 +142,8 @@ void main()
         float diff = max(dot(norm, lightDir), 0.0);
         diffuse += (1.0 - shadow) * diffuseStrength * diff * lightColor[i] * intensity[i] * attenuation;
 
-        // Specular lighting
-        float spec = 0;
+            // Specular lighting
+            float spec = 0;
         
         vec3 viewDir = normalize(viewPos - FragPos);
         vec3 reflectDir = reflect(-lightDir, norm);
@@ -152,7 +156,7 @@ void main()
 
        
         
-    }
+        }
 
 
 

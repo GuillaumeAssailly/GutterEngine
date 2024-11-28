@@ -3,5 +3,6 @@
 
 struct TransformComponent {
     glm::vec3 position;
-    glm::vec3 eulers;
+    glm::quat eulers;
+    glm::vec3 size;
 };

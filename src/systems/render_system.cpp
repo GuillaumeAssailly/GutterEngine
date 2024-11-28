@@ -33,9 +33,10 @@ void RenderSystem::update(
         // Set the model matrix based on the transform
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, transform.position);
-        model = glm::rotate(model, glm::radians(transform.eulers.x), glm::vec3(1.0f, 0.0f, 0.0f));
-        model = glm::rotate(model, glm::radians(transform.eulers.y), glm::vec3(0.0f, 1.0f, 0.0f)); 
-        model = glm::rotate(model, glm::radians(transform.eulers.z), glm::vec3(0.0f, 0.0f, 1.0f)); 
+
+        // Convert the quaternion to a rotation matrix
+        glm::mat4 rotationMatrix = glm::mat4_cast(transform.eulers);
+        model *= rotationMatrix;
 
         glUniformMatrix4fv(
             modelLocation, 1, GL_FALSE,
