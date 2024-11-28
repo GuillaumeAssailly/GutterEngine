@@ -83,11 +83,8 @@ float shadowCalculation(vec4 fragPosLightSpace) {
 
 void main()
 {
-    if (isLine) {
-        FragColor = vec4(lineColor, 1.0);
-    } else {
-        // Combine textures using mix
-        vec4 texColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), 0.5);
+    // Combine textures using mix
+    vec4 texColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), 0.5);
 
     vec3 norm;
     if(hasNormalMap == 1){

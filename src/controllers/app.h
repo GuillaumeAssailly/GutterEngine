@@ -62,6 +62,7 @@ private:
     std::unordered_map<std::string, std::vector<physx::PxConvexMesh*>> physicsModels;
     std::unordered_map<std::string, std::pair<unsigned int, unsigned int>> renderModels;
     std::unordered_map<std::string, unsigned int> texturesList;
+	std::unordered_map<std::string, unsigned int> normalMapsList;
 
     std::vector<unsigned int> VAOs;
     std::vector<unsigned int> VBOs;

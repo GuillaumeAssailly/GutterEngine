@@ -421,9 +421,7 @@ void App::run() {
     int frameCount = 0;
 
     //while loop iterating on the renderer pipeline : 
-
-
-	shadowSystem->Initialize(lightComponents);
+    shadowSystem->Initialize(lightComponents);
     while (!glfwWindowShouldClose(window)) {
         // Per-frame time logic
         // -------------------
@@ -469,47 +467,51 @@ void App::run() {
             break;
         }
         lightSystem->update(lightComponents, transformComponents, cameraID);
+        renderSystem->update(transformComponents, renderComponents, lightComponents);
+        shadowSystem->GenerateShadowMap(lightComponents, transformComponents, renderComponents, screenWidth, screenHeight, cameraID);
 
-        // Start ImGui window for debugging
+        //Draw Lines
+        //Add here more lines to draw...
+        lineSystem->render_lines_ref_frame_grid(type_reference_frame, grid_display, transformComponents[cameraID].position, shader);
+
+
+        // Start //ImGui window for debugging
         ImGui::Begin("Debug");
 
         // Display FPS
         ImGui::Text("FPS: %f", 1.0f / deltaTime);
 
-
         ImGui::End();
 
         // --- Entity Tree Window ---
+        ImGui::Begin("Entity Tree");
 
         // Loop through all entities to create a tree view
         for (int entityID = 0; entityID < entity_count; entityID++) {
             std::string entityLabel = entityNames.at(entityID);
-
 
             // Display each entity as selectable
             if (ImGui::Selectable(entityLabel.c_str(), selectedEntityID == entityID)) {
                 selectedEntityID = entityID; // Set the selected entity when clicked
 
             }
+        }
 
-    ImGui::End(); // End of Entity Tree window
-
+        ImGui::End(); // End of Entity Tree window
 
         // If an entity is selected, show its components
         if (selectedEntityID < entity_count && selectedEntityID != -1) {
             // --- Inspector Window ---
+            ImGui::Begin("Inspector");
 
-        // If an entity is selected, show its components
-        if (selectedEntityID < entity_count) {
 
             // Display TransformComponent if present
             if (transformComponents.find(selectedEntityID) != transformComponents.end()) {
                 ImGui::Text("Transform Component");
                 TransformComponent& transform = transformComponents[selectedEntityID];
-                ImGui::InputFloat3("Position", &transform.position[0]);
-                ImGui::InputFloat3("Rotation", &transform.eulers[0]);
+                ImGui::DragFloat3("Position", &transform.position[0]);
+                ImGui::DragFloat3("Rotation", &transform.eulers[0]);
             }
-
 
             // Display PhysicsComponent if present
             if (physicsComponents.find(selectedEntityID) != physicsComponents.end()) {
@@ -523,21 +525,21 @@ void App::run() {
                 targetSleepT = physics.rigidBody->getSleepThreshold();
                 targetCMass = physics.rigidBody->getCMassLocalPose().p;
 
-                if (ImGui::InputFloat("Mass", &targetMass))
+                if (ImGui::DragFloat("Mass", &targetMass))
                     physx::PxRigidBodyExt::setMassAndUpdateInertia(*physics.rigidBody, targetMass);
-                if (ImGui::InputFloat3("CMass", &targetCMass.x))
+                if (ImGui::DragFloat3("CMass", &targetCMass.x))
                     physics.rigidBody->setCMassLocalPose(physx::PxTransform(targetCMass));
-                if (ImGui::InputFloat2("Damping", &targetDamping.x)) {
+                if (ImGui::DragFloat2("Damping", &targetDamping.x)) {
                     physics.rigidBody->setLinearDamping(targetDamping.x);
                     physics.rigidBody->setAngularDamping(targetDamping.y);
                 }
-                if (ImGui::InputFloat("Sleep Threshold", &targetSleepT))
+                if (ImGui::DragFloat("Sleep Threshold", &targetSleepT))
                     physics.rigidBody->setSleepThreshold(targetSleepT);
-                if (ImGui::InputFloat2("Solver Iters", &targetSolverIteration.x)) {
+                if (ImGui::DragFloat2("Solver Iters", &targetSolverIteration.x)) {
                     physics.rigidBody->setSolverIterationCounts(targetSolverIteration.x, targetSolverIteration.x);
                 }
 
-                ImGui::InputFloat3("Force", &force.x);
+                ImGui::DragFloat3("Force", &force.x);
                 if (hasPhysics && ImGui::Button("Apply Force")) {
                     auto it = physicsComponents.find(selectedEntityID);
                     if (it != physicsComponents.end()) {
@@ -545,19 +547,20 @@ void App::run() {
                         physicsComponent.rigidBody->addForce(force, physx::PxForceMode::eIMPULSE);
                     }
                 }
-
-        // Display LightComponent if present
-        if (lightComponents.find(selectedEntityID) != lightComponents.end()) {
-            ImGui::Text("Light Component");
-            LightComponent& light = lightComponents[selectedEntityID];
-            ImGui::ColorEdit3("Light Color", &light.color[0]);
-            ImGui::SliderFloat("Intensity", &light.intensity, 0.0f, 10.0f);
-			ImGui::Checkbox("Is Directional", &light.isDirectional);
-            if (light.isDirectional == true) {
-                ImGui::DragFloat3("Light Direction", &light.direction[0], 0.1);
             }
-        }
 
+            // Display LightComponent if present
+            if (lightComponents.find(selectedEntityID) != lightComponents.end()) {
+                ImGui::Text("Light Component");
+                LightComponent& light = lightComponents[selectedEntityID];
+                ImGui::ColorEdit3("Light Color", &light.color[0]);
+                ImGui::SliderFloat("Intensity", &light.intensity, 0.0f, 10.0f);
+                ImGui::Checkbox("Is Directional", &light.isDirectional);
+                if (light.isDirectional == true) {
+                    ImGui::DragFloat3("Light Direction", &light.direction[0], 0.1);
+                }
+
+            }
 
             // Display RenderComponent if present
             if (renderComponents.find(selectedEntityID) != renderComponents.end()) {
@@ -576,8 +579,8 @@ void App::run() {
         ImGui::InputText("Object Name", newEntityName, IM_ARRAYSIZE(newEntityName));
 
         ImGui::Text("Transform Component");
-        ImGui::InputFloat3("Position", &newPosition.x);
-        ImGui::InputFloat4("Rotation", &newEulers.x);
+        ImGui::DragFloat3("Position", &newPosition.x);
+        ImGui::DragFloat4("Rotation", &newEulers.x);
         ImGui::Checkbox("Physics Component", &addPhysics);
         if (addPhysics) {
             ImGui::Text("Select a physics mode");
@@ -610,25 +613,25 @@ void App::run() {
                 }
                 break;
             case 1:
-                ImGui::InputFloat3("Size", &boxSize.x);
+                ImGui::DragFloat3("Size", &boxSize.x);
                 break;
             case 2:
-                ImGui::InputFloat("Radius", &sphereRadius);
+                ImGui::DragFloat("Radius", &sphereRadius);
             }
 
             ImGui::Text("Settings");
-            ImGui::InputFloat("Static Friction", &newEntityStaticFriction);
-            ImGui::InputFloat("Dynamic Friction", &newEntityDynamicFriction);
-            ImGui::InputFloat("Restitution", &newEntityRestitution);
+            ImGui::DragFloat("Static Friction", &newEntityStaticFriction);
+            ImGui::DragFloat("Dynamic Friction", &newEntityDynamicFriction);
+            ImGui::DragFloat("Restitution", &newEntityRestitution);
 
-            ImGui::InputFloat("Mass", &newEntityMass);
-            ImGui::InputFloat("Sleep Threshold", &newEntitySleepT);
+            ImGui::DragFloat("Mass", &newEntityMass);
+            ImGui::DragFloat("Sleep Threshold", &newEntitySleepT);
 
-            ImGui::InputFloat("Linear Damping", &newEntityLinearDamping);
-            ImGui::InputFloat("Angular Damping", &newEntityAngularDamping);
+            ImGui::DragFloat("Linear Damping", &newEntityLinearDamping);
+            ImGui::DragFloat("Angular Damping", &newEntityAngularDamping);
 
-            ImGui::InputInt("Position Solver", &newEntitySolverPosition);
-            ImGui::InputInt("Velocity Solver", &newEntitySolverVelocity);
+            ImGui::DragInt("Position Solver", &newEntitySolverPosition);
+            ImGui::DragInt("Velocity Solver", &newEntitySolverVelocity);
         }
 
         ImGui::Checkbox("Render Component", &addRender);
@@ -722,10 +725,10 @@ void App::run() {
                 error_msg = "";
             }
             else {
-                error_msg = "Please fill all the fields";               
+                error_msg = "Please fill all the fields";
             }
-           
-            
+
+
 
             /*strcpy_s(newEntityName, sizeof(newEntityName), "NewObject");
             addTransform = false;
@@ -810,7 +813,7 @@ void App::run() {
         ImGui::Begin("Settings");
         ImGui::Text("Reference Frame");
         switch (type_reference_frame) {
-        case 2 :
+        case 2:
             ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.43f, 0.7f, 0.75f));
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.43f, 0.9f, 0.9f));
             if (ImGui::Button(" Full Reference Frame ", ImVec2(-1.0f, 0.0f)))
@@ -929,57 +932,24 @@ void App::run() {
                     transform.p.z = translation.z;
 
                     transform.q = physx::PxQuat(currentRotation.x, currentRotation.y, currentRotation.z, currentRotation.w);
-                    staticPhysicsComponents[selectedEntityID].rigidBody->setGlobalPose(transform);                    
-
+                    staticPhysicsComponents[selectedEntityID].rigidBody->setGlobalPose(transform);
+                }
 
                 transformComponents[selectedEntityID].position = translation;
                 transformComponents[selectedEntityID].eulers = currentRotation;
                 transformComponents[selectedEntityID].size = scale;
             }
-
+        }
 
         ImGui::Render();
-
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapBuffers(window);
-
-
-/// <summary>
-/// Function that sets up the GLFW window and OpenGL context
-/// </summary>
-void App::set_up_glfw() {
-
-    glfwInit();
-    glfwWindowHint(GLFW_SAMPLES, 16);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-
-    window = glfwCreateWindow(1920, 1080, "Gutter Engine", NULL, NULL);
-    if (window == NULL)
-    {
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return;
-    }
-    glfwMakeContextCurrent(window);
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cout << "Couldn't load GLAD" << std::endl;
-        glfwTerminate();
     }
 
-    //Init ImGui : 
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init("#version 460");
-
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 }
 
 /// <summary>
@@ -1045,6 +1015,7 @@ void App::loadModelsAndTextures()
     std::pair<unsigned int, unsigned int> ballModel = make_model("obj/servoskull/boule.obj");
     renderModels["Ball"] = ballModel;
     texturesList["Ball"] = make_texture("obj/bowling/textures/Bowling_Pack_Diffuse.png", false);
+    normalMapsList["Ball"] = make_texture("obj/bowling/textures/Bowling_Pack_Normal.png", false);
 
     // Pin
     //motionSystem->concaveToConvex("obj/servoskull/quille.obj", "obj/convexMesh/", "quille");
@@ -1055,6 +1026,7 @@ void App::loadModelsAndTextures()
     physicsModels["Pin"] = meshes;
     renderModels["Pin"] = pinModel;
     texturesList["Pin"] = make_texture("obj/bowling/textures/Bowling_Pack_Diffuse.png", false);
+    normalMapsList["Pin"] = make_texture("obj/bowling/textures/Bowling_Pack_Normal.png", false);
 
     // Light
     std::pair<unsigned int, unsigned int> defaultCubeModel = make_cube_mesh({ 0.1f, 0.1f, 0.1f });
@@ -1106,6 +1078,7 @@ void App::loadEntities()
     render.mesh = renderModels["Ball"].first;
     render.indexCount = renderModels["Ball"].second;
     render.material = texturesList["Ball"];
+	render.normalMap = normalMapsList["Ball"];
     renderComponents[ball] = render;
 
     camera.fov = 60.0f;
@@ -1142,6 +1115,8 @@ void App::loadEntities()
 
         render.mesh = renderModels["Pin"].first;
         render.indexCount = renderModels["Pin"].second;
+		render.material = texturesList["Pin"];
+		render.normalMap = normalMapsList["Pin"];
         renderComponents[pin] = render;
 
         camera.fov = 45.0f;
@@ -1191,6 +1166,8 @@ void App::loadEntities()
 
     light.color = { 1.0f, 1.0f, 1.0f };
     light.intensity = 1.0f;
+    light.isDirectional = true;
+    light.direction = { 1.0f, -6.0f, 4.0f };
     lightComponents[lightEntity2] = light;
 
     render.mesh = renderModels["Light"].first;
@@ -1214,4 +1191,42 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 
     glViewport(0, 0, width, height);
+}
+
+/// <summary>
+/// Function that sets up the GLFW window and OpenGL context
+/// </summary>
+void App::set_up_glfw() {
+
+    glfwInit();
+    glfwWindowHint(GLFW_SAMPLES, 16);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+
+    window = glfwCreateWindow(1920, 1080, "Guillaume Engine", NULL, NULL);
+    if (window == NULL)
+    {
+        std::cout << "Failed to create GLFW window" << std::endl;
+        glfwTerminate();
+        return;
+    }
+    glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+        std::cout << "Couldn't load GLAD" << std::endl;
+        glfwTerminate();
+    }
+
+    //Init ImGui : 
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 460");
+
 }

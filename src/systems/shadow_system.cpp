@@ -83,7 +83,7 @@ void ShadowSystem::RenderDepthMap(unsigned int depthMap, int screenWidth, int sc
 void ShadowSystem::GenerateShadowMap(std::unordered_map<unsigned int, LightComponent>& lightComponents,
     std::unordered_map<unsigned int, TransformComponent>& transformComponents,
     std::unordered_map<unsigned int, RenderComponent>& renderComponents, int screenWidth, int screenHeight,
-    CameraComponent& camera
+   int cameraID
 )
 {
 
@@ -111,7 +111,7 @@ void ShadowSystem::GenerateShadowMap(std::unordered_map<unsigned int, LightCompo
         CalculateShadowOrthoBounds(lightView, camera, left, right, bottom, top, near_plane, far_plane);*/
 
 
-        lightView = glm::lookAt(transformComponents[12].position, transformComponents[12].position + glm::normalize(light.direction), glm::vec3(0.0f, 1.0f, 0.0f));
+        lightView = glm::lookAt(transformComponents[cameraID].position, transformComponents[cameraID].position + glm::normalize(light.direction), glm::vec3(0.0f, 1.0f, 0.0f));
 
 
 
@@ -136,7 +136,7 @@ void ShadowSystem::GenerateShadowMap(std::unordered_map<unsigned int, LightCompo
             //Calculate the model matrix for this object: 
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, transform.position);
-            model = model * glm::mat4_cast(glm::quat(glm::radians(transform.eulers)));
+            model = model * glm::mat4_cast(transform.eulers);
             //Pass the model matrix to the shadow shader :
             glUniformMatrix4fv(glGetUniformLocation(shadowShader, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
@@ -164,6 +164,7 @@ void ShadowSystem::GenerateShadowMap(std::unordered_map<unsigned int, LightCompo
 
 
 }
+/*
 void ShadowSystem::CalculateShadowOrthoBounds(
     const glm::mat4& lightView,
     CameraComponent& camera,
@@ -214,8 +215,8 @@ void ShadowSystem::CalculateShadowOrthoBounds(
     // Adjust near and far planes for shadow precision
     near_plane = std::max(near_plane, 0.01f); // Avoid too close to zero
     far_plane += 1.0f; // Small buffer to cover scene
-}
-
+}*/
+/*
 std::vector<glm::vec4> ShadowSystem::getFrustumCornersWorldSpace(const glm::mat4& proj, const glm::mat4& view)
 {
     const auto inv = glm::inverse(proj * view);
@@ -240,4 +241,4 @@ std::vector<glm::vec4> ShadowSystem::getFrustumCornersWorldSpace(const glm::mat4
 
     return frustumCorners;
 }
-
+*/
