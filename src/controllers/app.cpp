@@ -32,35 +32,50 @@ unsigned int App::make_entity(const std::string& name) {
 static int totalFaces = 0;
 
 void processNode(const aiScene* scene, aiNode* node, std::vector<float>& vertices, std::vector<unsigned int>& indices) {
-    
-  
+
     for (unsigned int i = 0; i < node->mNumMeshes; i++) {
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 
         // Extract vertices
         for (unsigned int j = 0; j < mesh->mNumVertices; j++) {
+            // Position
             vertices.push_back(mesh->mVertices[j].x);
             vertices.push_back(mesh->mVertices[j].y);
             vertices.push_back(mesh->mVertices[j].z);
 
-            vertices.push_back(mesh->mNormals[j].x);
-            vertices.push_back(mesh->mNormals[j].y);
-            vertices.push_back(mesh->mNormals[j].z);
+            // Normal (if available)
+            if (mesh->HasNormals()) {
+                vertices.push_back(mesh->mNormals[j].x);
+                vertices.push_back(mesh->mNormals[j].y);
+                vertices.push_back(mesh->mNormals[j].z);
+            }
+            else {
+                vertices.insert(vertices.end(), { 0.0f, 0.0f, 0.0f });
+            }
 
-            vertices.push_back(mesh->mTextureCoords[0][j].x);
-            vertices.push_back(mesh->mTextureCoords[0][j].y);
+            // Texture coordinates (if available)
+            if (mesh->HasTextureCoords(0)) {
+                vertices.push_back(mesh->mTextureCoords[0][j].x);
+                vertices.push_back(mesh->mTextureCoords[0][j].y);
+            }
+            else {
+                vertices.insert(vertices.end(), { 0.0f, 0.0f });
+            }
 
-			vertices.push_back(mesh->mTangents[j].x);
-			vertices.push_back(mesh->mTangents[j].y);
-			vertices.push_back(mesh->mTangents[j].z);
+            // Tangent (if available)
+            if (mesh->HasTangentsAndBitangents()) {
+                vertices.push_back(mesh->mTangents[j].x);
+                vertices.push_back(mesh->mTangents[j].y);
+                vertices.push_back(mesh->mTangents[j].z);
 
-		    vertices.push_back(mesh->mBitangents[j].x);
-		    vertices.push_back(mesh->mBitangents[j].y);
-		    vertices.push_back(mesh->mBitangents[j].z);
-
-
-        
-
+                // Bitangent
+                vertices.push_back(mesh->mBitangents[j].x);
+                vertices.push_back(mesh->mBitangents[j].y);
+                vertices.push_back(mesh->mBitangents[j].z);
+            }
+            else {
+                vertices.insert(vertices.end(), { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f });
+            }
         }
 
         // Extract indices
@@ -71,27 +86,28 @@ void processNode(const aiScene* scene, aiNode* node, std::vector<float>& vertice
             }
         }
 
-        std::cout << "Mesh name : " << node->mName.C_Str() << std::endl;
-		std::cout << "Faces number : " << mesh->mNumFaces << std::endl;
-            std::cout << "Vertices: " << vertices.size() << std::endl;
-
-            totalFaces += mesh->mNumFaces;
+        std::cout << "Mesh name : " << mesh->mName.C_Str() << std::endl;
+        std::cout << "Faces number : " << mesh->mNumFaces << std::endl;
+        std::cout << "Vertices: " << mesh->mNumVertices << std::endl;
     }
 
     for (unsigned int i = 0; i < node->mNumChildren; i++) {
         processNode(scene, node->mChildren[i], vertices, indices);
     }
-    std::cout << "Total faces number : " << totalFaces << std::endl;
-	
 }
 
-std::pair<unsigned int, unsigned int> App::make_model(const char* filePath) {
 
+std::pair<unsigned int, unsigned int> App::make_model(const char* filePath) {
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
 
     Assimp::Importer importer;
-    const aiScene* scene = importer.ReadFile( filePath, aiProcess_OptimizeMeshes | aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+    const aiScene* scene = importer.ReadFile(
+        filePath,
+        aiProcess_OptimizeMeshes | aiProcess_Triangulate | aiProcess_FlipUVs |
+        aiProcess_CalcTangentSpace | aiProcess_PreTransformVertices
+    );
+
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
         std::cout << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
         exit(-1);
@@ -119,35 +135,29 @@ std::pair<unsigned int, unsigned int> App::make_model(const char* filePath) {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
     // Set vertex attribute pointers
-    // Position attribute
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)0); // 8 * sizeof(float) stride (3 for pos, 3 for normal, 2 for tex)
+    unsigned int stride = 14 * sizeof(float); // 3 pos, 3 normal, 2 tex, 3 tangent, 3 bitangent
+    glEnableVertexAttribArray(0); // Position
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
 
+    glEnableVertexAttribArray(1); // Normal
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float)));
 
-    // Texture coordinate attribute
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(sizeof(float[3]))); // Normal starts after 3 floats for position
-    
+    glEnableVertexAttribArray(2); // Texture coordinates
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(6 * sizeof(float)));
 
-    // Normal attribute
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(sizeof(float[6]))); // Tex coords start after 6 floats (3 for pos, 3 for normal)
+    glEnableVertexAttribArray(3); // Tangent
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, stride, (void*)(8 * sizeof(float)));
 
-    // Tangent attribute
-    glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(8 * sizeof(float))); // Tangent starts after 8 floats (3 for pos, 3 for normal, 2 for tex)
+    glEnableVertexAttribArray(4); // Bitangent
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, stride, (void*)(11 * sizeof(float)));
 
-    // Bitangent attribute
-    glEnableVertexAttribArray(4);
-    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(11 * sizeof(float))); // Bitangent starts after 11 floats (3 for pos, 3 for normal, 2 for tex, 3 for tangent)
-    
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
-
 
     // Return a tuple of the VAO and the number of indices
     return std::make_pair(VAO, indices.size());
 }
+
 
 std::pair<unsigned int, unsigned int> App::make_cube_mesh(glm::vec3 size) {
 
@@ -453,7 +463,7 @@ void App::run() {
         }
 
         if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS && hasPhysics) {
-            physx::PxVec3 force(0, 0, 0.5);
+            physx::PxVec3 force(0.5, 0, 0);
             motionSystem->applyForceToActor(physicsComponents[1].rigidBody, force);
         }
 
@@ -691,7 +701,7 @@ void App::run() {
                         if (!isStatic)
                             physics.rigidBody = motionSystem->createDynamic(physicsModels[selectedModelName], material, newPosition, newEntityMass, newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping);
                         else
-                            motionSystem->createStatic(physicsModels[selectedModelName], material, newPosition);
+                            motionSystem->createStatic(triangleModels[selectedModelName], material, newPosition);
                         break;
                     case 1:
                         if (!isStatic)
@@ -1007,9 +1017,13 @@ void App::make_systems() {
 void App::loadModelsAndTextures()
 {
     // Lane
-    std::pair<unsigned int, unsigned int> laneModel = make_model("obj/servoskull/lane.obj");
+    std::vector<physx::PxTriangleMesh*> laneMeshes;
+    motionSystem->loadObjToPhysX("obj/BowlingScene/piste.fbx", laneMeshes);
+
+    std::pair<unsigned int, unsigned int> laneModel = make_model("obj/BowlingScene/piste.fbx");
     renderModels["Lane"] = laneModel;
     texturesList["Lane"] = make_texture("obj/servoskull/textures/lane.jpg", false);
+    triangleModels["Lane"] = laneMeshes;
 
     // Ball
     std::pair<unsigned int, unsigned int> ballModel = make_model("obj/servoskull/boule.obj");
@@ -1045,15 +1059,13 @@ void App::loadEntities()
 
     // Lane
     unsigned int lane = make_entity("Lane");
-    transform.position = { 0.f, 0.f, 9.f };
+    transform.position = { 0.f, 2.f, 0.f };
     transform.eulers = { 0.f, 0.f, 0.0f, 0.f };
     transform.size = { 1.0f, 0.168f, 18.0f };
     transformComponents[lane] = transform;
 
     glm::vec3 laneMaterial = { 0.05f, 0.05f, 0.0f };
-    physx::PxBoxGeometry laneGeometry(physx::PxVec3(transform.size.x / 2.0f, transform.size.y / 2.0f, transform.size.z / 2.0f));
-
-    SPhysics.rigidBody = motionSystem->createStatic(laneGeometry, laneMaterial, transform.position);
+    SPhysics.rigidBody = motionSystem->createStatic(triangleModels["Lane"], laneMaterial, transform.position);
     staticPhysicsComponents[lane] = SPhysics;
 
     render.mesh = renderModels["Lane"].first;
@@ -1063,7 +1075,7 @@ void App::loadEntities()
 
     // Ball
     unsigned int ball = make_entity("Ball");
-    transform.position = { 0.0f, 0.105f, 3.0f };
+    transform.position = { -9.0f, 4.105f, -1.0f };
     transform.eulers = { 0.0f, 0.0f, 0.0f , 0.f };
     transformComponents[ball] = transform;
 
@@ -1090,18 +1102,18 @@ void App::loadEntities()
     cameraComponents[ball] = camera;
 
     // Pins
-    glm::vec3 first_pin = { 0.f, 0.22f, 15.f };
+    glm::vec3 first_pin = { 3.f, 4.f, -1.f };
     glm::vec3 vectors[10];
     vectors[0] = first_pin;
-    vectors[1] = glm::vec3(first_pin.x + 0.1524f, first_pin.y, first_pin.z + 0.2635f);
-    vectors[2] = glm::vec3(first_pin.x - 0.1524f, first_pin.y, first_pin.z + 0.2635f);
-    vectors[3] = glm::vec3(first_pin.x - 0.3048f, first_pin.y, first_pin.z + 0.527f);
-    vectors[4] = glm::vec3(first_pin.x, first_pin.y, first_pin.z + 0.527f);
-    vectors[5] = glm::vec3(first_pin.x + 0.3048f, first_pin.y, first_pin.z + 0.527f);
-    vectors[6] = glm::vec3(first_pin.x + 0.1524f, first_pin.y, first_pin.z + 0.7905f);
-    vectors[7] = glm::vec3(first_pin.x - 0.1524f, first_pin.y, first_pin.z + 0.7905f);
-    vectors[8] = glm::vec3(first_pin.x + 0.4572f, first_pin.y, first_pin.z + 0.7905f);
-    vectors[9] = glm::vec3(first_pin.x - 0.4572f, first_pin.y, first_pin.z + 0.7905f);
+    vectors[1] = glm::vec3(first_pin.x + 0.2635f, first_pin.y, first_pin.z + 0.1524f);
+    vectors[2] = glm::vec3(first_pin.x + 0.2635f, first_pin.y, first_pin.z - 0.1524f);
+    vectors[3] = glm::vec3(first_pin.x + 0.527f, first_pin.y, first_pin.z - 0.3048f);
+    vectors[4] = glm::vec3(first_pin.x + 0.527f, first_pin.y, first_pin.z);
+    vectors[5] = glm::vec3(first_pin.x + 0.527f, first_pin.y, first_pin.z + 0.3048f);
+    vectors[6] = glm::vec3(first_pin.x + 0.7905f, first_pin.y, first_pin.z + 0.1524f);
+    vectors[7] = glm::vec3(first_pin.x + 0.7905f, first_pin.y, first_pin.z - 0.1524f);
+    vectors[8] = glm::vec3(first_pin.x + 0.7905f, first_pin.y, first_pin.z + 0.4572f);
+    vectors[9] = glm::vec3(first_pin.x + 0.7905f, first_pin.y, first_pin.z - 0.4572f);
 
     glm::vec3 pinMaterial = { 0.5f, 0.5f, 0.5f };
     for (int i = 0; i < 10; i++) {
@@ -1130,7 +1142,7 @@ void App::loadEntities()
 
     // Camera
     unsigned int cameraEntity = make_entity("Camera");
-    transform.position = first_pin;
+    transform.position = { 0,4,0 };
     transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
     transformComponents[cameraEntity] = transform;
     
@@ -1174,7 +1186,6 @@ void App::loadEntities()
     render.indexCount = renderModels["Light"].second;
     render.material = texturesList["Light"];
     renderComponents[lightEntity2] = render;
-
 }
 
 

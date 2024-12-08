@@ -209,19 +209,100 @@ physx::PxRigidStatic* MotionSystem::createStatic(const physx::PxGeometry& geomet
     return actor;
 }
 
-physx::PxRigidStatic* MotionSystem::createStatic(const std::vector<physx::PxConvexMesh*>& convexMeshes, glm::vec3 mat, glm::vec3 transf) {
+physx::PxRigidStatic* MotionSystem::createStatic(const std::vector<physx::PxTriangleMesh*>& triangleMeshes, glm::vec3 mat, glm::vec3 transf) {
     physx::PxMaterial* material = mPhysics->createMaterial(mat.x, mat.y, mat.z);
     physx::PxTransform transform = { transf.x, transf.y, transf.z };
     physx::PxRigidStatic* actor = mPhysics->createRigidStatic(transform);
 
-    for (auto& convexMesh : convexMeshes) {
-        physx::PxConvexMeshGeometry geometry(convexMesh);
+    for (auto& triangleMesh : triangleMeshes) {
+        physx::PxTriangleMeshGeometry geometry(triangleMesh);
         physx::PxShape* shape = mPhysics->createShape(geometry, *material);
         actor->attachShape(*shape);
         shape->release();
     }
     mScene->addActor(*actor);
     return actor;
+}
+
+void MotionSystem::loadObjToPhysX(const std::string& filePath, std::vector<physx::PxTriangleMesh*>& triangleMeshes) {
+    Assimp::Importer importer;
+
+    // Charger le fichier avec Assimp
+    const aiScene* scene = importer.ReadFile(
+        filePath,
+        aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_PreTransformVertices
+    );
+
+    if (!scene || (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) || !scene->mRootNode) {
+        std::cerr << "Erreur lors du chargement du fichier : " << filePath << std::endl;
+        std::cerr << "Assimp Error: " << importer.GetErrorString() << std::endl;
+        return;
+    }
+
+    // Parcourir tous les meshes de la scène
+    for (unsigned int i = 0; i < scene->mNumMeshes; ++i) {
+        aiMesh* mesh = scene->mMeshes[i];
+
+        // Vérifier si le mesh est valide
+        if (!mesh || !mesh->HasFaces() || !mesh->HasPositions()) {
+            std::cerr << "Mesh " << i << " est invalide dans le fichier : " << filePath << std::endl;
+            continue;
+        }
+
+        // Extraire les sommets
+        std::vector<physx::PxVec3> vertices;
+        vertices.reserve(mesh->mNumVertices);
+        for (unsigned int v = 0; v < mesh->mNumVertices; ++v) {
+            vertices.emplace_back(mesh->mVertices[v].x, mesh->mVertices[v].y, mesh->mVertices[v].z);
+        }
+
+        // Extraire les indices
+        std::vector<physx::PxU32> indices;
+        for (unsigned int f = 0; f < mesh->mNumFaces; ++f) {
+            aiFace face = mesh->mFaces[f];
+            if (face.mNumIndices == 3) { // Assurez-vous que les faces sont triangulées
+                indices.push_back(face.mIndices[0]);
+                indices.push_back(face.mIndices[1]);
+                indices.push_back(face.mIndices[2]);
+            }
+        }
+
+        if (vertices.empty() || indices.empty()) {
+            std::cerr << "Mesh " << i << " est vide ou incomplet." << std::endl;
+            continue;
+        }
+        physx::PxTriangleMeshDesc  meshDesc;
+        meshDesc.points.count = static_cast<physx::PxU32>(vertices.size());
+        meshDesc.points.stride = sizeof(physx::PxVec3);
+        meshDesc.points.data = vertices.data();
+
+        meshDesc.triangles.count = static_cast<physx::PxU32>(indices.size() / 3);
+        meshDesc.triangles.stride = 3 * sizeof(physx::PxU32);
+        meshDesc.triangles.data = indices.data();
+
+        physx::PxDefaultMemoryOutputStream buf;
+        physx::PxTriangleMeshCookingResult::Enum result;
+
+        physx::PxTolerancesScale scale;
+        physx::PxCookingParams params(scale);
+        params.gaussMapLimit = 256;
+        params.buildGPUData = false;
+        params.meshPreprocessParams = physx::PxMeshPreprocessingFlag::eDISABLE_CLEAN_MESH;
+        params.meshPreprocessParams |= physx::PxMeshPreprocessingFlag::eDISABLE_ACTIVE_EDGES_PRECOMPUTE;
+
+        if (!PxCookTriangleMesh(params, meshDesc, buf, &result))
+            return;
+
+        physx::PxDefaultMemoryInputData inputStream(buf.getData(), buf.getSize());
+        physx::PxTriangleMesh* triangleMesh = mPhysics->createTriangleMesh(inputStream);
+
+
+        if (!triangleMesh) {
+            std::cerr << "Erreur lors de la création du maillage." << std::endl;
+            return;
+        }
+        triangleMeshes.push_back(triangleMesh);
+    }
 }
 
 void MotionSystem::loadObjToPhysX(const std::string& filePath, std::vector<physx::PxConvexMesh*>& convexMeshes) {
