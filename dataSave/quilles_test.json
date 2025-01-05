@@ -241,6 +241,102 @@
       "farPlane": 100.0,
       "sensitivity": 0.1
     }
+  },
+
+  "lights": [
+    {
+      "id": "First Light",
+      "position": {
+        "x": 0.0,
+        "y": 0.22,
+        "z": 15
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "color": {
+        "r": 0.0,
+        "g": 1.0,
+        "b": 1.0
+      },
+      "intensity": 1.0,
+      "render": {
+        "meshName": "Light",
+        "textureName": "Light"
+      }
+    },
+    {
+      "id": "Second Light",
+      "position": {
+        "x": 0.0,
+        "y": 4.0,
+        "z": 4.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "color": {
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0
+      },
+      "intensity": 1.0,
+      "render": {
+        "meshName": "Light",
+        "textureName": "Light"
+      }
+    }
+  ],
+
+  "camera": {
+    "id": "Camera",
+    "position": {
+      "x": 0.0,
+      "y": 0.22,
+      "z": 15
+    },
+    "rotation": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "fov": 60.0,
+    "aspectRatio": 1.777777778,
+    "nearPlane": 0.1,
+    "farPlane": 100.0,
+    "sensitivity": 0.1
+  },
+
+  "lane": {
+    "id": "Lane",
+    "position": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 9.0
+    },
+    "rotation": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "size": {
+      "x": 1.0,
+      "y": 0.168,
+      "z": 18.0
+    },
+    "material": {
+      "r": 0.05,
+      "g": 0.05,
+      "b": 0.0
+    },
+    "render": {
+      "meshName": "Lane",
+      "textureName": "Lane"
+    }
   }
 
 }

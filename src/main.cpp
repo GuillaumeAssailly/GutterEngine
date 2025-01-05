@@ -14,7 +14,7 @@
 int main() {
 
 		App* app = new App();
-		Loader* loader = new LoaderRaw();
+		Loader* loader = new LoaderJSON();
 
 		app->set_up_opengl();
 		app->make_systems();
