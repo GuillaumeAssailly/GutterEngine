@@ -1177,6 +1177,26 @@ void App::loadEntities()
 
 }
 
+MotionSystem* App::getMotionSystem()
+{
+    return motionSystem;
+}
+
+std::unordered_map<std::string, std::pair<unsigned int, unsigned int>> App::getRenderModels() const
+{
+    return renderModels;
+}
+
+std::unordered_map<std::string, unsigned int> App::getTexturesList() const
+{
+    return texturesList;
+}
+
+std::unordered_map<std::string, std::vector<physx::PxConvexMesh*>> App::getPhysicsModels() const
+{
+    return physicsModels;
+}
+
 
 
 /// <summary>

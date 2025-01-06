@@ -141,6 +141,7 @@
       <DeploymentContent>false</DeploymentContent>
     </ClCompile>
     <ClCompile Include="src\glad.c" />
+    <ClCompile Include="src\loaders\loader.cpp" />
     <ClCompile Include="src\loaders\loaderJSON.cpp" />
     <ClCompile Include="src\loaders\loaderRaw.cpp" />
     <ClCompile Include="src\main.cpp" />

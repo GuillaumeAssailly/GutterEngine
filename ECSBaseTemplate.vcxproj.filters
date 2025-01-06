@@ -43,6 +43,9 @@
     <ClCompile Include="src\loaders\loaderJSON.cpp">
       <Filter>src\loaders</Filter>
     </ClCompile>
+    <ClCompile Include="src\loaders\loader.cpp">
+      <Filter>src\loaders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\config.h">
