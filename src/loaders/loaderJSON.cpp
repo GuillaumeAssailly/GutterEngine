@@ -51,7 +51,13 @@ void LoaderJSON::loadQuilles(App* app, CameraComponent *camera) const {
         camera->nearPlane = jsonData["PinCamera"]["nearPlane"].get<float>();
         camera->farPlane = jsonData["PinCamera"]["farPlane"].get<float>();
         camera->sensitivity = jsonData["PinCamera"]["sensitivity"].get<float>();
-        //camera.initialForward = { 0,0,-1,0 };
+        json initialForwardCameraData = jsonData["PinCamera"]["initialForward"];
+        camera->initialForward = {
+            initialForwardCameraData["x"].get<float>(),
+            initialForwardCameraData["y"].get<float>(),
+            initialForwardCameraData["z"].get<float>(),
+            initialForwardCameraData["w"].get<float>()
+        };
         app->cameraComponents[pin] = *camera;
     }
 
@@ -112,6 +118,13 @@ void LoaderJSON::loadBall(App* app, CameraComponent* camera) const{
     camera->nearPlane = ballData["camera"]["nearPlane"].get<float>();
     camera->farPlane = ballData["camera"]["farPlane"].get<float>();
     camera->sensitivity = ballData["camera"]["sensitivity"].get<float>();
+    json initialForwardCameraData = ballData["camera"]["initialForward"];
+    camera->initialForward = {
+        initialForwardCameraData["x"].get<float>(),
+        initialForwardCameraData["y"].get<float>(),
+        initialForwardCameraData["z"].get<float>(),
+        initialForwardCameraData["w"].get<float>()
+    };
     app->cameraComponents[ball] = *camera;
 
     std::cout << "Boule instaciee a partir du fichier \n";
@@ -147,6 +160,14 @@ void LoaderJSON::loadLight(App* app, CameraComponent* camera) const
             lightData["color"]["b"].get<float>()
         );
         light.intensity = lightData["intensity"].get<float>();
+        light.isDirectional = lightData["isDirectional"];
+        if (light.isDirectional) {
+            light.direction = {
+                lightData["direction"]["x"].get<float>(),
+                lightData["direction"]["y"].get<float>(),
+                lightData["direction"]["z"].get<float>()
+            };
+        }
         app->lightComponents[lightEntity] = light;
 
         // Charger le modèle pour le rendu
@@ -187,6 +208,12 @@ void LoaderJSON::loadCamera(App* app, CameraComponent* camera) const
     camera->nearPlane = cameraData["nearPlane"].get<float>();
     camera->farPlane = cameraData["farPlane"].get<float>();
     camera->sensitivity = cameraData["sensitivity"].get<float>();
+    camera->initialForward = {
+        cameraData["initialForward"]["x"].get<float>(),
+        cameraData["initialForward"]["y"].get<float>(),
+        cameraData["initialForward"]["z"].get<float>(),
+        cameraData["initialForward"]["w"].get<float>()
+    };
     app->cameraComponents[cameraEntity] = *camera;
 
     // Assigner l'ID de la caméra principale

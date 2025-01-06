@@ -40,7 +40,7 @@ void LoaderRaw::loadQuilles(App *app, CameraComponent *camera) const
         camera->nearPlane = 0.1f;
         camera->farPlane = 100.0f;
         camera->sensitivity = 0.5f;
-        //camera.initialForward = { 0,0,-1,0 };
+        camera->initialForward = { 0,0,-1,0 };
         app->cameraComponents[pin] = *camera;
     }
 
@@ -73,7 +73,8 @@ void LoaderRaw::loadBall(App* app, CameraComponent* camera) const{
     camera->aspectRatio = 16.0f / 9.0f;
     camera->nearPlane = 0.1f;
     camera->farPlane = 100.0f;
-    camera->sensitivity = 0.1f;
+    camera->sensitivity = 0.5f;
+    camera->initialForward = { 0,0,1,0 };
     app->cameraComponents[ball] = *camera;
 }
 
@@ -107,6 +108,9 @@ void LoaderRaw::loadLight(App* app, CameraComponent* camera) const
 
     light.color = { 1.0f, 1.0f, 1.0f };
     light.intensity = 1.0f;
+    light.isDirectional = true;
+    light.direction = { 1.0f, -6.0f, 4.0f };
+    light.intensity = 1.0f;
     app->lightComponents[lightEntity2] = light;
 
     render.mesh = app->getRenderModels()["Light"].first;
@@ -124,11 +128,12 @@ void LoaderRaw::loadCamera(App* app, CameraComponent* camera) const
     transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
     app->transformComponents[cameraEntity] = transform;
 
-    camera->fov = 60.0f;
+    camera->fov = 45.0f;
     camera->aspectRatio = 16.0f / 9.0f;
     camera->nearPlane = 0.1f;
     camera->farPlane = 100.0f;
-    camera->sensitivity = 0.1f;
+    camera->sensitivity = 0.5f;
+    camera->initialForward = { 0,0,1,0 };
     app->cameraComponents[cameraEntity] = *camera;
     app->cameraID = cameraEntity;
 }
