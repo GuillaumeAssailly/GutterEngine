@@ -145,6 +145,8 @@
     <ClCompile Include="src\loaders\loaderJSON.cpp" />
     <ClCompile Include="src\loaders\loaderRaw.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\savers\saver.cpp" />
+    <ClCompile Include="src\savers\saverJSON.cpp" />
     <ClCompile Include="src\systems\camera_system.cpp" />
     <ClCompile Include="src\systems\light_system.cpp">
       <DeploymentContent>false</DeploymentContent>
@@ -177,6 +179,8 @@
     <ClInclude Include="src\loaders\loader.h" />
     <ClInclude Include="src\loaders\loaderJSON.h" />
     <ClInclude Include="src\loaders\loaderRaw.h" />
+    <ClInclude Include="src\savers\saver.h" />
+    <ClInclude Include="src\savers\saverJSON.h" />
     <ClInclude Include="src\systems\camera_system.h" />
     <ClInclude Include="src\systems\light_system.h">
       <DeploymentContent>false</DeploymentContent>

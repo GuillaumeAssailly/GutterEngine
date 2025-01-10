@@ -16,5 +16,5 @@ class LoaderJSON : public Loader {
 		void loadCamera(App* app, CameraComponent* camera) const override;
 		void loadLane(App* app, CameraComponent* camera)const;
 	public :
-		LoaderJSON();
+		LoaderJSON(std::string fileName);
 };

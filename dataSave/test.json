@@ -1,0 +1,301 @@
+{
+    "PinMaterial": {
+        "b": 0.5,
+        "g": 0.5,
+        "r": 0.5
+    },
+    "PinRigidBody": {
+        "dynamicFriction": 0.20000000298023224,
+        "mass": 1.5,
+        "restitution": 0.30000001192092896,
+        "solverPosition": 255,
+        "solverVelocity": 255,
+        "staticFriction": 0.009999999776482582
+    },
+    "ball": {},
+    "camera": {},
+    "lane": {},
+    "lights": [],
+    "pins": [
+        {
+            "id": "Pin 0",
+            "modelPath": "obj/servoskull/quille.obj",
+            "position": {
+                "x": 0.0,
+                "y": 0.2199999988079071,
+                "z": 15.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            }
+        },
+        {
+            "id": "Pin 1",
+            "modelPath": "obj/servoskull/quille.obj",
+            "position": {
+                "x": 0.15240000188350677,
+                "y": 0.2199999988079071,
+                "z": 15.263500213623047
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            }
+        },
+        {
+            "id": "Pin 2",
+            "modelPath": "obj/servoskull/quille.obj",
+            "position": {
+                "x": -0.15240000188350677,
+                "y": 0.2199999988079071,
+                "z": 15.263500213623047
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            }
+        },
+        {
+            "id": "Pin 3",
+            "modelPath": "obj/servoskull/quille.obj",
+            "position": {
+                "x": -0.30480000376701355,
+                "y": 0.2199999988079071,
+                "z": 15.527000427246094
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            }
+        },
+        {
+            "id": "Pin 4",
+            "modelPath": "obj/servoskull/quille.obj",
+            "position": {
+                "x": 0.0,
+                "y": 0.2199999988079071,
+                "z": 15.527000427246094
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            }
+        },
+        {
+            "id": "Pin 5",
+            "modelPath": "obj/servoskull/quille.obj",
+            "position": {
+                "x": 0.30480000376701355,
+                "y": 0.2199999988079071,
+                "z": 15.527000427246094
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            }
+        },
+        {
+            "id": "Pin 6",
+            "modelPath": "obj/servoskull/quille.obj",
+            "position": {
+                "x": 0.15240000188350677,
+                "y": 0.2199999988079071,
+                "z": 15.790499687194824
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            }
+        },
+        {
+            "id": "Pin 7",
+            "modelPath": "obj/servoskull/quille.obj",
+            "position": {
+                "x": -0.15240000188350677,
+                "y": 0.2199999988079071,
+                "z": 15.790499687194824
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            }
+        },
+        {
+            "id": "Pin 8",
+            "modelPath": "obj/servoskull/quille.obj",
+            "position": {
+                "x": 0.45719999074935913,
+                "y": 0.2199999988079071,
+                "z": 15.790499687194824
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            }
+        },
+        {
+            "id": "Pin 9",
+            "modelPath": "obj/servoskull/quille.obj",
+            "position": {
+                "x": -0.45719999074935913,
+                "y": 0.2199999988079071,
+                "z": 15.790499687194824
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            }
+        },
+        {
+            "id": "Pin 0",
+            "modelPath": "obj/servoskull/quille.obj",
+            "position": {
+                "x": 0.0,
+                "y": 0.2199999988079071,
+                "z": 15.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            }
+        },
+        {
+            "id": "Pin 1",
+            "modelPath": "obj/servoskull/quille.obj",
+            "position": {
+                "x": 0.15240000188350677,
+                "y": 0.2199999988079071,
+                "z": 15.263500213623047
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            }
+        },
+        {
+            "id": "Pin 2",
+            "modelPath": "obj/servoskull/quille.obj",
+            "position": {
+                "x": -0.15240000188350677,
+                "y": 0.2199999988079071,
+                "z": 15.263500213623047
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            }
+        },
+        {
+            "id": "Pin 3",
+            "modelPath": "obj/servoskull/quille.obj",
+            "position": {
+                "x": -0.30480000376701355,
+                "y": 0.2199999988079071,
+                "z": 15.527000427246094
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            }
+        },
+        {
+            "id": "Pin 4",
+            "modelPath": "obj/servoskull/quille.obj",
+            "position": {
+                "x": 0.0,
+                "y": 0.2199999988079071,
+                "z": 15.527000427246094
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            }
+        },
+        {
+            "id": "Pin 5",
+            "modelPath": "obj/servoskull/quille.obj",
+            "position": {
+                "x": 0.30480000376701355,
+                "y": 0.2199999988079071,
+                "z": 15.527000427246094
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            }
+        },
+        {
+            "id": "Pin 6",
+            "modelPath": "obj/servoskull/quille.obj",
+            "position": {
+                "x": 0.15240000188350677,
+                "y": 0.2199999988079071,
+                "z": 15.790499687194824
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            }
+        },
+        {
+            "id": "Pin 7",
+            "modelPath": "obj/servoskull/quille.obj",
+            "position": {
+                "x": -0.15240000188350677,
+                "y": 0.2199999988079071,
+                "z": 15.790499687194824
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            }
+        },
+        {
+            "id": "Pin 8",
+            "modelPath": "obj/servoskull/quille.obj",
+            "position": {
+                "x": 0.45719999074935913,
+                "y": 0.2199999988079071,
+                "z": 15.790499687194824
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            }
+        },
+        {
+            "id": "Pin 9",
+            "modelPath": "obj/servoskull/quille.obj",
+            "position": {
+                "x": -0.45719999074935913,
+                "y": 0.2199999988079071,
+                "z": 15.790499687194824
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            }
+        }
+    ]
+}

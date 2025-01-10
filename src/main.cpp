@@ -11,10 +11,15 @@
 #include "loaders/loaderRaw.h"
 #include "loaders/loaderJSON.h"
 
+#include "savers/saver.h"
+#include "savers/saverJSON.h"
+
+
 int main() {
 
 		App* app = new App();
-		Loader* loader = new LoaderJSON();
+		Loader* loader = new LoaderJSON("dataSave/quilles_test.json");
+		Saver* saver = new SaverJSON("dataSave/test.json");
 
 		app->set_up_opengl();
 		app->make_systems();
@@ -22,6 +27,8 @@ int main() {
 		app->loadModelsAndTextures();
 		loader->loadEntities(app);
 		//app->loadEntities();
+
+		saver->saveEntities(app);
 
 		app->run();
 

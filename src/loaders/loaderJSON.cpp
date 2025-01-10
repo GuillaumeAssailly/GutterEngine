@@ -10,6 +10,8 @@ void LoaderJSON::loadQuilles(App* app, CameraComponent *camera) const {
         jsonData["pinMaterial"]["g"].get<float>(),
         jsonData["pinMaterial"]["b"].get<float>()
     );
+
+    auto& rb = jsonData["PinRigidBody"];
     
     std::vector<physx::PxConvexMesh*> meshes;
     app->getMotionSystem()->loadObjToPhysX(jsonData["meshPath"].get<std::string>(), meshes);
@@ -30,7 +32,6 @@ void LoaderJSON::loadQuilles(App* app, CameraComponent *camera) const {
         );
         app->transformComponents[pin] = transform;
 
-        auto& rb = pinData["rigidBody"];
         physics.rigidBody = app->getMotionSystem()->createDynamic(
             app->getPhysicsModels()["Pin"],
             pinMaterial,
@@ -38,8 +39,11 @@ void LoaderJSON::loadQuilles(App* app, CameraComponent *camera) const {
             rb["mass"].get<float>(),
             rb["staticFriction"].get<float>(),
             rb["dynamicFriction"].get<float>(),
-            rb["restitution"].get<float>(), 255, 255
+            rb["restitution"].get<float>(), 
+            rb["solverPosition"].get<float>(), 
+            rb["solverVelocity"].get<float>()
         );
+
         app->physicsComponents[pin] = physics;
 
         render.mesh = app->getRenderModels()["Pin"].first;
@@ -282,10 +286,8 @@ void LoaderJSON::loadLane(App* app, CameraComponent* camera) const
     std::cout << "Lane instantiated: " << laneData["id"].get<std::string>() << "\n";
 }
 
-LoaderJSON::LoaderJSON()
+LoaderJSON::LoaderJSON(std::string fileName)
 {
-    std::string fileName = "dataSave/quilles_test.json";
-
     std::ifstream file(fileName);
     file >> jsonData;
 
