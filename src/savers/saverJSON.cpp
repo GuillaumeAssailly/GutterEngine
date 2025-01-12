@@ -64,6 +64,39 @@ void SaverJSON::savePinMaterial(App* app, int pinId)
 
 void SaverJSON::saveBall(App* app, CameraComponent* camera)
 {
+    unsigned int ballEntity = app->getEntityByName("Ball");
+    if (ballEntity) {
+        const auto& transform = app->transformComponents[ballEntity];
+        const auto& physics = app->physicsComponents[ballEntity];
+        jsonData["ball"] = {
+            {"id", app->entityNames[ballEntity]},
+            {"position", {
+                {"x", transform.position.x},
+                {"y", transform.position.y},
+                {"z", transform.position.z}
+            }},
+            {"rotation", {
+                {"x", transform.eulers.x},
+                {"y", transform.eulers.y},
+                {"z", transform.eulers.z}
+            }},
+            {"material", {
+                {"r", 0.05}, {"g", 0.05}, {"b", 0.2}
+            }},
+            {"geometry", {
+                {"type", "sphere"},
+                {"radius", 0.105}
+            }},
+            {"rigidBody", {
+                {"mass", physics.rigidBody->getMass()}
+            }},
+            {"modelPath", "obj/servoskull/boule.obj"},
+            {"render", {
+                {"meshName", "Ball"},
+                {"textureName", "Ball"}
+            }}
+        };
+    }
 }
 
 void SaverJSON::saveLight(App* app, CameraComponent* camera)
@@ -84,6 +117,7 @@ void SaverJSON::saveEntities(App* app)
 
     // Sauvegarde dans un fichier
     saveQuilles(app, NULL);
+    saveBall(app, NULL);
     std::ofstream file(fileName);
     file << jsonData.dump(4); // Sauvegarde avec une indentation de 4 espaces
     file.close();

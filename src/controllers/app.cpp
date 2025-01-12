@@ -1197,6 +1197,19 @@ std::unordered_map<std::string, std::vector<physx::PxConvexMesh*>> App::getPhysi
     return physicsModels;
 }
 
+int App::getEntityByName(std::string name) const
+{
+    int id = -1;
+    for (const auto& pair : entityNames) {
+        if (pair.second == name) {
+            id = pair.first;
+        }
+    }
+    return id;
+
+
+}
+
 
 
 /// <summary>

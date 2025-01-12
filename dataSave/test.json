@@ -12,7 +12,36 @@
         "solverVelocity": 255,
         "staticFriction": 0.009999999776482582
     },
-    "ball": {},
+    "ball": {
+        "geometry": {
+            "radius": 0.105,
+            "type": "sphere"
+        },
+        "id": "Ball",
+        "material": {
+            "b": 0.2,
+            "g": 0.05,
+            "r": 0.05
+        },
+        "modelPath": "obj/servoskull/boule.obj",
+        "position": {
+            "x": 0.0,
+            "y": 0.10499999672174454,
+            "z": 3.0
+        },
+        "render": {
+            "meshName": "Ball",
+            "textureName": "Ball"
+        },
+        "rigidBody": {
+            "mass": 6.800000190734863
+        },
+        "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+        }
+    },
     "camera": {},
     "lane": {},
     "lights": [],
