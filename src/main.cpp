@@ -19,6 +19,7 @@ int main() {
 
 		App* app = new App();
 		Loader* loader = new LoaderJSON("dataSave/quilles_test.json");
+		//Loader* loader = new LoaderJSON("dataSave/test.json");
 		Saver* saver = new SaverJSON("dataSave/test.json");
 
 		app->set_up_opengl();
@@ -28,10 +29,12 @@ int main() {
 		loader->loadEntities(app);
 		//app->loadEntities();
 
-		saver->saveEntities(app);
+		//saver->saveEntities(app);
 
 		app->run();
 
+		saver->saveEntities(app);
+		delete loader;
 		delete app;
 		return 0;
 }

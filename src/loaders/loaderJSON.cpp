@@ -1,14 +1,14 @@
 #include "loaderJSON.h"
 
-void LoaderJSON::loadQuilles(App* app, CameraComponent *camera) const {
+void LoaderJSON::loadPins(App* app, CameraComponent *camera) const {
     TransformComponent transform;
     PhysicsComponent physics;
     RenderComponent render;
 
     glm::vec3 pinMaterial(
-        jsonData["pinMaterial"]["r"].get<float>(),
-        jsonData["pinMaterial"]["g"].get<float>(),
-        jsonData["pinMaterial"]["b"].get<float>()
+        jsonData["PinMaterial"]["r"].get<float>(),
+        jsonData["PinMaterial"]["g"].get<float>(),
+        jsonData["PinMaterial"]["b"].get<float>()
     );
 
     auto& rb = jsonData["PinRigidBody"];
@@ -65,7 +65,7 @@ void LoaderJSON::loadQuilles(App* app, CameraComponent *camera) const {
         app->cameraComponents[pin] = *camera;
     }
 
-    std::cout << "Quilles instaciees a partir du fichier \n";
+    std::cout << "Pins instancied \n";
 
 }
 
@@ -131,10 +131,10 @@ void LoaderJSON::loadBall(App* app, CameraComponent* camera) const{
     };
     app->cameraComponents[ball] = *camera;
 
-    std::cout << "Boule instaciee a partir du fichier \n";
+    std::cout << "Balls instancied \n";
 }
 
-void LoaderJSON::loadLight(App* app, CameraComponent* camera) const
+void LoaderJSON::loadLights(App* app, CameraComponent* camera) const
 {
     json lightsData = jsonData["lights"];
     TransformComponent transform;

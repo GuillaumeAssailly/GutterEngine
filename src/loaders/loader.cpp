@@ -10,10 +10,10 @@ void Loader::loadEntities(App* app) const {
     loadBall(app, &camera);
 
     // Pins
-    loadQuilles(app, &camera);
+    loadPins(app, &camera);
 
     // Lights
-    loadLight(app, &camera);
+    loadLights(app, &camera);
 
     // Camera
     loadCamera(app, &camera);

@@ -14,11 +14,11 @@ public:
 private:
     std::string fileName;
     json jsonData;
-    void saveQuilles(App* app, CameraComponent* camera) override;
+    void savePins(App* app) override;
     void savePinMaterial(App* app, int pinId);
-    void saveBall(App* app, CameraComponent* camera) override;
-    void saveLight(App* app, CameraComponent* camera) override;
-    void saveCamera(App* app, CameraComponent* camera) override;
-    void saveLane(App* app, CameraComponent* camera) override;
+    void saveBall(App* app) override;
+    void saveLights(App* app) override;
+    void saveCamera(App* app) override;
+    void saveLane(App* app) override;
 
 };

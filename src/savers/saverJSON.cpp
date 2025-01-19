@@ -1,6 +1,7 @@
 #include "saverJSON.h"
+#include <regex>
 
-void SaverJSON::saveQuilles(App* app, CameraComponent* camera)
+void SaverJSON::savePins(App* app)
 {
     int countPins = 0;
     for (const auto& transformComponents : app->transformComponents) {
@@ -22,6 +23,21 @@ void SaverJSON::saveQuilles(App* app, CameraComponent* camera)
                     {"solverPosition", solverPosition},
                     {"solverVelocity", solverVelocity}
                 };
+				jsonData["meshPath"] = "obj/convexMesh/quille.obj";
+                const auto& camera = app->cameraComponents[id];
+                jsonData["PinCamera"] = {
+                    {"fov", camera.fov},
+                    {"aspectRatio", camera.aspectRatio},
+                    {"nearPlane", camera.nearPlane},
+                    {"farPlane", camera.farPlane},
+                    {"sensitivity", camera.sensitivity},
+                    {"initialForward", {
+                        {"x", 0},
+                        {"y", 0},
+                        {"z", 1},
+                        {"w", 0}
+                    }}
+                };
                 savePinMaterial(app, id);
             }
             pin["id"] = app->entityNames[transformComponents.first];
@@ -35,7 +51,7 @@ void SaverJSON::saveQuilles(App* app, CameraComponent* camera)
                 {"y", transformComponents.second.eulers.y},
                 {"z", transformComponents.second.eulers.z}
             };
-            pin["modelPath"] = "obj/servoskull/quille.obj";
+            //pin["modelPath"] = "obj/servoskull/quille.obj";
             jsonData["pins"].push_back(pin);
         }
     }
@@ -62,9 +78,10 @@ void SaverJSON::savePinMaterial(App* app, int pinId)
 }
 
 
-void SaverJSON::saveBall(App* app, CameraComponent* camera)
+void SaverJSON::saveBall(App* app)
 {
     unsigned int ballEntity = app->getEntityByName("Ball");
+    const auto& camera = app->cameraComponents[ballEntity];
     if (ballEntity) {
         const auto& transform = app->transformComponents[ballEntity];
         const auto& physics = app->physicsComponents[ballEntity];
@@ -96,19 +113,133 @@ void SaverJSON::saveBall(App* app, CameraComponent* camera)
                 {"textureName", "Ball"}
             }}
         };
+        jsonData["ball"]["camera"] = {
+            {"fov", camera.fov},
+            {"aspectRatio", camera.aspectRatio},
+            {"nearPlane", camera.nearPlane},
+            {"farPlane", camera.farPlane},
+            {"sensitivity", camera.sensitivity},
+            {"initialForward", {
+                {"x", 0},
+                {"y", 0},
+                {"z", 1},
+                {"w", 0}
+            }}
+        };
     }
 }
 
-void SaverJSON::saveLight(App* app, CameraComponent* camera)
+void SaverJSON::saveLights(App* app)
 {
+    jsonData["lights"] = json::array();
+    for (const auto& transformComponents : app->transformComponents) {
+		int id = transformComponents.first;
+        std::regex keyPattern(".*Light.*");
+        if (std::regex_match(app->entityNames[transformComponents.first], keyPattern)) {
+            const auto& transform = app->transformComponents.at(id);
+			const auto& light = app->lightComponents.at(id);
+            json lightData = {
+                {"id", app->entityNames[transformComponents.first]},
+                {"position", {
+                    {"x", transform.position.x},
+                    {"y", transform.position.y},
+                    {"z", transform.position.z}
+                }},
+                {"rotation", {
+                    {"x", transform.eulers.x},
+                    {"y", transform.eulers.y},
+                    {"z", transform.eulers.z}
+                }},
+                {"color", {
+                    {"r", light.color.x},
+                    {"g", light.color.y},
+                    {"b", light.color.z}
+                }},
+                {"intensity", light.intensity},
+                {"isDirectional", light.isDirectional},
+                {"render", {
+                    {"meshName", "Light"},
+                    {"textureName", "Light"}
+                }}
+            };
+            if (light.isDirectional) {
+                lightData["direction"] = {
+                    {"x", light.direction.x},
+                    {"y", light.direction.y},
+                    {"z", light.direction.z}
+                };
+            }
+            jsonData["lights"].push_back(lightData);
+        }
+    }
 }
 
-void SaverJSON::saveCamera(App* app, CameraComponent* camera)
+void SaverJSON::saveCamera(App* app)
 {
+    unsigned int cameraEntity = app->getEntityByName("Camera");
+    if (cameraEntity) {
+        const auto& transform = app->transformComponents[cameraEntity];
+        const auto& camera = app->cameraComponents[cameraEntity];
+        jsonData["camera"] = {
+            {"id", app->entityNames[cameraEntity]},
+            {"position", {
+                {"x", transform.position.x},
+                {"y", transform.position.y},
+                {"z", transform.position.z}
+            }},
+            {"rotation", {
+                {"x", transform.eulers.x},
+                {"y", transform.eulers.y},
+                {"z", transform.eulers.z}
+            }},
+            {"fov", camera.fov},
+            {"aspectRatio", camera.aspectRatio},
+            {"nearPlane", camera.nearPlane},
+            {"farPlane", camera.farPlane},
+            {"sensitivity", camera.sensitivity},
+            {"initialForward", {
+                {"x", camera.initialForward.x},
+                {"y", camera.initialForward.y},
+                {"z", camera.initialForward.z},
+                {"w", camera.initialForward.w}
+            }}
+        };
+    }
 }
 
-void SaverJSON::saveLane(App* app, CameraComponent* camera)
+void SaverJSON::saveLane(App* app)
 {
+    int laneEntity = -1;
+    laneEntity = app->getEntityByName("Lane");
+    if (laneEntity >= 0) {
+        const auto& transform = app->transformComponents[laneEntity];
+        const auto& staticPhysics = app->staticPhysicsComponents[laneEntity];
+        jsonData["lane"] = {
+            {"id", app->entityNames[laneEntity]},
+            {"position", {
+                {"x", transform.position.x},
+                {"y", transform.position.y},
+                {"z", transform.position.z}
+            }},
+            {"rotation", {
+                {"x", transform.eulers.x},
+                {"y", transform.eulers.y},
+                {"z", transform.eulers.z}
+            }},
+            {"size", {
+                {"x", transform.size.x},
+                {"y", transform.size.y},
+                {"z", transform.size.z}
+            }},
+            {"material", {
+                {"r", 0.05}, {"g", 0.05}, {"b", 0.0}
+            }},
+            {"render", {
+                {"meshName", "Lane"},
+                {"textureName", "Lane"}
+            }}
+        };
+    }
 }
 
 void SaverJSON::saveEntities(App* app)
@@ -116,8 +247,11 @@ void SaverJSON::saveEntities(App* app)
 	Saver::saveEntities(app);
 
     // Sauvegarde dans un fichier
-    saveQuilles(app, NULL);
-    saveBall(app, NULL);
+    savePins(app);
+    saveBall(app);
+	saveLights(app);
+	saveLane(app);
+	saveCamera(app);
     std::ofstream file(fileName);
     file << jsonData.dump(4); // Sauvegarde avec une indentation de 4 espaces
     file.close();

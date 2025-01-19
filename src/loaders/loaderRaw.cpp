@@ -1,6 +1,6 @@
 #include "loaderRaw.h"
 
-void LoaderRaw::loadQuilles(App *app, CameraComponent *camera) const
+void LoaderRaw::loadPins(App *app, CameraComponent *camera) const
 {
 	TransformComponent transform;
 	PhysicsComponent physics;
@@ -78,7 +78,7 @@ void LoaderRaw::loadBall(App* app, CameraComponent* camera) const{
     app->cameraComponents[ball] = *camera;
 }
 
-void LoaderRaw::loadLight(App* app, CameraComponent* camera) const
+void LoaderRaw::loadLights(App* app, CameraComponent* camera) const
 {
     TransformComponent transform;
     LightComponent light;

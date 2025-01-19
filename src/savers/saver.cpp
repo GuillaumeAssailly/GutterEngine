@@ -2,5 +2,5 @@
 
 void Saver::saveEntities(App* app)
 {
-	saveQuilles(app, NULL);
+	//saveQuilles(app, NULL);
 }
