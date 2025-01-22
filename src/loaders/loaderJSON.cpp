@@ -25,7 +25,8 @@ void LoaderJSON::loadPins(App* app, CameraComponent *camera) const {
             pinData["position"]["y"].get<float>(),
             pinData["position"]["z"].get<float>()
         );
-        transform.eulers = glm::vec3(
+        transform.eulers = glm::quat(
+            pinData["rotation"]["w"].get<float>(),
             pinData["rotation"]["x"].get<float>(),
             pinData["rotation"]["y"].get<float>(),
             pinData["rotation"]["z"].get<float>()
@@ -41,7 +42,8 @@ void LoaderJSON::loadPins(App* app, CameraComponent *camera) const {
             rb["dynamicFriction"].get<float>(),
             rb["restitution"].get<float>(), 
             rb["solverPosition"].get<float>(), 
-            rb["solverVelocity"].get<float>()
+            rb["solverVelocity"].get<float>(),
+            transform.eulers
         );
 
         app->physicsComponents[pin] = physics;
@@ -84,7 +86,8 @@ void LoaderJSON::loadBall(App* app, CameraComponent* camera) const{
         ballData["position"]["y"].get<float>(),
         ballData["position"]["z"].get<float>()
     );
-    transform.eulers = glm::vec3(
+    transform.eulers = glm::quat(
+        ballData["rotation"]["w"].get<float>(),
         ballData["rotation"]["x"].get<float>(),
         ballData["rotation"]["y"].get<float>(),
         ballData["rotation"]["z"].get<float>()
@@ -199,7 +202,8 @@ void LoaderJSON::loadCamera(App* app, CameraComponent* camera) const
         cameraData["position"]["y"].get<float>(),
         cameraData["position"]["z"].get<float>()
     );
-    transform.eulers = glm::vec3(
+    transform.eulers = glm::quat(
+        cameraData["rotation"]["w"].get<float>(),
         cameraData["rotation"]["x"].get<float>(),
         cameraData["rotation"]["y"].get<float>(),
         cameraData["rotation"]["z"].get<float>()

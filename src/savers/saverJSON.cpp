@@ -49,7 +49,8 @@ void SaverJSON::savePins(App* app)
             pin["rotation"] = {
                 {"x", transformComponents.second.eulers.x},
                 {"y", transformComponents.second.eulers.y},
-                {"z", transformComponents.second.eulers.z}
+                {"z", transformComponents.second.eulers.z},
+                {"w", transformComponents.second.eulers.w }
             };
             //pin["modelPath"] = "obj/servoskull/quille.obj";
             jsonData["pins"].push_back(pin);
@@ -90,12 +91,13 @@ void SaverJSON::saveBall(App* app)
             {"position", {
                 {"x", transform.position.x},
                 {"y", transform.position.y},
-                {"z", transform.position.z}
+                {"z", transform.position.z},
             }},
             {"rotation", {
                 {"x", transform.eulers.x},
                 {"y", transform.eulers.y},
-                {"z", transform.eulers.z}
+				{"z", transform.eulers.z},
+				{"w", transform.eulers.w}
             }},
             {"material", {
                 {"r", 0.05}, {"g", 0.05}, {"b", 0.2}
@@ -190,7 +192,8 @@ void SaverJSON::saveCamera(App* app)
             {"rotation", {
                 {"x", transform.eulers.x},
                 {"y", transform.eulers.y},
-                {"z", transform.eulers.z}
+                {"z", transform.eulers.z},
+                {"w", transform.eulers.w}
             }},
             {"fov", camera.fov},
             {"aspectRatio", camera.aspectRatio},

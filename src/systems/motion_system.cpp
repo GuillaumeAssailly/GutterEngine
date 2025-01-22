@@ -141,10 +141,13 @@ void MotionSystem::concaveToConvex(const char* filePath, std::string outputDir, 
     interfaceVHACD->Release();
 }
 
-physx::PxRigidDynamic* MotionSystem::createDynamic(const std::vector<physx::PxConvexMesh*>& convexMeshes, glm::vec3 mat, glm::vec3 transf, float mass, float sleepT, float linearDamp, float angularDamp, int solverPosition, int solverVelocity) {
+physx::PxRigidDynamic* MotionSystem::createDynamic(const std::vector<physx::PxConvexMesh*>& convexMeshes, glm::vec3 mat, glm::vec3 transf, float mass, float sleepT, float linearDamp, float angularDamp, int solverPosition, int solverVelocity, glm::quat rot) {
     physx::PxMaterial* material = mPhysics->createMaterial(mat.x, mat.y, mat.z);
-    physx::PxTransform transform = { transf.x, transf.y, transf.z };
+    physx::PxTransform transform;
+	transform.p = { transf.x, transf.y, transf.z };
+	transform.q = { rot.x, rot.y, rot.z, rot.w };
     physx::PxRigidDynamic* actor = mPhysics->createRigidDynamic(transform);
+
 
     for (auto& convexMesh : convexMeshes) {
         physx::PxConvexMeshGeometry geometry(convexMesh);
