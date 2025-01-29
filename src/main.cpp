@@ -26,14 +26,14 @@ int main() {
 		app->make_systems();
 		
 		app->loadModelsAndTextures();
-		loader->loadEntities(app);
-		//app->loadEntities();
+		//loader->loadEntities(app);
+		app->loadEntities();
 
 		//saver->saveEntities(app);
 
 		app->run();
 
-		saver->saveEntities(app);
+		//saver->saveEntities(app);
 		delete loader;
 		delete app;
 		return 0;

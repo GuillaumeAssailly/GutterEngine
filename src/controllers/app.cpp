@@ -29,6 +29,9 @@ unsigned int App::make_entity(const std::string& name) {
 
 
 
+
+
+
 static int totalFaces = 0;
 
 void processNode(const aiScene* scene, aiNode* node, std::vector<float>& vertices, std::vector<unsigned int>& indices) {
@@ -65,7 +68,7 @@ void processNode(const aiScene* scene, aiNode* node, std::vector<float>& vertice
 
         // Extract indices
         for (unsigned int j = 0; j < mesh->mNumFaces; j++) {
-            aiFace face = mesh->mFaces[j];
+            const aiFace& face = mesh->mFaces[j];
             for (unsigned int k = 0; k < face.mNumIndices; k++) {
                 indices.push_back(face.mIndices[k]);
             }
@@ -73,9 +76,11 @@ void processNode(const aiScene* scene, aiNode* node, std::vector<float>& vertice
 
         std::cout << "Mesh name : " << node->mName.C_Str() << std::endl;
 		std::cout << "Faces number : " << mesh->mNumFaces << std::endl;
-            std::cout << "Vertices: " << vertices.size() << std::endl;
+        std::cout << "Vertices: " << vertices.size() << std::endl;
 
-            totalFaces += mesh->mNumFaces;
+        totalFaces += mesh->mNumFaces;
+
+
     }
 
     for (unsigned int i = 0; i < node->mNumChildren; i++) {
@@ -83,6 +88,148 @@ void processNode(const aiScene* scene, aiNode* node, std::vector<float>& vertice
     }
     std::cout << "Total faces number : " << totalFaces << std::endl;
 	
+}
+void App::loadGLTF(const char* filePath, const char* texDir) {
+    Assimp::Importer importer;
+    const aiScene* scene = importer.ReadFile(filePath, aiProcess_OptimizeMeshes | aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+        std::cout << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
+        exit(-1);
+    }
+
+
+
+
+    for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
+        std::vector<float> vertices;
+        std::vector<unsigned int> indices;
+
+        aiMesh* mesh = scene->mMeshes[i];
+
+        // Extract vertices
+        for (unsigned int j = 0; j < mesh->mNumVertices; j++) {
+            // Position
+            vertices.push_back(mesh->mVertices[j].x);
+            vertices.push_back(mesh->mVertices[j].y);
+            vertices.push_back(mesh->mVertices[j].z);
+
+            // Normal
+            vertices.push_back(mesh->mNormals[j].x);
+            vertices.push_back(mesh->mNormals[j].y);
+            vertices.push_back(mesh->mNormals[j].z);
+
+            // Texture coordinates (if available)
+            if (mesh->mTextureCoords[0]) {
+                vertices.push_back(mesh->mTextureCoords[0][j].x);
+                vertices.push_back(mesh->mTextureCoords[0][j].y);
+            }
+            else {
+                vertices.push_back(0.0f);
+                vertices.push_back(0.0f);
+            }
+
+            // Tangent
+            vertices.push_back(mesh->mTangents[j].x);
+            vertices.push_back(mesh->mTangents[j].y);
+            vertices.push_back(mesh->mTangents[j].z);
+
+            // Bitangent
+            vertices.push_back(mesh->mBitangents[j].x);
+            vertices.push_back(mesh->mBitangents[j].y);
+            vertices.push_back(mesh->mBitangents[j].z);
+        }
+
+        // Extract indices
+        for (unsigned int j = 0; j < mesh->mNumFaces; j++) {
+            const aiFace& face = mesh->mFaces[j];
+            for (unsigned int k = 0; k < face.mNumIndices; k++) {
+                indices.push_back(face.mIndices[k]);
+            }
+        }
+
+        std::string diffuseTexturePath = "default_diffuse.jpg";
+        std::string normalTexturePath = "default_normal.jpg";
+        std::string emissiveTexturePath = "default_emissive.jpg";
+
+        aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+
+        aiString path;
+        if (material->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS) {
+            diffuseTexturePath =  std::string(texDir) + path.C_Str();
+            std::cout << "Diffuse texture: " << path.C_Str() << std::endl;
+            texturesList[mesh->mName.C_Str()] = make_texture(diffuseTexturePath.c_str(), false);
+        }
+
+		if (material->GetTexture(aiTextureType_NORMALS, 0, &path) == AI_SUCCESS) {
+			normalTexturePath = std::string(texDir) + path.C_Str();
+			std::cout << "Normal texture: " << std::string(texDir) +  path.C_Str() << std::endl;
+			normalMapsList[mesh->mName.C_Str()] = make_texture(normalTexturePath.c_str(), false);
+		}
+
+
+        // Create VAO
+        unsigned int VAO;
+        glGenVertexArrays(1, &VAO);
+        VAOs.push_back(VAO);
+        glBindVertexArray(VAO);
+
+        // Create VBO for vertices
+        unsigned int VBO;
+        glGenBuffers(1, &VBO);
+        VBOs.push_back(VBO);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+
+        // Create EBO for indices
+        unsigned int EBO;
+        glGenBuffers(1, &EBO);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
+
+        // Set vertex attribute pointers
+        // Position attribute
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)0); // 8 * sizeof(float) stride (3 for pos, 3 for normal, 2 for tex)
+
+
+        // Texture coordinate attribute
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(sizeof(float[3]))); // Normal starts after 3 floats for position
+
+
+        // Normal attribute
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(sizeof(float[6]))); // Tex coords start after 6 floats (3 for pos, 3 for normal)
+
+        // Tangent attribute
+        glEnableVertexAttribArray(3);
+        glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(8 * sizeof(float))); // Tangent starts after 8 floats (3 for pos, 3 for normal, 2 for tex)
+
+        // Bitangent attribute
+        glEnableVertexAttribArray(4);
+        glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(11 * sizeof(float))); // Bitangent starts after 11 floats (3 for pos, 3 for normal, 2 for tex, 3 for tangent)
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+
+        // Store VAO and index count
+        renderModels[mesh->mName.C_Str()] = std::make_pair(VAO, indices.size());
+        std::cout << mesh->mName.C_Str() << std::endl;
+        RenderComponent render;
+        TransformComponent transform;
+
+		unsigned int obj = make_entity(mesh->mName.C_Str());
+        transform.position = { 0.f, 0.f, 9.f };
+        transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
+        transform.size = { 1.0f, 0.168f, 18.0f };
+        transformComponents[obj] = transform;
+
+        render.mesh = renderModels[mesh->mName.C_Str()].first;
+        render.indexCount = renderModels[mesh->mName.C_Str()].second;
+        render.material = texturesList[mesh->mName.C_Str()];
+		render.normalMap = normalMapsList[mesh->mName.C_Str()];
+        renderComponents[obj] = render;
+    }
 }
 
 std::pair<unsigned int, unsigned int> App::make_model(const char* filePath) {
@@ -1007,9 +1154,21 @@ void App::make_systems() {
 void App::loadModelsAndTextures()
 {
     // Lane
-    std::pair<unsigned int, unsigned int> laneModel = make_model("obj/servoskull/lane.obj");
-    renderModels["Lane"] = laneModel;
-    texturesList["Lane"] = make_texture("obj/servoskull/textures/lane.jpg", false);
+    loadGLTF("obj/nashville/Piste.gltf", "obj/nashville/");
+
+    // Lane 2
+    loadGLTF("obj/nashville/Piste2.gltf", "obj/nashville/");
+   
+    //Ball Return
+	loadGLTF("obj/nashville/BallReturn.gltf", "obj/nashville/");
+
+    //TV
+	loadGLTF("obj/nashville/TV.gltf", "obj/nashville/");
+
+    //Pin Statue
+
+	loadGLTF("obj/nashville/PinStatue.gltf", "obj/nashville/");
+
 
     // Ball
     std::pair<unsigned int, unsigned int> ballModel = make_model("obj/servoskull/boule.obj");
@@ -1044,93 +1203,93 @@ void App::loadEntities()
     CameraComponent camera;
 
     // Lane
-    unsigned int lane = make_entity("Lane");
+   /* unsigned int lane = make_entity("Lane");
     transform.position = { 0.f, 0.f, 9.f };
     transform.eulers = { 0.f, 0.f, 0.0f, 0.f };
     transform.size = { 1.0f, 0.168f, 18.0f };
-    transformComponents[lane] = transform;
+    transformComponents[lane] = transform;*/
 
-    glm::vec3 laneMaterial = { 0.05f, 0.05f, 0.0f };
-    physx::PxBoxGeometry laneGeometry(physx::PxVec3(transform.size.x / 2.0f, transform.size.y / 2.0f, transform.size.z / 2.0f));
+    //glm::vec3 laneMaterial = { 0.05f, 0.05f, 0.0f };
+    //physx::PxBoxGeometry laneGeometry(physx::PxVec3(transform.size.x / 2.0f, transform.size.y / 2.0f, transform.size.z / 2.0f));
 
-    SPhysics.rigidBody = motionSystem->createStatic(laneGeometry, laneMaterial, transform.position);
-    staticPhysicsComponents[lane] = SPhysics;
+    //SPhysics.rigidBody = motionSystem->createStatic(laneGeometry, laneMaterial, transform.position);
+    //staticPhysicsComponents[lane] = SPhysics;
 
-    render.mesh = renderModels["Lane"].first;
-    render.indexCount = renderModels["Lane"].second;
-    render.material = texturesList["Lane"];
-    renderComponents[lane] = render;
+    //render.mesh = renderModels["SM_Speaker_18-2"].first;
+    //render.indexCount = renderModels["SM_Speaker_18-2"].second;
+    ////render.material = texturesList["Lane"];
+    //renderComponents[lane] = render;
 
-    // Ball
-    unsigned int ball = make_entity("Ball");
-    transform.position = { 0.0f, 0.105f, 3.0f };
-    transform.eulers = { 0.0f, 0.0f, 0.0f , 0.f };
-    transformComponents[ball] = transform;
+ //   // Ball
+ //   unsigned int ball = make_entity("Ball");
+ //   transform.position = { 0.0f, 0.105f, 3.0f };
+ //   transform.eulers = { 0.0f, 0.0f, 0.0f , 0.f };
+ //   transformComponents[ball] = transform;
 
-    glm::vec3 ballMaterial = { 0.05f, 0.05f, 0.2f };
-    const physx::PxSphereGeometry ballGeometry(0.105f);
+ //   glm::vec3 ballMaterial = { 0.05f, 0.05f, 0.2f };
+ //   const physx::PxSphereGeometry ballGeometry(0.105f);
 
-    physics.rigidBody = motionSystem->createDynamic(ballGeometry, ballMaterial, transform.position, 6.8f);
-    physicsComponents[ball] = physics;
+ //   physics.rigidBody = motionSystem->createDynamic(ballGeometry, ballMaterial, transform.position, 6.8f);
+ //   physicsComponents[ball] = physics;
 
-    std::tuple<unsigned int, unsigned int> ballModel = make_model("obj/servoskull/boule.obj");
+ //   std::tuple<unsigned int, unsigned int> ballModel = make_model("obj/servoskull/boule.obj");
 
-    render.mesh = renderModels["Ball"].first;
-    render.indexCount = renderModels["Ball"].second;
-    render.material = texturesList["Ball"];
-	render.normalMap = normalMapsList["Ball"];
-    renderComponents[ball] = render;
+ //   render.mesh = renderModels["Ball"].first;
+ //   render.indexCount = renderModels["Ball"].second;
+ //   render.material = texturesList["Ball"];
+	//render.normalMap = normalMapsList["Ball"];
+ //   renderComponents[ball] = render;
 
-    camera.fov = 60.0f;
-    camera.aspectRatio = 16.0f / 9.0f;
-    camera.nearPlane = 0.1f;
-    camera.farPlane = 100.0f;
-    camera.sensitivity = 0.5f;
-    camera.initialForward = { 0,0,1,0 };
-    cameraComponents[ball] = camera;
+ //   camera.fov = 60.0f;
+ //   camera.aspectRatio = 16.0f / 9.0f;
+ //   camera.nearPlane = 0.1f;
+ //   camera.farPlane = 100.0f;
+ //   camera.sensitivity = 0.5f;
+ //   camera.initialForward = { 0,0,1,0 };
+ //   cameraComponents[ball] = camera;
 
-    // Pins
-    glm::vec3 first_pin = { 0.f, 0.22f, 15.f };
-    glm::vec3 vectors[10];
-    vectors[0] = first_pin;
-    vectors[1] = glm::vec3(first_pin.x + 0.1524f, first_pin.y, first_pin.z + 0.2635f);
-    vectors[2] = glm::vec3(first_pin.x - 0.1524f, first_pin.y, first_pin.z + 0.2635f);
-    vectors[3] = glm::vec3(first_pin.x - 0.3048f, first_pin.y, first_pin.z + 0.527f);
-    vectors[4] = glm::vec3(first_pin.x, first_pin.y, first_pin.z + 0.527f);
-    vectors[5] = glm::vec3(first_pin.x + 0.3048f, first_pin.y, first_pin.z + 0.527f);
-    vectors[6] = glm::vec3(first_pin.x + 0.1524f, first_pin.y, first_pin.z + 0.7905f);
-    vectors[7] = glm::vec3(first_pin.x - 0.1524f, first_pin.y, first_pin.z + 0.7905f);
-    vectors[8] = glm::vec3(first_pin.x + 0.4572f, first_pin.y, first_pin.z + 0.7905f);
-    vectors[9] = glm::vec3(first_pin.x - 0.4572f, first_pin.y, first_pin.z + 0.7905f);
+ //   // Pins
+ //   glm::vec3 first_pin = { 0.f, 0.22f, 15.f };
+ //   glm::vec3 vectors[10];
+ //   vectors[0] = first_pin;
+ //   vectors[1] = glm::vec3(first_pin.x + 0.1524f, first_pin.y, first_pin.z + 0.2635f);
+ //   vectors[2] = glm::vec3(first_pin.x - 0.1524f, first_pin.y, first_pin.z + 0.2635f);
+ //   vectors[3] = glm::vec3(first_pin.x - 0.3048f, first_pin.y, first_pin.z + 0.527f);
+ //   vectors[4] = glm::vec3(first_pin.x, first_pin.y, first_pin.z + 0.527f);
+ //   vectors[5] = glm::vec3(first_pin.x + 0.3048f, first_pin.y, first_pin.z + 0.527f);
+ //   vectors[6] = glm::vec3(first_pin.x + 0.1524f, first_pin.y, first_pin.z + 0.7905f);
+ //   vectors[7] = glm::vec3(first_pin.x - 0.1524f, first_pin.y, first_pin.z + 0.7905f);
+ //   vectors[8] = glm::vec3(first_pin.x + 0.4572f, first_pin.y, first_pin.z + 0.7905f);
+ //   vectors[9] = glm::vec3(first_pin.x - 0.4572f, first_pin.y, first_pin.z + 0.7905f);
 
-    glm::vec3 pinMaterial = { 0.5f, 0.5f, 0.5f };
-    for (int i = 0; i < 10; i++) {
-        unsigned int pin = make_entity("Pin " + std::to_string(i));
-        transform.position = vectors[i];
-        transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
-        transformComponents[pin] = transform;
+ //   glm::vec3 pinMaterial = { 0.5f, 0.5f, 0.5f };
+ //   for (int i = 0; i < 10; i++) {
+ //       unsigned int pin = make_entity("Pin " + std::to_string(i));
+ //       transform.position = vectors[i];
+ //       transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
+ //       transformComponents[pin] = transform;
 
-        physics.rigidBody = motionSystem->createDynamic(physicsModels["Pin"], pinMaterial, transform.position, 1.5f, 0.01f, 0.2f, 0.3f, 255, 255);
-        physicsComponents[pin] = physics;
+ //       physics.rigidBody = motionSystem->createDynamic(physicsModels["Pin"], pinMaterial, transform.position, 1.5f, 0.01f, 0.2f, 0.3f, 255, 255);
+ //       physicsComponents[pin] = physics;
 
-        render.mesh = renderModels["Pin"].first;
-        render.indexCount = renderModels["Pin"].second;
-		render.material = texturesList["Pin"];
-		render.normalMap = normalMapsList["Pin"];
-        renderComponents[pin] = render;
+ //       render.mesh = renderModels["Pin"].first;
+ //       render.indexCount = renderModels["Pin"].second;
+	//	render.material = texturesList["Pin"];
+	//	render.normalMap = normalMapsList["Pin"];
+ //       renderComponents[pin] = render;
 
-        camera.fov = 45.0f;
-        camera.aspectRatio = 16.0f / 9.0f;
-        camera.nearPlane = 0.1f;
-        camera.farPlane = 100.0f;
-        camera.sensitivity = 0.5f;
-        camera.initialForward = { 0,0,-1,0 };
-        cameraComponents[pin] = camera;
-    }
+ //       camera.fov = 45.0f;
+ //       camera.aspectRatio = 16.0f / 9.0f;
+ //       camera.nearPlane = 0.1f;
+ //       camera.farPlane = 100.0f;
+ //       camera.sensitivity = 0.5f;
+ //       camera.initialForward = { 0,0,-1,0 };
+ //       cameraComponents[pin] = camera;
+ //   }
 
-    // Camera
+ //   // Camera
     unsigned int cameraEntity = make_entity("Camera");
-    transform.position = first_pin;
+    transform.position = { 0.0f, 0.0f, 0.0f };
     transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
     transformComponents[cameraEntity] = transform;
     
@@ -1145,7 +1304,7 @@ void App::loadEntities()
 
     //First light
     unsigned int lightEntity1 = make_entity("First Light");
-    transform.position = first_pin;
+    transform.position = { 0.0f, 0.0f, 0.0f };
     transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
     transformComponents[lightEntity1] = transform;
 

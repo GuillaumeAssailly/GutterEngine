@@ -156,9 +156,9 @@ void LoaderRaw::loadLane(App* app, CameraComponent* camera) const
     SPhysics.rigidBody = app->getMotionSystem()->createStatic(laneGeometry, laneMaterial, transform.position);
     app->staticPhysicsComponents[lane] = SPhysics;
 
-    render.mesh = app->getRenderModels()["Lane"].first;
-    render.indexCount = app->getRenderModels()["Lane"].second;
-    render.material = app->getTexturesList()["Lane"];
+    render.mesh = app->getRenderModels()["SM_Speaker_18-1"].first;
+    render.indexCount = app->getRenderModels()["SM_Speaker_18-1"].second;
+    //render.material = app->getTexturesList()["SM_Speaker_18-1"];
     app->renderComponents[lane] = render;
 }
 

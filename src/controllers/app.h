@@ -31,12 +31,15 @@ public:
     unsigned int make_entity(const std::string&);
     std::pair<unsigned int, unsigned int> make_cube_mesh(glm::vec3 size);
     std::pair<unsigned int, unsigned int>  make_model(const char *);
+    void loadGLTF(const char* filePath, const char * texDir);
+
 
     unsigned int make_texture(const char* filename, const bool );
 	unsigned int make_normal(const char* filename, const bool flipTex);
     void set_up_opengl();
     void make_systems();
     void loadModelsAndTextures();
+
     void loadEntities();
     MotionSystem * getMotionSystem();
     std::unordered_map<std::string, std::pair<unsigned int, unsigned int>> getRenderModels() const;
