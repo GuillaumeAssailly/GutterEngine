@@ -2,8 +2,8 @@
 #include "../config.h"
 
 struct RenderComponent {
-    unsigned int material;
-    unsigned int mesh;
-    unsigned int indexCount;
-    unsigned int normalMap = 0;
+    std::vector<unsigned int> materials;
+    std::vector<unsigned int> meshes;
+    std::vector<unsigned int> indexCount;
+    std::vector<unsigned int> normalMap;
 };

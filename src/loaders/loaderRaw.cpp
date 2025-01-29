@@ -1,6 +1,6 @@
 #include "loaderRaw.h"
 
-void LoaderRaw::loadPins(App *app, CameraComponent *camera) const
+/*void LoaderRaw::loadPins(App* app, CameraComponent* camera) const
 {
 	TransformComponent transform;
 	PhysicsComponent physics;
@@ -160,6 +160,6 @@ void LoaderRaw::loadLane(App* app, CameraComponent* camera) const
     render.indexCount = app->getRenderModels()["Lane"].second;
     render.material = app->getTexturesList()["Lane"];
     app->renderComponents[lane] = render;
-}
+}*/
 
 

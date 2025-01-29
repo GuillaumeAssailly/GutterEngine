@@ -21,8 +21,6 @@
 //Callbacks
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
-
-
 class App {
 public:
     App();
@@ -30,22 +28,24 @@ public:
     void run();
     unsigned int make_entity(const std::string&);
     std::pair<unsigned int, unsigned int> make_cube_mesh(glm::vec3 size);
-    std::pair<unsigned int, unsigned int>  make_model(const char *);
+    void loadObject(std::string, std::string);
+    std::pair<unsigned int, unsigned int> make_model(std::vector<float> vertices, std::vector<unsigned int> indices);
 
-    unsigned int make_texture(const char* filename, const bool );
-	unsigned int make_normal(const char* filename, const bool flipTex);
+    unsigned int make_texture(const char* filename, const bool);
+    void processNode(const aiScene* scene, aiNode* node, std::string name, std::string subname);
+    unsigned int make_normal(const char* filename, const bool flipTex);
     void set_up_opengl();
     void make_systems();
     void loadModelsAndTextures();
     void loadEntities();
-    MotionSystem * getMotionSystem();
+    MotionSystem* getMotionSystem();
     std::unordered_map<std::string, std::pair<unsigned int, unsigned int>> getRenderModels() const;
     std::unordered_map<std::string, unsigned int> getTexturesList() const;
     std::unordered_map<std::string, std::vector<physx::PxConvexMesh*>> getPhysicsModels() const;
     int getEntityByName(std::string name) const;
 
     //Components
-	std::unordered_map<unsigned int, std::string> entityNames;
+    std::unordered_map<unsigned int, std::string> entityNames;
     std::unordered_map<unsigned int, TransformComponent> transformComponents;
     std::unordered_map<unsigned int, PhysicsComponent> physicsComponents;
     std::unordered_map<unsigned int, StaticPhysicsComponent> staticPhysicsComponents;
@@ -64,10 +64,14 @@ private:
     bool hasPhysics = true;
     GLFWwindow* window;
 
-    std::unordered_map<std::string, std::vector<physx::PxConvexMesh*>> physicsModels;
+    std::unordered_map<std::string, std::vector<physx::PxConvexMesh*>> convexModels;
+    std::unordered_map<std::string, std::vector<physx::PxTriangleMesh*>> triangleModels;
     std::unordered_map<std::string, std::pair<unsigned int, unsigned int>> renderModels;
     std::unordered_map<std::string, unsigned int> texturesList;
-	std::unordered_map<std::string, unsigned int> normalMapsList;
+    std::unordered_map<std::string, unsigned int> normalMapsList;
+    std::unordered_map<std::string, unsigned int> emissiveList;
+    std::unordered_map<std::string, unsigned int> metalnessList;
+    std::unordered_map<std::string, unsigned int> roughnessList;
 
     std::vector<unsigned int> VAOs;
     std::vector<unsigned int> VBOs;
@@ -77,8 +81,8 @@ private:
     unsigned int shadowShader;
     unsigned int depthMapDebugShader;
 
-	float deltaTime = 0.0f;
-	float lastFrame = 0.0f;
+    float deltaTime = 0.0f;
+    float lastFrame = 0.0f;
     float accumulatedTime = 0.0f;
 
     //Systems
@@ -87,10 +91,10 @@ private:
     RenderSystem* renderSystem;
     LightSystem* lightSystem;
     LineSystem* lineSystem;
-	ShadowSystem* shadowSystem;
+    ShadowSystem* shadowSystem;
 
 
-    
 
-    
+
+
 };

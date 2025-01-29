@@ -27,40 +27,35 @@ unsigned int App::make_entity(const std::string& name) {
     return entity_count++;
 }
 
-
-
 static int totalFaces = 0;
 
-void processNode(const aiScene* scene, aiNode* node, std::vector<float>& vertices, std::vector<unsigned int>& indices) {
-    
-  
+void App::processNode(const aiScene* scene, aiNode* node, std::string name, std::string subname) {
+    std::vector<float> vertices;
+    std::vector<unsigned int> indices;
+
     for (unsigned int i = 0; i < node->mNumMeshes; i++) {
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 
         // Extract vertices
         for (unsigned int j = 0; j < mesh->mNumVertices; j++) {
             vertices.push_back(mesh->mVertices[j].x);
-            vertices.push_back(mesh->mVertices[j].y);
             vertices.push_back(mesh->mVertices[j].z);
+            vertices.push_back(-mesh->mVertices[j].y);
 
             vertices.push_back(mesh->mNormals[j].x);
-            vertices.push_back(mesh->mNormals[j].y);
             vertices.push_back(mesh->mNormals[j].z);
+            vertices.push_back(-mesh->mNormals[j].y);
 
             vertices.push_back(mesh->mTextureCoords[0][j].x);
             vertices.push_back(mesh->mTextureCoords[0][j].y);
 
-			vertices.push_back(mesh->mTangents[j].x);
-			vertices.push_back(mesh->mTangents[j].y);
-			vertices.push_back(mesh->mTangents[j].z);
+            vertices.push_back(mesh->mTangents[j].x);
+            vertices.push_back(mesh->mTangents[j].z);
+            vertices.push_back(-mesh->mTangents[j].y);
 
-		    vertices.push_back(mesh->mBitangents[j].x);
-		    vertices.push_back(mesh->mBitangents[j].y);
-		    vertices.push_back(mesh->mBitangents[j].z);
-
-
-        
-
+            vertices.push_back(mesh->mBitangents[j].x);
+            vertices.push_back(mesh->mBitangents[j].z);
+            vertices.push_back(-mesh->mBitangents[j].y);
         }
 
         // Extract indices
@@ -71,34 +66,48 @@ void processNode(const aiScene* scene, aiNode* node, std::vector<float>& vertice
             }
         }
 
-        std::cout << "Mesh name : " << node->mName.C_Str() << std::endl;
-		std::cout << "Faces number : " << mesh->mNumFaces << std::endl;
-            std::cout << "Vertices: " << vertices.size() << std::endl;
+        totalFaces += mesh->mNumFaces;
 
-            totalFaces += mesh->mNumFaces;
+        // Access the material
+        aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+
+        // Process material properties
+        std::string diffuseTexturePath = "default_diffuse.jpg";
+        std::string normalTexturePath = "default_normal.jpg";
+        std::string emissiveTexturePath = "default_emissive.jpg";
+
+        aiString path;
+        if (material->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS) {
+            diffuseTexturePath = path.C_Str();
+            texturesList[name + subname] = make_texture(diffuseTexturePath.c_str(), false);
+            std::cout << "Diffuse texture: " << path.C_Str() << std::endl;
+        }
+
+        if (material->GetTexture(aiTextureType_NORMALS, 0, &path) == AI_SUCCESS) {
+            normalTexturePath = path.C_Str();
+            normalMapsList[name + subname] = make_texture(normalTexturePath.c_str(), false);
+        }
+
+        if (material->GetTexture(aiTextureType_EMISSIVE, 0, &path) == AI_SUCCESS) {
+            emissiveTexturePath = path.C_Str();
+            emissiveList[name + subname] = make_texture(emissiveTexturePath.c_str(), false);
+        }
+
+        renderModels[name + subname] = make_model(vertices, indices);
+
+
+        //roughnessList[name + subname] = make_texture("obj/servoskull/textures/lane.jpg", false);
+        //metalnessList[name + subname] = make_texture("obj/servoskull/textures/lane.jpg", false);
     }
-
+    
     for (unsigned int i = 0; i < node->mNumChildren; i++) {
-        processNode(scene, node->mChildren[i], vertices, indices);
+        processNode(scene, node->mChildren[i], name, std::to_string(i));
     }
     std::cout << "Total faces number : " << totalFaces << std::endl;
-	
+
 }
 
-std::pair<unsigned int, unsigned int> App::make_model(const char* filePath) {
-
-    std::vector<float> vertices;
-    std::vector<unsigned int> indices;
-
-    Assimp::Importer importer;
-    const aiScene* scene = importer.ReadFile( filePath, aiProcess_OptimizeMeshes | aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
-    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-        std::cout << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
-        exit(-1);
-    }
-
-    processNode(scene, scene->mRootNode, vertices, indices);
-
+std::pair<unsigned int, unsigned int> App::make_model(std::vector<float> vertices, std::vector<unsigned int> indices) {
     // Create VAO
     unsigned int VAO;
     glGenVertexArrays(1, &VAO);
@@ -127,7 +136,7 @@ std::pair<unsigned int, unsigned int> App::make_model(const char* filePath) {
     // Texture coordinate attribute
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(sizeof(float[3]))); // Normal starts after 3 floats for position
-    
+
 
     // Normal attribute
     glEnableVertexAttribArray(2);
@@ -140,15 +149,24 @@ std::pair<unsigned int, unsigned int> App::make_model(const char* filePath) {
     // Bitangent attribute
     glEnableVertexAttribArray(4);
     glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(11 * sizeof(float))); // Bitangent starts after 11 floats (3 for pos, 3 for normal, 2 for tex, 3 for tangent)
-    
+
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
-
 
     // Return a tuple of the VAO and the number of indices
     return std::make_pair(VAO, indices.size());
 }
+void App::loadObject(std::string filePath, std::string name) {
 
+    Assimp::Importer importer;
+    const aiScene* scene = importer.ReadFile(filePath, aiProcess_OptimizeMeshes | aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+        std::cout << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
+        exit(-1);
+    }
+
+    processNode(scene, scene->mRootNode, name, "");
+}
 std::pair<unsigned int, unsigned int> App::make_cube_mesh(glm::vec3 size) {
 
     // Cube vertex data: each vertex has a position, normal, and texture coordinate
@@ -453,7 +471,7 @@ void App::run() {
         }
 
         if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS && hasPhysics) {
-            physx::PxVec3 force(0, 0, 0.5);
+            physx::PxVec3 force(-0.5, 0, 0);
             motionSystem->applyForceToActor(physicsComponents[1].rigidBody, force);
         }
 
@@ -566,7 +584,7 @@ void App::run() {
             if (renderComponents.find(selectedEntityID) != renderComponents.end()) {
                 ImGui::Text("Render Component");
                 RenderComponent& render = renderComponents[selectedEntityID];
-                ImGui::InputInt("Mesh ID", (int*)&render.mesh);
+                ImGui::InputInt("Mesh ID", (int*)&render.meshes[0]);
             }
             if (ImGui::Button("Close")) {
                 selectedEntityID = -1;
@@ -598,7 +616,7 @@ void App::run() {
             switch (geometry) {
             case 0:
                 if (ImGui::BeginCombo("Select Physical Mesh", selectedModelName.c_str())) {
-                    for (const auto& pair : physicsModels) {
+                    for (const auto& pair : convexModels) {
                         const std::string& modelName = pair.first;
                         const auto& meshes = pair.second;
                         bool isSelected = (modelName == selectedModelName);
@@ -689,9 +707,9 @@ void App::run() {
                     switch (geometry) {
                     case 0:
                         if (!isStatic)
-                            physics.rigidBody = motionSystem->createDynamic(physicsModels[selectedModelName], material, newPosition, newEntityMass, newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping);
+                            physics.rigidBody = motionSystem->createDynamic(convexModels[selectedModelName], material, newPosition, newEntityMass, newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping);
                         else
-                            motionSystem->createStatic(physicsModels[selectedModelName], material, newPosition);
+                            //motionSystem->createStatic(convexModels[selectedModelName], material, newPosition);
                         break;
                     case 1:
                         if (!isStatic)
@@ -709,13 +727,13 @@ void App::run() {
                     if (!isStatic)
                         physicsComponents[id] = physics;
                 }
-                if (addRender) {
+                /*if (addRender) {
                     RenderComponent render;
                     render.mesh = renderModels[selectedRModelName].first;
                     render.indexCount = renderModels[selectedRModelName].second;
                     render.material = texturesList[selectedTexturesName];
                     renderComponents[id] = render;
-                }
+                }*/
                 if (addLight) {
                     LightComponent light;
                     light.color = newEntityColor;
@@ -973,9 +991,7 @@ void App::set_up_opengl() {
     //WIREFRAME MOD : 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-    shader = make_shader(
-        "shaders/shader.vert",
-        "shaders/shader.frag");
+
     shader = make_shader(
         "shaders/shader.vert",
         "shaders/shader.frag");
@@ -1007,24 +1023,25 @@ void App::make_systems() {
 void App::loadModelsAndTextures()
 {
     // Lane
-    std::pair<unsigned int, unsigned int> laneModel = make_model("obj/servoskull/lane.obj");
-    renderModels["Lane"] = laneModel;
-    texturesList["Lane"] = make_texture("obj/servoskull/textures/lane.jpg", false);
-
+    loadObject("obj/BowlingScene/piste.fbx", "Lane");
+    std::vector<physx::PxTriangleMesh*> laneMeshes;
+    motionSystem->loadStaticObjToPhysX("obj/BowlingScene/piste.fbx", laneMeshes);
+    triangleModels["Lane"] = laneMeshes;
+    
     // Ball
-    std::pair<unsigned int, unsigned int> ballModel = make_model("obj/servoskull/boule.obj");
-    renderModels["Ball"] = ballModel;
+    loadObject("obj/servoskull/boule.obj", "Ball");
+
     texturesList["Ball"] = make_texture("obj/bowling/textures/Bowling_Pack_Diffuse.png", false);
     normalMapsList["Ball"] = make_texture("obj/bowling/textures/Bowling_Pack_Normal.png", false);
 
     // Pin
     //motionSystem->concaveToConvex("obj/servoskull/quille.obj", "obj/convexMesh/", "quille");
     std::vector<physx::PxConvexMesh*> meshes;
-    motionSystem->loadObjToPhysX("obj/convexMesh/quille.obj", meshes);
+    motionSystem->loadConvexObjToPhysX("obj/convexMesh/quille.obj", meshes);
+    
+    loadObject("obj/servoskull/quille.obj", "Pin");
 
-    std::pair<unsigned int, unsigned int> pinModel = make_model("obj/servoskull/quille.obj");
-    physicsModels["Pin"] = meshes;
-    renderModels["Pin"] = pinModel;
+    convexModels["Pin"] = meshes;
     texturesList["Pin"] = make_texture("obj/bowling/textures/Bowling_Pack_Diffuse.png", false);
     normalMapsList["Pin"] = make_texture("obj/bowling/textures/Bowling_Pack_Normal.png", false);
 
@@ -1045,25 +1062,27 @@ void App::loadEntities()
 
     // Lane
     unsigned int lane = make_entity("Lane");
-    transform.position = { 0.f, 0.f, 9.f };
+    transform.position = { -10.f, 0.f, 0.f };
     transform.eulers = { 0.f, 0.f, 0.0f, 0.f };
     transform.size = { 1.0f, 0.168f, 18.0f };
     transformComponents[lane] = transform;
 
     glm::vec3 laneMaterial = { 0.05f, 0.05f, 0.0f };
-    physx::PxBoxGeometry laneGeometry(physx::PxVec3(transform.size.x / 2.0f, transform.size.y / 2.0f, transform.size.z / 2.0f));
 
-    SPhysics.rigidBody = motionSystem->createStatic(laneGeometry, laneMaterial, transform.position);
+    SPhysics.rigidBody = motionSystem->createStatic(triangleModels["Lane"], laneMaterial, transform.position);
     staticPhysicsComponents[lane] = SPhysics;
 
-    render.mesh = renderModels["Lane"].first;
-    render.indexCount = renderModels["Lane"].second;
-    render.material = texturesList["Lane"];
+    render.indexCount = { renderModels["Lane0"].second, renderModels["Lane1"].second,renderModels["Lane2"].second,renderModels["Lane3"].second };
+    render.meshes = { renderModels["Lane0"].first, renderModels["Lane1"].first,renderModels["Lane2"].first,renderModels["Lane3"].first };
+
+    render.materials = { texturesList["Lane0"], texturesList["Lane1"],texturesList["Lane2"],texturesList["Lane3"] };
+    render.normalMap = { normalMapsList["Lane0"], normalMapsList["Lane1"],normalMapsList["Lane2"],normalMapsList["Lane3"] };
     renderComponents[lane] = render;
 
+    
     // Ball
     unsigned int ball = make_entity("Ball");
-    transform.position = { 0.0f, 0.105f, 3.0f };
+    transform.position = { 0.0f, 0.105f, 1.0f };
     transform.eulers = { 0.0f, 0.0f, 0.0f , 0.f };
     transformComponents[ball] = transform;
 
@@ -1073,12 +1092,10 @@ void App::loadEntities()
     physics.rigidBody = motionSystem->createDynamic(ballGeometry, ballMaterial, transform.position, 6.8f);
     physicsComponents[ball] = physics;
 
-    std::tuple<unsigned int, unsigned int> ballModel = make_model("obj/servoskull/boule.obj");
-
-    render.mesh = renderModels["Ball"].first;
-    render.indexCount = renderModels["Ball"].second;
-    render.material = texturesList["Ball"];
-	render.normalMap = normalMapsList["Ball"];
+    render.meshes = { renderModels["Ball"].first };
+    render.indexCount = { renderModels["Ball"].second };
+    render.materials = { texturesList["Ball"] };
+    render.normalMap = { normalMapsList["Ball"] };
     renderComponents[ball] = render;
 
     camera.fov = 60.0f;
@@ -1090,7 +1107,7 @@ void App::loadEntities()
     cameraComponents[ball] = camera;
 
     // Pins
-    glm::vec3 first_pin = { 0.f, 0.22f, 15.f };
+    /*glm::vec3 first_pin = {0.f, 0.22f, 15.f};
     glm::vec3 vectors[10];
     vectors[0] = first_pin;
     vectors[1] = glm::vec3(first_pin.x + 0.1524f, first_pin.y, first_pin.z + 0.2635f);
@@ -1110,13 +1127,13 @@ void App::loadEntities()
         transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
         transformComponents[pin] = transform;
 
-        physics.rigidBody = motionSystem->createDynamic(physicsModels["Pin"], pinMaterial, transform.position, 1.5f, 0.01f, 0.2f, 0.3f, 255, 255);
+        physics.rigidBody = motionSystem->createDynamic(convexModels["Pin"], pinMaterial, transform.position, 1.5f, 0.01f, 0.2f, 0.3f, 255, 255);
         physicsComponents[pin] = physics;
 
-        render.mesh = renderModels["Pin"].first;
-        render.indexCount = renderModels["Pin"].second;
-		render.material = texturesList["Pin"];
-		render.normalMap = normalMapsList["Pin"];
+        render.meshes = { renderModels["Pin"].first };
+        render.indexCount = { renderModels["Pin"].second };
+        render.materials = { texturesList["Pin"] };
+        render.normalMap = { normalMapsList["Pin"] };
         renderComponents[pin] = render;
 
         camera.fov = 45.0f;
@@ -1126,11 +1143,11 @@ void App::loadEntities()
         camera.sensitivity = 0.5f;
         camera.initialForward = { 0,0,-1,0 };
         cameraComponents[pin] = camera;
-    }
+    }*/
 
     // Camera
     unsigned int cameraEntity = make_entity("Camera");
-    transform.position = first_pin;
+    transform.position = { 0.f, 2.0f, 0.f };
     transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
     transformComponents[cameraEntity] = transform;
     
@@ -1145,7 +1162,7 @@ void App::loadEntities()
 
     //First light
     unsigned int lightEntity1 = make_entity("First Light");
-    transform.position = first_pin;
+    transform.position = { 0.f, 0.22f, 15.f };
     transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
     transformComponents[lightEntity1] = transform;
 
@@ -1153,9 +1170,9 @@ void App::loadEntities()
     light.intensity = 1.0f;
     lightComponents[lightEntity1] = light;
 
-    render.mesh = renderModels["Light"].first;
-    render.indexCount = renderModels["Light"].second;
-    render.material = texturesList["Light"];
+    render.meshes = { renderModels["Light"].first };
+    render.indexCount = { renderModels["Light"].second };
+    render.materials = { texturesList["Light"] };
     renderComponents[lightEntity1] = render;
 
     //Second light: 
@@ -1170,9 +1187,9 @@ void App::loadEntities()
     light.direction = { 1.0f, -6.0f, 4.0f };
     lightComponents[lightEntity2] = light;
 
-    render.mesh = renderModels["Light"].first;
-    render.indexCount = renderModels["Light"].second;
-    render.material = texturesList["Light"];
+    render.meshes = { renderModels["Light"].first };
+    render.indexCount = { renderModels["Light"].second };
+    render.materials = { texturesList["Light"] };
     renderComponents[lightEntity2] = render;
 
 }
@@ -1194,7 +1211,7 @@ std::unordered_map<std::string, unsigned int> App::getTexturesList() const
 
 std::unordered_map<std::string, std::vector<physx::PxConvexMesh*>> App::getPhysicsModels() const
 {
-    return physicsModels;
+    return convexModels;
 }
 
 int App::getEntityByName(std::string name) const
