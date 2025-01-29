@@ -11,7 +11,7 @@ public:
 
     void update(
         std::unordered_map<unsigned int, TransformComponent>& transformComponents,
-        std::unordered_map<unsigned int, RenderComponent>& renderComponents,
+        std::unordered_map<unsigned int, std::list<RenderComponent>>& renderComponents,
         std::unordered_map<unsigned int, LightComponent>& lightComponents);
 
 private:

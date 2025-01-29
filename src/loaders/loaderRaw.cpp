@@ -33,7 +33,7 @@ void LoaderRaw::loadPins(App *app, CameraComponent *camera) const
 
         render.mesh = app->getRenderModels()["Pin"].first;
         render.indexCount = app->getRenderModels()["Pin"].second;
-        app->renderComponents[pin] = render;
+        app->renderComponents[pin].push_back(render);
 
         camera->fov = 45.0f;
         camera->aspectRatio = 16.0f / 9.0f;
@@ -67,7 +67,7 @@ void LoaderRaw::loadBall(App* app, CameraComponent* camera) const{
     render.mesh = app->getRenderModels()["Ball"].first;
     render.indexCount = app->getRenderModels()["Ball"].second;
     render.material = app->getTexturesList()["Ball"];
-    app->renderComponents[ball] = render;
+    app->renderComponents[ball].push_back(render);
 
     camera->fov = 60.0f;
     camera->aspectRatio = 16.0f / 9.0f;
@@ -98,7 +98,7 @@ void LoaderRaw::loadLights(App* app, CameraComponent* camera) const
     render.mesh = app->getRenderModels()["Light"].first;
     render.indexCount = app->getRenderModels()["Light"].second;
     render.material = app->getTexturesList()["Light"];
-    app->renderComponents[lightEntity1] = render;
+    app->renderComponents[lightEntity1].push_back(render);
 
     //Second light: 
     unsigned int lightEntity2 = app->make_entity("Second Light");
@@ -116,7 +116,7 @@ void LoaderRaw::loadLights(App* app, CameraComponent* camera) const
     render.mesh = app->getRenderModels()["Light"].first;
     render.indexCount = app->getRenderModels()["Light"].second;
     render.material = app->getTexturesList()["Light"];
-    app->renderComponents[lightEntity2] = render;
+    app->renderComponents[lightEntity2].push_back(render);
 }
 
 void LoaderRaw::loadCamera(App* app, CameraComponent* camera) const
@@ -159,7 +159,7 @@ void LoaderRaw::loadLane(App* app, CameraComponent* camera) const
     render.mesh = app->getRenderModels()["SM_Speaker_18-1"].first;
     render.indexCount = app->getRenderModels()["SM_Speaker_18-1"].second;
     //render.material = app->getTexturesList()["SM_Speaker_18-1"];
-    app->renderComponents[lane] = render;
+    app->renderComponents[lane].push_back(render);
 }
 
 

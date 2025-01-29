@@ -50,7 +50,7 @@ void LoaderJSON::loadPins(App* app, CameraComponent *camera) const {
 
         render.mesh = app->getRenderModels()["Pin"].first;
         render.indexCount = app->getRenderModels()["Pin"].second;
-        app->renderComponents[pin] = render;
+        app->renderComponents[pin].push_back(render);
 
         camera->fov = jsonData["PinCamera"]["fov"].get<float>();
         camera->aspectRatio = jsonData["PinCamera"]["aspectRatio"].get<float>();
@@ -117,7 +117,7 @@ void LoaderJSON::loadBall(App* app, CameraComponent* camera) const{
     render.mesh = std::get<0>(ballModel);
     render.indexCount = std::get<1>(ballModel);
     render.material = app->getTexturesList()[ballData["render"]["textureName"].get<std::string>()];
-    app->renderComponents[ball] = render;
+    app->renderComponents[ball].push_back(render);
 
     // Paramètres de la caméra
     camera->fov = ballData["camera"]["fov"].get<float>();
@@ -183,7 +183,7 @@ void LoaderJSON::loadLights(App* app, CameraComponent* camera) const
         render.mesh = app->getRenderModels()[meshName].first;
         render.indexCount = app->getRenderModels()[meshName].second;
         render.material = app->getTexturesList()[textureName];
-        app->renderComponents[lightEntity] = render;
+        app->renderComponents[lightEntity].push_back(render);
 
         std::cout << "Light instantiated: " << lightData["id"].get<std::string>() << "\n";
     }
@@ -285,7 +285,7 @@ void LoaderJSON::loadLane(App* app, CameraComponent* camera) const
     render.mesh = app->getRenderModels()[meshName].first;
     render.indexCount = app->getRenderModels()[meshName].second;
     render.material = app->getTexturesList()[textureName];
-    app->renderComponents[laneEntity] = render;
+    app->renderComponents[laneEntity].push_back(render);
 
     std::cout << "Lane instantiated: " << laneData["id"].get<std::string>() << "\n";
 }

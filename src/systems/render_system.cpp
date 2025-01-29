@@ -11,7 +11,7 @@ RenderSystem::RenderSystem(unsigned int shader, GLFWwindow* window) {
 
 void RenderSystem::update(
     std::unordered_map<unsigned int, TransformComponent>& transformComponents,
-    std::unordered_map<unsigned int, RenderComponent>& renderComponents,
+    std::unordered_map<unsigned int, std::list<RenderComponent>>& renderComponents,
     std::unordered_map<unsigned int, LightComponent>& lightComponents) {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -27,41 +27,44 @@ void RenderSystem::update(
         glUniform1i(shadowMapLocation, 1); // Set the shadow map to texture unit 1
     }
 
-    for (std::pair<unsigned int, RenderComponent> entity : renderComponents) {
-        TransformComponent& transform = transformComponents[entity.first];
+    for (std::pair<unsigned int, std::list<RenderComponent>> entity : renderComponents) {
+		for (RenderComponent& render : entity.second) {
+            TransformComponent& transform = transformComponents[entity.first];
 
-        // Set the model matrix based on the transform
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, transform.position);
+            // Set the model matrix based on the transform
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, transform.position);
 
-        // Convert the quaternion to a rotation matrix
-        glm::mat4 rotationMatrix = glm::mat4_cast(transform.eulers);
-        model *= rotationMatrix;
+            // Convert the quaternion to a rotation matrix
+            glm::mat4 rotationMatrix = glm::mat4_cast(transform.eulers);
+            model *= rotationMatrix;
 
-        glUniformMatrix4fv(
-            modelLocation, 1, GL_FALSE,
-            glm::value_ptr(model));
+            glUniformMatrix4fv(
+                modelLocation, 1, GL_FALSE,
+                glm::value_ptr(model));
 
-        // Bind the texture (material)
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, entity.second.material);
+            // Bind the texture (material)
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, render.material);
 
-        if (entity.second.normalMap != 0) {
-            glActiveTexture(GL_TEXTURE2);
-            glBindTexture(GL_TEXTURE_2D, entity.second.normalMap);
-            glUniform1i(glGetUniformLocation(shaderProg, "normalMap"), 2);
-			glUniform1i(glGetUniformLocation(shaderProg, "hasNormalMap"), 1);
-        }
-        else {
-            glUniform1i(glGetUniformLocation(shaderProg, "hasNormalMap"), 0);
+            if (render.normalMap != 0) {
+                glActiveTexture(GL_TEXTURE2);
+                glBindTexture(GL_TEXTURE_2D, render.normalMap);
+                glUniform1i(glGetUniformLocation(shaderProg, "normalMap"), 2);
+                glUniform1i(glGetUniformLocation(shaderProg, "hasNormalMap"), 1);
+            }
+            else {
+                glUniform1i(glGetUniformLocation(shaderProg, "hasNormalMap"), 0);
 
-        }
+            }
 
 
-        // Bind the vertex array (VAO)
-        glBindVertexArray(entity.second.mesh);
+            // Bind the vertex array (VAO)
+            glBindVertexArray(render.mesh);
 
-        glDrawElements(GL_TRIANGLES, entity.second.indexCount, GL_UNSIGNED_INT, 0); 
+            glDrawElements(GL_TRIANGLES, render.indexCount, GL_UNSIGNED_INT, 0);
+		}
+        
 
     }
 

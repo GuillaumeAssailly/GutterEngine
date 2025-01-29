@@ -31,7 +31,7 @@ public:
     unsigned int make_entity(const std::string&);
     std::pair<unsigned int, unsigned int> make_cube_mesh(glm::vec3 size);
     std::pair<unsigned int, unsigned int>  make_model(const char *);
-    void loadGLTF(const char* filePath, const char * texDir);
+    void loadGLTF(const char* filePath, const char * texDir, const int);
 
 
     unsigned int make_texture(const char* filename, const bool );
@@ -55,7 +55,7 @@ public:
     std::unordered_map<unsigned int, CameraComponent> cameraComponents;
     unsigned int cameraID;
     std::unordered_map<unsigned int, LightComponent> lightComponents;
-    std::unordered_map<unsigned int, RenderComponent> renderComponents;
+    std::unordered_map<unsigned int, std::list<RenderComponent>> renderComponents;
 
 private:
     void set_up_glfw();

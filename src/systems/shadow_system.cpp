@@ -82,7 +82,7 @@ void ShadowSystem::RenderDepthMap(unsigned int depthMap, int screenWidth, int sc
 
 void ShadowSystem::GenerateShadowMap(std::unordered_map<unsigned int, LightComponent>& lightComponents,
     std::unordered_map<unsigned int, TransformComponent>& transformComponents,
-    std::unordered_map<unsigned int, RenderComponent>& renderComponents, int screenWidth, int screenHeight,
+    std::unordered_map<unsigned int, std::list<RenderComponent>>& renderComponents, int screenWidth, int screenHeight,
    int cameraID
 )
 {
@@ -131,19 +131,23 @@ void ShadowSystem::GenerateShadowMap(std::unordered_map<unsigned int, LightCompo
 
             //TODO : check potential existence of a component before rendering it
             TransformComponent& transform = transformComponents[renderEntityID];
-            RenderComponent& render = renderComponents[renderEntityID];
 
-            //Calculate the model matrix for this object: 
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, transform.position);
-            model = model * glm::mat4_cast(transform.eulers);
-            //Pass the model matrix to the shadow shader :
-            glUniformMatrix4fv(glGetUniformLocation(shadowShader, "model"), 1, GL_FALSE, glm::value_ptr(model));
+            for (const RenderComponent& render : renderComponents[renderEntityID])
+            {
+                //Calculate the model matrix for this object: 
+                glm::mat4 model = glm::mat4(1.0f);
+                model = glm::translate(model, transform.position);
+                model = model * glm::mat4_cast(transform.eulers);
+                //Pass the model matrix to the shadow shader :
+                glUniformMatrix4fv(glGetUniformLocation(shadowShader, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
-            //Bind VAO and draw the entity : 
-            glBindVertexArray(render.mesh);
-            glDrawElements(GL_TRIANGLES, render.indexCount, GL_UNSIGNED_INT, 0);
-            glBindVertexArray(0);
+                //Bind VAO and draw the entity : 
+                glBindVertexArray(render.mesh);
+                glDrawElements(GL_TRIANGLES, render.indexCount, GL_UNSIGNED_INT, 0);
+                glBindVertexArray(0);
+            }
+
+            
 
         }
 

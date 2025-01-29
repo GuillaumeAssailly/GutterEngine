@@ -21,7 +21,7 @@ public:
 	void Initialize(std::unordered_map<unsigned int, LightComponent>& lightComponents);
 	void GenerateShadowMap(std::unordered_map<unsigned int, LightComponent>& lightComponents,
 		std::unordered_map<unsigned int, TransformComponent>& transformComponents,
-		std::unordered_map<unsigned int, RenderComponent>& renderComponents, int screenWidth, int screenHeight,
+		std::unordered_map<unsigned int, std::list<RenderComponent>>& renderComponents, int screenWidth, int screenHeight,
 		int cameraID);
 
 	void CalculateShadowOrthoBounds(const glm::mat4& lightView,

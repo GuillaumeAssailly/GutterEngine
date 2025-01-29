@@ -89,15 +89,20 @@ void processNode(const aiScene* scene, aiNode* node, std::vector<float>& vertice
     std::cout << "Total faces number : " << totalFaces << std::endl;
 	
 }
-void App::loadGLTF(const char* filePath, const char* texDir) {
+void App::loadGLTF(const char* filePath, const char* texDir, const int EntityID) {
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(filePath, aiProcess_OptimizeMeshes | aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
         std::cout << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
         exit(-1);
     }
-
-
+	TransformComponent transform;
+	RenderComponent render;
+    unsigned int obj = EntityID;
+    transform.position = { 0.f, 0.f, 9.f };
+    transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
+    transform.size = { 1.0f, 0.168f, 18.0f };
+    transformComponents[obj] = transform;
 
 
     for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
@@ -215,20 +220,13 @@ void App::loadGLTF(const char* filePath, const char* texDir) {
         // Store VAO and index count
         renderModels[mesh->mName.C_Str()] = std::make_pair(VAO, indices.size());
         std::cout << mesh->mName.C_Str() << std::endl;
-        RenderComponent render;
-        TransformComponent transform;
 
-		unsigned int obj = make_entity(mesh->mName.C_Str());
-        transform.position = { 0.f, 0.f, 9.f };
-        transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
-        transform.size = { 1.0f, 0.168f, 18.0f };
-        transformComponents[obj] = transform;
 
         render.mesh = renderModels[mesh->mName.C_Str()].first;
         render.indexCount = renderModels[mesh->mName.C_Str()].second;
         render.material = texturesList[mesh->mName.C_Str()];
 		render.normalMap = normalMapsList[mesh->mName.C_Str()];
-        renderComponents[obj] = render;
+        renderComponents[obj].push_back(render);
     }
 }
 
@@ -712,8 +710,8 @@ void App::run() {
             // Display RenderComponent if present
             if (renderComponents.find(selectedEntityID) != renderComponents.end()) {
                 ImGui::Text("Render Component");
-                RenderComponent& render = renderComponents[selectedEntityID];
-                ImGui::InputInt("Mesh ID", (int*)&render.mesh);
+                //RenderComponent& render = renderComponents[selectedEntityID];
+               // ImGui::InputInt("Mesh ID", (int*)&render.mesh);
             }
             if (ImGui::Button("Close")) {
                 selectedEntityID = -1;
@@ -861,7 +859,7 @@ void App::run() {
                     render.mesh = renderModels[selectedRModelName].first;
                     render.indexCount = renderModels[selectedRModelName].second;
                     render.material = texturesList[selectedTexturesName];
-                    renderComponents[id] = render;
+                    //renderComponents[id] = render;
                 }
                 if (addLight) {
                     LightComponent light;
@@ -1154,20 +1152,36 @@ void App::make_systems() {
 void App::loadModelsAndTextures()
 {
     // Lane
-    loadGLTF("obj/nashville/Piste.gltf", "obj/nashville/");
+	const int lane = make_entity("Lane");
+    loadGLTF("obj/nashville/Piste.gltf", "obj/nashville/", lane);
 
     // Lane 2
-    loadGLTF("obj/nashville/Piste2.gltf", "obj/nashville/");
+	const int lane2 = make_entity("Lane2");
+    loadGLTF("obj/nashville/Piste2.gltf", "obj/nashville/", lane2);
    
     //Ball Return
-	loadGLTF("obj/nashville/BallReturn.gltf", "obj/nashville/");
+	const int ballreturn = make_entity("BallReturn");
+	loadGLTF("obj/nashville/BallReturn.gltf", "obj/nashville/", ballreturn);
 
     //TV
-	loadGLTF("obj/nashville/TV.gltf", "obj/nashville/");
+    const int TV = make_entity("TV");
+	loadGLTF("obj/nashville/TV.gltf", "obj/nashville/", TV);
 
     //Pin Statue
+    const int PinStatue = make_entity("PinStatue");
+	loadGLTF("obj/nashville/PinStatue.gltf", "obj/nashville/", PinStatue);
 
-	loadGLTF("obj/nashville/PinStatue.gltf", "obj/nashville/");
+    //Ball1
+	const int Ball1 = make_entity("Ball1");
+	loadGLTF("obj/nashville/Ball1.gltf", "obj/nashville/", Ball1);
+
+	//Ball2
+	const int Ball2 = make_entity("Ball2");
+	loadGLTF("obj/nashville/Ball2.gltf", "obj/nashville/", Ball2);
+
+	//Ball3
+	const int Ball3 = make_entity("Ball3");
+	loadGLTF("obj/nashville/Ball3.gltf", "obj/nashville/", Ball3);
 
 
     // Ball
@@ -1315,7 +1329,7 @@ void App::loadEntities()
     render.mesh = renderModels["Light"].first;
     render.indexCount = renderModels["Light"].second;
     render.material = texturesList["Light"];
-    renderComponents[lightEntity1] = render;
+    renderComponents[lightEntity1].push_back(render);
 
     //Second light: 
     unsigned int lightEntity2 = make_entity("Second Light");
@@ -1332,7 +1346,7 @@ void App::loadEntities()
     render.mesh = renderModels["Light"].first;
     render.indexCount = renderModels["Light"].second;
     render.material = texturesList["Light"];
-    renderComponents[lightEntity2] = render;
+    renderComponents[lightEntity2].push_back(render);
 
 }
 
