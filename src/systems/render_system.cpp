@@ -19,7 +19,7 @@ void RenderSystem::update(
 
      for (auto& lightEntity : lightComponents)
     {
-        if (lightEntity.second.isDirectional == false) continue;
+        if (lightEntity.second.type != DIRECTIONAL) continue;
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, lightEntity.second.depthMap);
 

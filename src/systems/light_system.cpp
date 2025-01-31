@@ -31,14 +31,25 @@ void LightSystem::update(std::unordered_map<unsigned int, LightComponent>&  ligh
 		glUniform1f(lightIntensityLoc, lights[i].intensity);
 
 		//Set isDirectional
-		std::string lightIsDirectionalUniform = "isDirectional[" + std::to_string(i) + "]";
+		std::string lightIsDirectionalUniform = "lightType[" + std::to_string(i) + "]";
 		GLint lightIsDirectionalLoc = glGetUniformLocation(shaderProgram, lightIsDirectionalUniform.c_str());
-		glUniform1i(lightIsDirectionalLoc, lights[i].isDirectional);
+		glUniform1i(lightIsDirectionalLoc, lights[i].type);
 
 		//Set Direction
-		std::string lightDirectionUniform = "directionalLightsDir[" + std::to_string(i) + "]";
+		std::string lightDirectionUniform = "lightsDir[" + std::to_string(i) + "]";
 		GLint lightDirectionLoc = glGetUniformLocation(shaderProgram, lightDirectionUniform.c_str());
 		glUniform3fv(lightDirectionLoc, 1, glm::value_ptr(lights[i].direction));
+
+		//Set Cutoff
+		std::string lightCutoffUniform = "spotLightCutoff[" + std::to_string(i) + "]";
+		GLint lightCutoffLoc = glGetUniformLocation(shaderProgram, lightCutoffUniform.c_str());
+		glUniform1f(lightCutoffLoc, lights[i].cutoff);
+
+		//Set OuterCutoff
+		std::string lightOuterCutoffUniform = "spotLightOuterCutoff[" + std::to_string(i) + "]";
+		GLint lightOuterCutoffLoc = glGetUniformLocation(shaderProgram, lightOuterCutoffUniform.c_str());
+		glUniform1f(lightOuterCutoffLoc, lights[i].outerCutoff);
+		
 	}
 }
 

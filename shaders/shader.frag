@@ -30,8 +30,10 @@ uniform bool isPlanarReflectable;
 uniform int numLights;         // Number of lights
 uniform vec3 lightPos[MAX_LIGHTS];     // Array of light positions (max 10 lights)
 uniform vec3 lightColor[MAX_LIGHTS];   // Array of light colors
-uniform bool isDirectional[MAX_LIGHTS]; // Array of boolean values indicating if light is directional
-uniform vec3 directionalLightsDir[MAX_LIGHTS];      // Array of light directions
+uniform int lightType[MAX_LIGHTS]; // Array of boolean values indicating if light is directional
+uniform vec3 lightsDir[MAX_LIGHTS];      // Array of light directions
+uniform float spotLightOuterCutoff[MAX_LIGHTS]; // Array of spot light outer cutoff angles
+uniform float spotLightCutoff[MAX_LIGHTS]; // Array of spot light cutoff angles
 uniform vec3 viewPos;          // Position of the viewer (camera)
 
 // Attenuation factors and intensity
@@ -146,12 +148,27 @@ void main()
         vec3 lightDir;
         float attenuation = 1.0;
         float shadow = 0.0f;
-        if(isDirectional[i])
+        //If directionnal :
+        if(lightType[i] == 1)
         {
-            lightDir = normalize(-directionalLightsDir[i]);
+            lightDir = normalize(-lightsDir[i]);
             
             //Calculate the shadow factor
             shadow = shadowCalculation(FragPosLightSpace);
+        }
+        else if(lightType[i] == 2)
+        {
+            lightDir = normalize(lightPos[i] - FragPos);
+            float distance = length(lightPos[i] - FragPos);
+            attenuation = 1.0 / (constant + linear * distance + quadratic * (distance * distance));
+
+             // Spotlight intensity calculation
+            float theta = dot(lightDir, normalize(-lightsDir[i])); // Angle between light direction and fragment
+            float epsilon = spotLightCutoff[i] - spotLightOuterCutoff[i]; // Soft transition range
+            float intensityFactor = clamp((theta - spotLightOuterCutoff[i]) / epsilon, 0.0, 1.0); // Smooth transition
+
+            attenuation *= intensityFactor; // Apply spotlight effect
+
         } else {
             lightDir = normalize(lightPos[i] - FragPos);
             float distance = length(lightPos[i] - FragPos);

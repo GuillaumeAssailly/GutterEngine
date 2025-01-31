@@ -707,8 +707,8 @@ void App::run() {
                 LightComponent& light = lightComponents[selectedEntityID];
                 ImGui::ColorEdit3("Light Color", &light.color[0]);
                 ImGui::SliderFloat("Intensity", &light.intensity, 0.0f, 10.0f);
-                ImGui::Checkbox("Is Directional", &light.isDirectional);
-                if (light.isDirectional == true) {
+                //ImGui::Checkbox("Is Directional", &light.isDirectional);
+                if (light.type == DIRECTIONAL) {
                     ImGui::DragFloat3("Light Direction", &light.direction[0], 0.1);
                 }
 
@@ -1109,7 +1109,7 @@ void App::run() {
 /// </summary>
 void App::set_up_opengl() {
 
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     //Set the rendering region to the actual screen size
     int w, h;
     glfwGetFramebufferSize(window, &w, &h);
@@ -1367,8 +1367,11 @@ void App::loadEntities()
 
     light.color = { 1.0f, 1.0f, 1.0f };
     light.intensity = 1.0f;
-    light.isDirectional = true;
-    light.direction = { 1.0f, -6.0f, 4.0f };
+    light.type = SPOT;
+    //light.direction = { 1.0f, -6.0f, 4.0f };
+    light.direction = glm::normalize(glm::vec3(0.0f, -1.0f, 0.0f));
+	light.cutoff = glm::cos(glm::radians(15.0f));
+	light.outerCutoff = glm::cos(glm::radians(25.0f));
     lightComponents[lightEntity2] = light;
 
     render.mesh = renderModels["Light"].first;

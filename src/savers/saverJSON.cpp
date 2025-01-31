@@ -158,13 +158,13 @@ void SaverJSON::saveLights(App* app)
                     {"b", light.color.z}
                 }},
                 {"intensity", light.intensity},
-                {"isDirectional", light.isDirectional},
+                {"isDirectional", light.type},
                 {"render", {
                     {"meshName", "Light"},
                     {"textureName", "Light"}
                 }}
             };
-            if (light.isDirectional) {
+            if (light.type == DIRECTIONAL) {
                 lightData["direction"] = {
                     {"x", light.direction.x},
                     {"y", light.direction.y},

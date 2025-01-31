@@ -90,7 +90,7 @@ void ShadowSystem::GenerateShadowMap(std::unordered_map<unsigned int, LightCompo
     for (auto& entity : lightComponents) {
         glUseProgram(shadowShader);
 
-        if (entity.second.isDirectional == false) continue; //Only directional lights cast shadows (for now 
+        if (entity.second.type != DIRECTIONAL) continue; //Only directional lights cast shadows (for now 
         unsigned int entityID = entity.first;
         LightComponent& light = entity.second;
 

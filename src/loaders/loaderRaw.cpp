@@ -108,7 +108,7 @@ void LoaderRaw::loadLights(App* app, CameraComponent* camera) const
 
     light.color = { 1.0f, 1.0f, 1.0f };
     light.intensity = 1.0f;
-    light.isDirectional = true;
+    light.type = DIRECTIONAL;
     light.direction = { 1.0f, -6.0f, 4.0f };
     light.intensity = 1.0f;
     app->lightComponents[lightEntity2] = light;
