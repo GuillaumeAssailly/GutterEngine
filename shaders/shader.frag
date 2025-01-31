@@ -83,6 +83,33 @@ float shadowCalculation(vec4 fragPosLightSpace) {
     return shadow;
 }
 
+// Function to perform blur
+vec3 blurReflection(sampler2D textureSampler, vec2 uv) {
+    float blurStrength = 8.0;
+    float blurFactor = 3.0;
+    // Offset determines the distance between samples based on blurFactor
+    vec2 offset = vec2(1.0) / vec2(textureSize(textureSampler, 0)) * blurFactor;
+    
+    // Initialize the color accumulator
+    vec3 color = vec3(0.0);
+    
+    // Sample surrounding pixels (horizontal, vertical)
+    color += texture(textureSampler, uv + vec2(-offset.x, 0.0)).rgb * blurStrength; // Left
+    color += texture(textureSampler, uv + vec2(offset.x, 0.0)).rgb * blurStrength;  // Right
+    color += texture(textureSampler, uv + vec2(0.0, -offset.y)).rgb * blurStrength; // Bottom
+    color += texture(textureSampler, uv + vec2(0.0, offset.y)).rgb * blurStrength;  // Top
+    
+    // Optionally, you can add more samples for higher blur quality (diagonal)
+    color += texture(textureSampler, uv + vec2(-offset.x, -offset.y)).rgb * blurStrength; // Bottom-left
+    color += texture(textureSampler, uv + vec2(offset.x, -offset.y)).rgb * blurStrength; // Bottom-right
+    color += texture(textureSampler, uv + vec2(-offset.x, offset.y)).rgb * blurStrength; // Top-left
+    color += texture(textureSampler, uv + vec2(offset.x, offset.y)).rgb * blurStrength; // Top-right
+    
+    // Return the averaged color
+    return color / (8.0 * blurStrength); // Normalize by total number of samples
+}
+
+
 void main()
 {
     // Combine textures using mix
@@ -168,10 +195,10 @@ void main()
         vec2 reflectionUV = ClipSpacePos.xy / ClipSpacePos.w * 0.5 + 0.5;
         reflectionUV.y = 1.0 - reflectionUV.y; // Flip Y to match OpenGL convention
 
-        vec4 reflectionColor = texture(reflectionTexture, reflectionUV);
+        vec3 reflectionColor = blurReflection(reflectionTexture, reflectionUV);
         
         // Blend reflection with the original texture
-        FragColor = mix(texColor, reflectionColor, 0.1) * vec4(phong, 1.0);
+        FragColor = mix(texColor, vec4(reflectionColor, 1.0), 0.3) * vec4(phong, 1.0); 
     }
     else {
      // Apply the final color with Phong lighting and texture

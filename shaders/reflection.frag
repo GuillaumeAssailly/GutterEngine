@@ -12,8 +12,6 @@ uniform sampler2D materialTexture;
 
 void main() {
 
-    // For reflections, you may need to reflect the coordinates
-    // Adjust the reflection coordinates based on some logic, e.g., using the view matrix
    
     if (ClipDist < 0.0f) {
         discard;  // Discard fragments behind the reflection plane
