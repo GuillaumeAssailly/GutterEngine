@@ -13,6 +13,11 @@ App::~App() {
     glDeleteVertexArrays(VAOs.size(), VAOs.data());
     glDeleteTextures(textures.size(), textures.data());
     glDeleteProgram(shader);
+    glDeleteProgram(shadowShader);
+	glDeleteProgram(depthMapDebugShader);
+	glDeleteProgram(reflectionShader);
+
+
 
     delete motionSystem;
     delete cameraSystem;
@@ -567,6 +572,7 @@ void App::run() {
 
     //while loop iterating on the renderer pipeline : 
     shadowSystem->Initialize(lightComponents);
+	reflectionSystem->Initialize(renderComponents,1024,1024);
     while (!glfwWindowShouldClose(window)) {
         // Per-frame time logic
         // -------------------
@@ -612,6 +618,7 @@ void App::run() {
             break;
         }
         lightSystem->update(lightComponents, transformComponents, cameraID);
+		reflectionSystem->RenderReflection(transformComponents, renderComponents, cameraSystem->GetViewMatrix(), cameraSystem->GetProjectionMatrix(), screenWidth, screenHeight, cameraID);
         renderSystem->update(transformComponents, renderComponents, lightComponents);
         shadowSystem->GenerateShadowMap(lightComponents, transformComponents, renderComponents, screenWidth, screenHeight, cameraID);
 
@@ -1102,7 +1109,7 @@ void App::run() {
 /// </summary>
 void App::set_up_opengl() {
 
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     //Set the rendering region to the actual screen size
     int w, h;
     glfwGetFramebufferSize(window, &w, &h);
@@ -1132,7 +1139,9 @@ void App::set_up_opengl() {
 	depthMapDebugShader = make_shader(
 		"shaders/depthMap.vert",
 		"shaders/depthMap.frag");
-
+	reflectionShader = make_shader(
+		"shaders/reflection.vert",
+		"shaders/reflection.frag");
 
 
     glUseProgram(shader);
@@ -1147,6 +1156,8 @@ void App::make_systems() {
 	shadowSystem = new ShadowSystem(shader,shadowShader, depthMapDebugShader);
     renderSystem = new RenderSystem(shader, window);
     lineSystem = new LineSystem();
+	reflectionSystem = new ReflectionSystem(shader,reflectionShader);
+
 }
 
 void App::loadModelsAndTextures()
@@ -1154,10 +1165,22 @@ void App::loadModelsAndTextures()
     // Lane
 	const int lane = make_entity("Lane");
     loadGLTF("obj/nashville/Piste.gltf", "obj/nashville/", lane);
+	auto it = renderComponents[lane].begin();   
+    it->isPlanarReflectable = true;
+    std::advance(it, 1); 
+    it->isPlanarReflectable = true;
+
 
     // Lane 2
 	const int lane2 = make_entity("Lane2");
     loadGLTF("obj/nashville/Piste2.gltf", "obj/nashville/", lane2);
+    auto it2 = renderComponents[lane2].begin();
+    std::advance(it2, 1);
+    it2->isPlanarReflectable = true;
+    std::advance(it2, 1);
+
+    it2->isPlanarReflectable = true;
+    transformComponents[lane2].position = { 0.0f, 0.0f, 13.0f };
    
     //Ball Return
 	const int ballreturn = make_entity("BallReturn");
@@ -1169,19 +1192,24 @@ void App::loadModelsAndTextures()
 
     //Pin Statue
     const int PinStatue = make_entity("PinStatue");
-	loadGLTF("obj/nashville/PinStatue.gltf", "obj/nashville/", PinStatue);
+    loadGLTF("obj/nashville/PinStatue.gltf", "obj/nashville/", PinStatue); 
+    transformComponents[PinStatue].position = { -22.778, 1.668, 9.00f };
+    transformComponents[PinStatue].eulers = glm::angleAxis(glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     //Ball1
 	const int Ball1 = make_entity("Ball1");
 	loadGLTF("obj/nashville/Ball1.gltf", "obj/nashville/", Ball1);
+    transformComponents[Ball1].position = { 1.0f, 0.f, 0.f };
 
 	//Ball2
 	const int Ball2 = make_entity("Ball2");
 	loadGLTF("obj/nashville/Ball2.gltf", "obj/nashville/", Ball2);
+	transformComponents[Ball2].position = { 1.0f, 0.f, 0.5f };
 
 	//Ball3
 	const int Ball3 = make_entity("Ball3");
 	loadGLTF("obj/nashville/Ball3.gltf", "obj/nashville/", Ball3);
+	transformComponents[Ball3].position = { 1.0f, 0.f, 1.0f };
 
 
     // Ball

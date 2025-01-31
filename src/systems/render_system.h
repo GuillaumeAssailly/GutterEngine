@@ -18,6 +18,7 @@ private:
 
     unsigned int modelLocation;
 	unsigned int shadowMapLocation;
+    unsigned int reflectionTexLocation;
 	unsigned int lightSpaceMatrixLocation;
 	unsigned int shaderProg;
     GLFWwindow* window;

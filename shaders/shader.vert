@@ -13,7 +13,8 @@ out vec3 FragPos;
 out vec2 TexCoord;
 out vec4 FragPosLightSpace;
 out vec3 Tangent;            
-out vec3 Bitangent;          
+out vec3 Bitangent;        
+out vec4 ClipSpacePos;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -31,5 +32,5 @@ void main()
     Bitangent = mat3(transpose(inverse(model))) * aBitangent;
 	TexCoord = vec2(aTexCoord.x, aTexCoord.y);
 	FragPosLightSpace = lightSpaceMatrix * vec4(FragPos, 1.0);
-    
+    ClipSpacePos = projection * view * model * vec4(aPos, 1.0);
 }

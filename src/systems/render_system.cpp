@@ -4,6 +4,7 @@ RenderSystem::RenderSystem(unsigned int shader, GLFWwindow* window) {
 
     modelLocation = glGetUniformLocation(shader, "model");
 	shadowMapLocation = glGetUniformLocation(shader, "shadowMap");
+	reflectionTexLocation = glGetUniformLocation(shader, "reflectionTexture");
 	lightSpaceMatrixLocation = glGetUniformLocation(shader, "lightSpaceMatrix");
     shaderProg = shader;
     this->window = window;
@@ -29,6 +30,17 @@ void RenderSystem::update(
 
     for (std::pair<unsigned int, std::list<RenderComponent>> entity : renderComponents) {
 		for (RenderComponent& render : entity.second) {
+
+            if (render.isPlanarReflectable) {
+                glUniform1i(glGetUniformLocation(shaderProg, "isPlanarReflectable"), 1);
+				glActiveTexture(GL_TEXTURE3);
+				glBindTexture(GL_TEXTURE_2D, render.reflectionTexture);
+				glUniform1i(reflectionTexLocation, 3);
+			}
+			else {
+				glUniform1i(glGetUniformLocation(shaderProg, "isPlanarReflectable"), 0);
+            }
+
             TransformComponent& transform = transformComponents[entity.first];
 
             // Set the model matrix based on the transform

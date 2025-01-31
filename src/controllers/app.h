@@ -16,6 +16,7 @@
 #include "../components/light_component.h"
 #include "../systems/light_system.h"
 #include "../systems/shadow_system.h"
+#include "../systems/reflection_system.h"
 
 
 //Callbacks
@@ -79,6 +80,7 @@ private:
     unsigned int shader;
     unsigned int shadowShader;
     unsigned int depthMapDebugShader;
+    unsigned int reflectionShader;
 
 	float deltaTime = 0.0f;
 	float lastFrame = 0.0f;
@@ -91,6 +93,7 @@ private:
     LightSystem* lightSystem;
     LineSystem* lineSystem;
 	ShadowSystem* shadowSystem;
+    ReflectionSystem* reflectionSystem;
 
 
     

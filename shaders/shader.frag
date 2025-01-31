@@ -7,13 +7,14 @@ in vec3 Normal;
 in vec4 FragPosLightSpace;
 in vec3 Tangent;
 in vec3 Bitangent;
-
+in vec4 ClipSpacePos;
 
 // texture samplers
 uniform sampler2D texture1;    // First texture sampler
 uniform sampler2D texture2;    // Second texture sampler
 uniform sampler2D shadowMap;   // Shadow map sampler
 uniform sampler2D normalMap;   // Normal map sampler
+uniform sampler2D reflectionTexture; //Plannar reflection texture sampler
 
 // Phong material properties
 uniform vec3 ambientStrength;  // Ambient reflectivity
@@ -22,6 +23,7 @@ uniform vec3 specularStrength; // Specular reflectivity
 uniform float shininess;       // Shininess factor
 uniform bool isLine;           // Drawing a line or not
 uniform int hasNormalMap;
+uniform bool isPlanarReflectable;
 
 // Light properties
 #define MAX_LIGHTS 50
@@ -160,8 +162,24 @@ void main()
     // Combine the lighting components
     vec3 phong = ambient + diffuse + specular;
 
-    // Apply the final color with Phong lighting and texture
-    FragColor = texColor * vec4(phong, 1.0);
+    if(isPlanarReflectable){
+
+        // Convert clip space position to texture coordinates
+        vec2 reflectionUV = ClipSpacePos.xy / ClipSpacePos.w * 0.5 + 0.5;
+        reflectionUV.y = 1.0 - reflectionUV.y; // Flip Y to match OpenGL convention
+
+        vec4 reflectionColor = texture(reflectionTexture, reflectionUV);
+        
+        // Blend reflection with the original texture
+        FragColor = mix(texColor, reflectionColor, 0.1) * vec4(phong, 1.0);
+    }
+    else {
+     // Apply the final color with Phong lighting and texture
+        FragColor = texColor * vec4(phong, 1.0);
+    }
+
+
+   
 
     //Debug normal : 
     //FragColor = vec4(norm * 0.5 + 0.5, 1.0);
