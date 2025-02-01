@@ -16,16 +16,22 @@ void RenderSystem::update(
     std::unordered_map<unsigned int, LightComponent>& lightComponents) {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+    int lightCpt = 0;
      for (auto& lightEntity : lightComponents)
     {
-        if (lightEntity.second.type != DIRECTIONAL) continue;
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, lightEntity.second.depthMap);
+        lightCpt++;
+        if (lightEntity.second.type == POINT) continue;
 
+		glActiveTexture(GL_TEXTURE4 + lightCpt);
+		glBindTexture(GL_TEXTURE_2D, lightEntity.second.depthMap);
         // Pass the light space matrix to the shader
         glUniformMatrix4fv(lightSpaceMatrixLocation, 1, GL_FALSE, glm::value_ptr(lightEntity.second.lightSpaceMatrix));
-        glUniform1i(shadowMapLocation, 1); // Set the shadow map to texture unit 1
+        glUniform1i(shadowMapLocation, 4 + lightCpt); // Set the shadow map to texture unit 4 + n
+
+        ////Set shadowmap
+        //std::string shadowMapsUniform = "shadowMaps[" + std::to_string(lightCpt-1) + "]";
+        //GLint shadowMapsLoc = glGetUniformLocation(shaderProg, shadowMapsUniform.c_str());
+        //glUniform1i(shadowMapsLoc, 4 + lightCpt);
     }
 
     for (std::pair<unsigned int, std::list<RenderComponent>> entity : renderComponents) {

@@ -90,7 +90,7 @@ void ShadowSystem::GenerateShadowMap(std::unordered_map<unsigned int, LightCompo
     for (auto& entity : lightComponents) {
         glUseProgram(shadowShader);
 
-        if (entity.second.type != DIRECTIONAL) continue; //Only directional lights cast shadows (for now 
+        if (entity.second.type == POINT) continue; //Only directional lights and spotlights cast shadows (for now ;-)
         unsigned int entityID = entity.first;
         LightComponent& light = entity.second;
 
@@ -110,14 +110,37 @@ void ShadowSystem::GenerateShadowMap(std::unordered_map<unsigned int, LightCompo
         lightView = glm::lookAt(transformComponents[entityID].position, transformComponents[entityID].position + glm::normalize(light.direction), glm::vec3(0.0f, 1.0f, 0.0f));
         CalculateShadowOrthoBounds(lightView, camera, left, right, bottom, top, near_plane, far_plane);*/
 
-
-        lightView = glm::lookAt(transformComponents[cameraID].position, transformComponents[cameraID].position + glm::normalize(light.direction), glm::vec3(0.0f, 1.0f, 0.0f));
-
-
-
-        lightProjection = glm::ortho(-6.0f, 6.0f, -6.0f, 6.0f, -5.0f, 8.0f);
+        if (light.type == DIRECTIONAL) {
+            lightView = glm::lookAt(transformComponents[cameraID].position, transformComponents[cameraID].position + glm::normalize(light.direction), glm::vec3(0.0f, 1.0f, 0.0f));
 
 
+            lightProjection = glm::ortho(-6.0f, 6.0f, -6.0f, 6.0f, -5.0f, 8.0f);
+
+
+           
+        }
+        else if (light.type == SPOT) {
+            // Spotlight Shadow Mapping (Perspective Projection)
+
+            float aspect = (float)SHADOW_WIDTH / (float)SHADOW_HEIGHT;
+            float nearPlane = 0.1f;
+            float farPlane = 10.0f;
+
+            // Define a default spotlight field of view (FoV) if you don't have one
+            float spotlightFoV = glm::radians(45.0f); // 45-degree spotlight cone
+
+            // Use a perspective projection for the spotlight
+            lightProjection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, nearPlane, farPlane);
+
+            // Spotlight's view matrix (from light position looking in light direction)
+            lightView = glm::lookAt(
+                transformComponents[entityID].position,  // Light position
+                transformComponents[entityID].position + glm::normalize(light.direction), // Look at the light's target
+                glm::vec3(0.0f, 0.0f, -1.0f) // Up vector
+            );
+
+            
+        }
         lightSpaceMatrix = lightProjection * lightView;
 
         //Pass the light space matrix to the shadow shader : 

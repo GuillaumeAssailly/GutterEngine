@@ -49,6 +49,16 @@ void LightSystem::update(std::unordered_map<unsigned int, LightComponent>&  ligh
 		std::string lightOuterCutoffUniform = "spotLightOuterCutoff[" + std::to_string(i) + "]";
 		GLint lightOuterCutoffLoc = glGetUniformLocation(shaderProgram, lightOuterCutoffUniform.c_str());
 		glUniform1f(lightOuterCutoffLoc, lights[i].outerCutoff);
+
+		//Set lightSpaceMatrix
+		std::string lightSpaceMatrixUniform = "lightSpaceMatrix[" + std::to_string(i) + "]";
+		GLint lightSpaceMatrixLoc = glGetUniformLocation(shaderProgram, lightSpaceMatrixUniform.c_str());
+		glUniformMatrix4fv(lightSpaceMatrixLoc, 1, GL_FALSE, glm::value_ptr(lights[i].lightSpaceMatrix));
+
+		//Set shadowMap
+		std::string shadowMapUniform = "shadowMaps[" + std::to_string(i) + "]";
+		GLint shadowMapLoc = glGetUniformLocation(shaderProgram, shadowMapUniform.c_str());
+		glUniform1i(shadowMapLoc, 4 + i);
 		
 	}
 }

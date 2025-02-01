@@ -707,8 +707,9 @@ void App::run() {
                 LightComponent& light = lightComponents[selectedEntityID];
                 ImGui::ColorEdit3("Light Color", &light.color[0]);
                 ImGui::SliderFloat("Intensity", &light.intensity, 0.0f, 10.0f);
-                //ImGui::Checkbox("Is Directional", &light.isDirectional);
-                if (light.type == DIRECTIONAL) {
+                const char* lightTypeNames[] = { "Point", "Directional", "Spot" };
+				ImGui::Combo("Light Type", (int*)&light.type, lightTypeNames, IM_ARRAYSIZE(lightTypeNames));
+                if (light.type == DIRECTIONAL || light.type == SPOT) {
                     ImGui::DragFloat3("Light Direction", &light.direction[0], 0.1);
                 }
 
@@ -1352,6 +1353,10 @@ void App::loadEntities()
 
     light.color = { 0.0f, 1.0f, 1.0f };
     light.intensity = 1.0f;
+    light.type = SPOT;
+    light.direction = glm::normalize(glm::vec3(0.0f, -1.0f, 0.0f));
+    light.cutoff = glm::cos(glm::radians(15.0f));
+    light.outerCutoff = glm::cos(glm::radians(25.0f));
     lightComponents[lightEntity1] = light;
 
     render.mesh = renderModels["Light"].first;
@@ -1359,20 +1364,21 @@ void App::loadEntities()
     render.material = texturesList["Light"];
     renderComponents[lightEntity1].push_back(render);
 
+    LightComponent light2;
     //Second light: 
     unsigned int lightEntity2 = make_entity("Second Light");
     transform.position = { 0.0f, 4.0f, 4.0f };
     transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
     transformComponents[lightEntity2] = transform;
 
-    light.color = { 1.0f, 1.0f, 1.0f };
-    light.intensity = 1.0f;
-    light.type = SPOT;
-    //light.direction = { 1.0f, -6.0f, 4.0f };
-    light.direction = glm::normalize(glm::vec3(0.0f, -1.0f, 0.0f));
-	light.cutoff = glm::cos(glm::radians(15.0f));
-	light.outerCutoff = glm::cos(glm::radians(25.0f));
-    lightComponents[lightEntity2] = light;
+    light2.color = { 1.0f, 1.0f, 1.0f };
+    light2.intensity = 1.0f;
+    light2.type = SPOT;
+    //light2.direction = { 1.0f, -6.0f, 4.0f };
+    light2.direction = glm::normalize(glm::vec3(0.0f, -1.0f, 0.0f));
+	light2.cutoff = glm::cos(glm::radians(15.0f));
+	light2.outerCutoff = glm::cos(glm::radians(25.0f));
+    lightComponents[lightEntity2] = light2;
 
     render.mesh = renderModels["Light"].first;
     render.indexCount = renderModels["Light"].second;

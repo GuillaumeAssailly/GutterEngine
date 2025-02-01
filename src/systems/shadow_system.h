@@ -7,8 +7,8 @@
 #include "../components/camera_component.h"
 
 
-#define SHADOW_WIDTH 4096*2
-#define SHADOW_HEIGHT 4096*2
+#define SHADOW_WIDTH 4096
+#define SHADOW_HEIGHT 4096
 
 
 
