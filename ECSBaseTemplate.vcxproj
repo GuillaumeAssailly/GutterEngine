@@ -137,9 +137,13 @@
   <ItemGroup>
     <ClCompile Include="src\config.cpp" />
     <ClCompile Include="src\controllers\app.cpp" />
+    <ClCompile Include="src\controllers\entity_manager.cpp" />
+    <ClCompile Include="src\controllers\input_manager.cpp" />
     <ClCompile Include="src\controllers\mesh_manager.cpp">
       <DeploymentContent>false</DeploymentContent>
     </ClCompile>
+    <ClCompile Include="src\controllers\system_manager.cpp" />
+    <ClCompile Include="src\controllers\UI.cpp" />
     <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\loaders\loader.cpp" />
     <ClCompile Include="src\loaders\loaderJSON.cpp" />
@@ -172,9 +176,13 @@
     <ClInclude Include="src\components\transform_component.h" />
     <ClInclude Include="src\config.h" />
     <ClInclude Include="src\controllers\app.h" />
+    <ClInclude Include="src\controllers\entity_manager.h" />
+    <ClInclude Include="src\controllers\input_manager.h" />
     <ClInclude Include="src\controllers\mesh_manager.h">
       <DeploymentContent>false</DeploymentContent>
     </ClInclude>
+    <ClInclude Include="src\controllers\system_manager.h" />
+    <ClInclude Include="src\controllers\UI.h" />
     <ClInclude Include="src\loaders\json.hpp" />
     <ClInclude Include="src\loaders\loader.h" />
     <ClInclude Include="src\loaders\loaderJSON.h" />

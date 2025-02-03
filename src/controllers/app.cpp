@@ -6,6 +6,9 @@ int screenHeight = 1080;
 
 App::App() {
     set_up_glfw();
+    set_up_opengl();
+    entityManager = new EntityManager();
+    systemManager = new SystemManager(window, shader, shadowShader, depthMapDebugShader);
 }
 
 App::~App() {
@@ -14,18 +17,12 @@ App::~App() {
     glDeleteTextures(textures.size(), textures.data());
     glDeleteProgram(shader);
 
-    delete motionSystem;
-    delete cameraSystem;
-    delete renderSystem;
-    delete lineSystem;
+    delete systemManager;
+    delete entityManager;
 
     glfwTerminate();
 }
 
-unsigned int App::make_entity(const std::string& name) {
-	entityNames.insert(std::make_pair(entity_count, name));
-    return entity_count++;
-}
 
 
 
@@ -102,7 +99,7 @@ void App::loadGLTF(const char* filePath, const char* texDir, const int EntityID)
     transform.position = { 0.f, 0.f, 9.f };
     transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
     transform.size = { 1.0f, 0.168f, 18.0f };
-    transformComponents[obj] = transform;
+    entityManager->transformComponents[obj] = transform;
 
 
     for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
@@ -226,7 +223,7 @@ void App::loadGLTF(const char* filePath, const char* texDir, const int EntityID)
         render.indexCount = renderModels[mesh->mName.C_Str()].second;
         render.material = texturesList[mesh->mName.C_Str()];
 		render.normalMap = normalMapsList[mesh->mName.C_Str()];
-        renderComponents[obj].push_back(render);
+        entityManager->renderComponents[obj].push_back(render);
     }
 }
 
@@ -566,7 +563,7 @@ void App::run() {
     int frameCount = 0;
 
     //while loop iterating on the renderer pipeline : 
-    shadowSystem->Initialize(lightComponents);
+    systemManager->shadowSystem->Initialize(entityManager->lightComponents);
     while (!glfwWindowShouldClose(window)) {
         // Per-frame time logic
         // -------------------
@@ -599,25 +596,25 @@ void App::run() {
 
         if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS && hasPhysics) {
             physx::PxVec3 force(0, 0, 0.5);
-            motionSystem->applyForceToActor(physicsComponents[1].rigidBody, force);
+            systemManager->motionSystem->applyForceToActor(entityManager->physicsComponents[1].rigidBody, force);
         }
 
         // Update systems
         if (accumulatedTime >= 0.00833) {
-            motionSystem->update(transformComponents, physicsComponents, accumulatedTime);
+            systemManager->motionSystem->update(entityManager->transformComponents, entityManager->physicsComponents, accumulatedTime);
             accumulatedTime = 0.;
         }
-        bool should_close = cameraSystem->update(transformComponents, cameraComponents, cameraID, deltaTime);
+        bool should_close = systemManager->cameraSystem->update(entityManager->transformComponents, entityManager->cameraComponents, entityManager->cameraID, deltaTime);
         if (should_close) {
             break;
         }
-        lightSystem->update(lightComponents, transformComponents, cameraID);
-        renderSystem->update(transformComponents, renderComponents, lightComponents);
-        shadowSystem->GenerateShadowMap(lightComponents, transformComponents, renderComponents, screenWidth, screenHeight, cameraID);
+        systemManager->lightSystem->update(entityManager->lightComponents, entityManager->transformComponents, entityManager->cameraID);
+        systemManager->renderSystem->update(entityManager->transformComponents, entityManager->renderComponents, entityManager->lightComponents);
+        systemManager->shadowSystem->GenerateShadowMap(entityManager->lightComponents, entityManager->transformComponents, entityManager->renderComponents, screenWidth, screenHeight, entityManager->cameraID);
 
         //Draw Lines
         //Add here more lines to draw...
-        lineSystem->render_lines_ref_frame_grid(type_reference_frame, grid_display, transformComponents[cameraID].position, shader);
+        systemManager->lineSystem->render_lines_ref_frame_grid(type_reference_frame, grid_display, entityManager->transformComponents[entityManager->cameraID].position, shader);
 
 
         // Start //ImGui window for debugging
@@ -632,8 +629,8 @@ void App::run() {
         ImGui::Begin("Entity Tree");
 
         // Loop through all entities to create a tree view
-        for (int entityID = 0; entityID < entity_count; entityID++) {
-            std::string entityLabel = entityNames.at(entityID);
+        for (int entityID = 0; entityID < entityManager->entity_count; entityID++) {
+            std::string entityLabel = entityManager->entityNames.at(entityID);
 
             // Display each entity as selectable
             if (ImGui::Selectable(entityLabel.c_str(), selectedEntityID == entityID)) {
@@ -645,23 +642,23 @@ void App::run() {
         ImGui::End(); // End of Entity Tree window
 
         // If an entity is selected, show its components
-        if (selectedEntityID < entity_count && selectedEntityID != -1) {
+        if (selectedEntityID < entityManager->entity_count && selectedEntityID != -1) {
             // --- Inspector Window ---
             ImGui::Begin("Inspector");
 
 
             // Display TransformComponent if present
-            if (transformComponents.find(selectedEntityID) != transformComponents.end()) {
+            if (entityManager->transformComponents.find(selectedEntityID) != entityManager->transformComponents.end()) {
                 ImGui::Text("Transform Component");
-                TransformComponent& transform = transformComponents[selectedEntityID];
+                TransformComponent& transform = entityManager->transformComponents[selectedEntityID];
                 ImGui::DragFloat3("Position", &transform.position[0]);
                 ImGui::DragFloat3("Rotation", &transform.eulers[0]);
             }
 
             // Display PhysicsComponent if present
-            if (physicsComponents.find(selectedEntityID) != physicsComponents.end()) {
+            if (entityManager->physicsComponents.find(selectedEntityID) != entityManager->physicsComponents.end()) {
                 ImGui::Text("Physics Component");
-                PhysicsComponent& physics = physicsComponents[selectedEntityID];
+                PhysicsComponent& physics = entityManager->physicsComponents[selectedEntityID];
                 targetMass = physics.rigidBody->getMass();
                 physx::PxU32 minPositionIters, minVelocityIters;
                 physics.rigidBody->getSolverIterationCounts(minPositionIters, minVelocityIters);
@@ -686,8 +683,8 @@ void App::run() {
 
                 ImGui::DragFloat3("Force", &force.x);
                 if (hasPhysics && ImGui::Button("Apply Force")) {
-                    auto it = physicsComponents.find(selectedEntityID);
-                    if (it != physicsComponents.end()) {
+                    auto it = entityManager->physicsComponents.find(selectedEntityID);
+                    if (it != entityManager->physicsComponents.end()) {
                         PhysicsComponent& physicsComponent = it->second;
                         physicsComponent.rigidBody->addForce(force, physx::PxForceMode::eIMPULSE);
                     }
@@ -695,9 +692,9 @@ void App::run() {
             }
 
             // Display LightComponent if present
-            if (lightComponents.find(selectedEntityID) != lightComponents.end()) {
+            if (entityManager->lightComponents.find(selectedEntityID) != entityManager->lightComponents.end()) {
                 ImGui::Text("Light Component");
-                LightComponent& light = lightComponents[selectedEntityID];
+                LightComponent& light = entityManager->lightComponents[selectedEntityID];
                 ImGui::ColorEdit3("Light Color", &light.color[0]);
                 ImGui::SliderFloat("Intensity", &light.intensity, 0.0f, 10.0f);
                 ImGui::Checkbox("Is Directional", &light.isDirectional);
@@ -708,7 +705,7 @@ void App::run() {
             }
 
             // Display RenderComponent if present
-            if (renderComponents.find(selectedEntityID) != renderComponents.end()) {
+            if (entityManager->renderComponents.find(selectedEntityID) != entityManager->renderComponents.end()) {
                 ImGui::Text("Render Component");
                 //RenderComponent& render = renderComponents[selectedEntityID];
                // ImGui::InputInt("Mesh ID", (int*)&render.mesh);
@@ -818,11 +815,11 @@ void App::run() {
 
         if (ImGui::Button("Create Object")) {
             if (!((selectedModelName == "" && addPhysics && geometry == 0) || ((selectedRModelName == "" || selectedTexturesName == "") && addRender))) {
-                unsigned int id = make_entity(newEntityName);
+                unsigned int id = entityManager->make_entity(newEntityName);
                 TransformComponent transform;
                 transform.position = newPosition;
                 transform.eulers = newEulers;
-                transformComponents[id] = transform;
+                entityManager->transformComponents[id] = transform;
 
                 if (addPhysics) {
                     PhysicsComponent physics;
@@ -834,25 +831,25 @@ void App::run() {
                     switch (geometry) {
                     case 0:
                         if (!isStatic)
-                            physics.rigidBody = motionSystem->createDynamic(physicsModels[selectedModelName], material, newPosition, newEntityMass, newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping);
+                            physics.rigidBody = systemManager->motionSystem->createDynamic(physicsModels[selectedModelName], material, newPosition, newEntityMass, newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping);
                         else
-                            motionSystem->createStatic(physicsModels[selectedModelName], material, newPosition);
+                            systemManager->motionSystem->createStatic(physicsModels[selectedModelName], material, newPosition);
                         break;
                     case 1:
                         if (!isStatic)
-                            physics.rigidBody = motionSystem->createDynamic(boxGeometry, material, newPosition, newEntityMass, newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping);
+                            physics.rigidBody = systemManager->motionSystem->createDynamic(boxGeometry, material, newPosition, newEntityMass, newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping);
                         else
-                            motionSystem->createStatic(boxGeometry, material, newPosition);
+                            systemManager->motionSystem->createStatic(boxGeometry, material, newPosition);
                         break;
                     case 2:
                         if (!isStatic)
-                            physics.rigidBody = motionSystem->createDynamic(sphereGeometry, material, newPosition, newEntityMass, newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping);
+                            physics.rigidBody = systemManager->motionSystem->createDynamic(sphereGeometry, material, newPosition, newEntityMass, newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping);
                         else
-                            motionSystem->createStatic(sphereGeometry, material, newPosition);
+                            systemManager->motionSystem->createStatic(sphereGeometry, material, newPosition);
                         break;
                     }
                     if (!isStatic)
-                        physicsComponents[id] = physics;
+                        entityManager->physicsComponents[id] = physics;
                 }
                 if (addRender) {
                     RenderComponent render;
@@ -865,7 +862,7 @@ void App::run() {
                     LightComponent light;
                     light.color = newEntityColor;
                     light.intensity = newEntityIntensity;
-                    lightComponents[id] = light;
+                    entityManager->lightComponents[id] = light;
                 }
                 error_msg = "";
             }
@@ -944,10 +941,10 @@ void App::run() {
         // --- Camera Window
         ImGui::Begin("Current Camera");
 
-        for (auto const& camera : cameraComponents) {
-            std::string entityLabel = entityNames.at(camera.first);
-            if (ImGui::Selectable(entityLabel.c_str(), cameraID == camera.first)) {
-                cameraID = camera.first;
+        for (auto const& camera : entityManager->cameraComponents) {
+            std::string entityLabel = entityManager->entityNames.at(camera.first);
+            if (ImGui::Selectable(entityLabel.c_str(), entityManager->cameraID == camera.first)) {
+                entityManager->cameraID = camera.first;
             }
         }
 
@@ -971,7 +968,7 @@ void App::run() {
             if (ImGui::Button(" Partial Reference Frame ", ImVec2(-1.0f, 0.0f)))
             {
                 type_reference_frame = 2;
-                lineSystem->reset_reference_frame();
+                systemManager->lineSystem->reset_reference_frame();
             }
             ImGui::PopStyleColor(2);
             break;
@@ -992,7 +989,7 @@ void App::run() {
                 if (type_reference_frame == 1)
                 {
                     type_reference_frame = 2;
-                    lineSystem->reset_reference_frame();
+                    systemManager->lineSystem->reset_reference_frame();
                 }
             }
             ImGui::PopStyleColor(2);
@@ -1038,12 +1035,12 @@ void App::run() {
             ImGuiIO& io = ImGui::GetIO();
             ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
 
-            auto camera = transformComponents[cameraID];
-            glm::mat4 cameraView = cameraSystem->GetViewMatrix();
-            glm::mat4 cameraProjection = cameraSystem->GetProjectionMatrix();
-            glm::mat4 transformSelectedEntity = glm::translate(glm::mat4(1.0f), transformComponents[selectedEntityID].position) *
-                glm::toMat4(transformComponents[selectedEntityID].eulers) *
-                glm::scale(glm::mat4(1.0f), transformComponents[selectedEntityID].size);
+            auto camera = entityManager->transformComponents[entityManager->cameraID];
+            glm::mat4 cameraView = systemManager->cameraSystem->GetViewMatrix();
+            glm::mat4 cameraProjection = systemManager->cameraSystem->GetProjectionMatrix();
+            glm::mat4 transformSelectedEntity = glm::translate(glm::mat4(1.0f), entityManager->transformComponents[selectedEntityID].position) *
+                glm::toMat4(entityManager->transformComponents[selectedEntityID].eulers) *
+                glm::scale(glm::mat4(1.0f), entityManager->transformComponents[selectedEntityID].size);
 
             // Manipulation de l'entité sélectionnée avec ImGuizmo
             ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
@@ -1058,31 +1055,31 @@ void App::run() {
 
                 glm::quat currentRotation = glm::quat(rotation);
 
-                if (physicsComponents.find(selectedEntityID) != physicsComponents.end())
+                if (entityManager->physicsComponents.find(selectedEntityID) != entityManager->physicsComponents.end())
                 {
-                    physx::PxTransform transform = physicsComponents[selectedEntityID].rigidBody->getGlobalPose();
+                    physx::PxTransform transform = entityManager->physicsComponents[selectedEntityID].rigidBody->getGlobalPose();
 
                     transform.p.x = translation.x;
                     transform.p.y = translation.y;
                     transform.p.z = translation.z;
 
                     transform.q = physx::PxQuat(currentRotation.x, currentRotation.y, currentRotation.z, currentRotation.w);
-                    physicsComponents[selectedEntityID].rigidBody->setGlobalPose(transform);
+                    entityManager->physicsComponents[selectedEntityID].rigidBody->setGlobalPose(transform);
                 }
-                else if (staticPhysicsComponents.find(selectedEntityID) != staticPhysicsComponents.end()) {
-                    physx::PxTransform transform = staticPhysicsComponents[selectedEntityID].rigidBody->getGlobalPose();
+                else if (entityManager->staticPhysicsComponents.find(selectedEntityID) != entityManager->staticPhysicsComponents.end()) {
+                    physx::PxTransform transform = entityManager->staticPhysicsComponents[selectedEntityID].rigidBody->getGlobalPose();
 
                     transform.p.x = translation.x;
                     transform.p.y = translation.y;
                     transform.p.z = translation.z;
 
                     transform.q = physx::PxQuat(currentRotation.x, currentRotation.y, currentRotation.z, currentRotation.w);
-                    staticPhysicsComponents[selectedEntityID].rigidBody->setGlobalPose(transform);
+                    entityManager->staticPhysicsComponents[selectedEntityID].rigidBody->setGlobalPose(transform);
                 }
 
-                transformComponents[selectedEntityID].position = translation;
-                transformComponents[selectedEntityID].eulers = currentRotation;
-                transformComponents[selectedEntityID].size = scale;
+                entityManager->transformComponents[selectedEntityID].position = translation;
+                entityManager->transformComponents[selectedEntityID].eulers = currentRotation;
+                entityManager->transformComponents[selectedEntityID].size = scale;
             }
         }
 
@@ -1140,47 +1137,38 @@ void App::set_up_opengl() {
     //TODO : add configurable perspective :
 }   
 
-void App::make_systems() {
-    motionSystem = new MotionSystem();
-    cameraSystem = new CameraSystem(shader, window);
-	lightSystem = new LightSystem(shader);
-	shadowSystem = new ShadowSystem(shader,shadowShader, depthMapDebugShader);
-    renderSystem = new RenderSystem(shader, window);
-    lineSystem = new LineSystem();
-}
-
 void App::loadModelsAndTextures()
 {
     // Lane
-	const int lane = make_entity("Lane");
+	const int lane = entityManager->make_entity("Lane");
     loadGLTF("obj/nashville/Piste.gltf", "obj/nashville/", lane);
 
     // Lane 2
-	const int lane2 = make_entity("Lane2");
+	const int lane2 = entityManager->make_entity("Lane2");
     loadGLTF("obj/nashville/Piste2.gltf", "obj/nashville/", lane2);
    
     //Ball Return
-	const int ballreturn = make_entity("BallReturn");
+	const int ballreturn = entityManager->make_entity("BallReturn");
 	loadGLTF("obj/nashville/BallReturn.gltf", "obj/nashville/", ballreturn);
 
     //TV
-    const int TV = make_entity("TV");
+    const int TV = entityManager->make_entity("TV");
 	loadGLTF("obj/nashville/TV.gltf", "obj/nashville/", TV);
 
     //Pin Statue
-    const int PinStatue = make_entity("PinStatue");
+    const int PinStatue = entityManager->make_entity("PinStatue");
 	loadGLTF("obj/nashville/PinStatue.gltf", "obj/nashville/", PinStatue);
 
     //Ball1
-	const int Ball1 = make_entity("Ball1");
+	const int Ball1 = entityManager->make_entity("Ball1");
 	loadGLTF("obj/nashville/Ball1.gltf", "obj/nashville/", Ball1);
 
 	//Ball2
-	const int Ball2 = make_entity("Ball2");
+	const int Ball2 = entityManager->make_entity("Ball2");
 	loadGLTF("obj/nashville/Ball2.gltf", "obj/nashville/", Ball2);
 
 	//Ball3
-	const int Ball3 = make_entity("Ball3");
+	const int Ball3 = entityManager->make_entity("Ball3");
 	loadGLTF("obj/nashville/Ball3.gltf", "obj/nashville/", Ball3);
 
 
@@ -1193,7 +1181,7 @@ void App::loadModelsAndTextures()
     // Pin
     //motionSystem->concaveToConvex("obj/servoskull/quille.obj", "obj/convexMesh/", "quille");
     std::vector<physx::PxConvexMesh*> meshes;
-    motionSystem->loadObjToPhysX("obj/convexMesh/quille.obj", meshes);
+    systemManager->motionSystem->loadObjToPhysX("obj/convexMesh/quille.obj", meshes);
 
     std::pair<unsigned int, unsigned int> pinModel = make_model("obj/servoskull/quille.obj");
     physicsModels["Pin"] = meshes;
@@ -1302,10 +1290,10 @@ void App::loadEntities()
  //   }
 
  //   // Camera
-    unsigned int cameraEntity = make_entity("Camera");
+    unsigned int cameraEntity = entityManager->make_entity("Camera");
     transform.position = { 0.0f, 0.0f, 0.0f };
     transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
-    transformComponents[cameraEntity] = transform;
+    entityManager->transformComponents[cameraEntity] = transform;
     
     camera.fov = 45.0f;
     camera.aspectRatio = 16.0f / 9.0f;
@@ -1313,46 +1301,46 @@ void App::loadEntities()
     camera.farPlane = 100.0f;
     camera.sensitivity = 0.5f;
     camera.initialForward = { 0,0,1,0 };
-    cameraComponents[cameraEntity] = camera;
-    cameraID = cameraEntity;
+    entityManager->cameraComponents[cameraEntity] = camera;
+    entityManager->cameraID = cameraEntity;
 
     //First light
-    unsigned int lightEntity1 = make_entity("First Light");
+    unsigned int lightEntity1 = entityManager->make_entity("First Light");
     transform.position = { 0.0f, 0.0f, 0.0f };
     transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
-    transformComponents[lightEntity1] = transform;
+    entityManager->transformComponents[lightEntity1] = transform;
 
     light.color = { 0.0f, 1.0f, 1.0f };
     light.intensity = 1.0f;
-    lightComponents[lightEntity1] = light;
+    entityManager->lightComponents[lightEntity1] = light;
 
     render.mesh = renderModels["Light"].first;
     render.indexCount = renderModels["Light"].second;
     render.material = texturesList["Light"];
-    renderComponents[lightEntity1].push_back(render);
+    entityManager->renderComponents[lightEntity1].push_back(render);
 
     //Second light: 
-    unsigned int lightEntity2 = make_entity("Second Light");
+    unsigned int lightEntity2 = entityManager->make_entity("Second Light");
     transform.position = { 0.0f, 4.0f, 4.0f };
     transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
-    transformComponents[lightEntity2] = transform;
+    entityManager->transformComponents[lightEntity2] = transform;
 
     light.color = { 1.0f, 1.0f, 1.0f };
     light.intensity = 1.0f;
     light.isDirectional = true;
     light.direction = { 1.0f, -6.0f, 4.0f };
-    lightComponents[lightEntity2] = light;
+    entityManager->lightComponents[lightEntity2] = light;
 
     render.mesh = renderModels["Light"].first;
     render.indexCount = renderModels["Light"].second;
     render.material = texturesList["Light"];
-    renderComponents[lightEntity2].push_back(render);
+    entityManager->renderComponents[lightEntity2].push_back(render);
 
 }
 
 MotionSystem* App::getMotionSystem()
 {
-    return motionSystem;
+    return systemManager->motionSystem;
 }
 
 std::unordered_map<std::string, std::pair<unsigned int, unsigned int>> App::getRenderModels() const
@@ -1373,7 +1361,7 @@ std::unordered_map<std::string, std::vector<physx::PxConvexMesh*>> App::getPhysi
 int App::getEntityByName(std::string name) const
 {
     int id = -1;
-    for (const auto& pair : entityNames) {
+    for (const auto& pair : entityManager->entityNames) {
         if (pair.second == name) {
             id = pair.first;
         }
@@ -1411,7 +1399,7 @@ void App::set_up_glfw() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 
-    window = glfwCreateWindow(1920, 1080, "Guillaume Engine", NULL, NULL);
+    window = glfwCreateWindow(1920, 1080, "Gutter Engine", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;

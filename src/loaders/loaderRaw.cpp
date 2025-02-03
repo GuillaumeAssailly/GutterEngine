@@ -1,5 +1,5 @@
 #include "loaderRaw.h"
-
+/*
 void LoaderRaw::loadPins(App *app, CameraComponent *camera) const
 {
 	TransformComponent transform;
@@ -160,6 +160,6 @@ void LoaderRaw::loadLane(App* app, CameraComponent* camera) const
     render.indexCount = app->getRenderModels()["SM_Speaker_18-1"].second;
     //render.material = app->getTexturesList()["SM_Speaker_18-1"];
     app->renderComponents[lane].push_back(render);
-}
+}*/
 
 

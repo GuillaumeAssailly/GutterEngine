@@ -1,15 +1,15 @@
 #include "saverJSON.h"
 #include <regex>
-
+/*
 void SaverJSON::savePins(App* app)
 {
     int countPins = 0;
-    for (const auto& transformComponents : app->transformComponents) {
-        if (app->entityNames[transformComponents.first].find("Pin") == 0) {
+    for (const auto& transformComponents : entityManager->transformComponents) {
+        if (entityManager->entityNames[transformComponents.first].find("Pin") == 0) {
             countPins++;
             json pin;
             int id = transformComponents.first;
-            auto physics = app->physicsComponents.at(id);
+            auto physics = entityManager->physicsComponents.at(id);
             if (countPins == 1) {
                 physx::PxU32 solverPosition;
                 physx::PxU32 solverVelocity;
@@ -24,7 +24,7 @@ void SaverJSON::savePins(App* app)
                     {"solverVelocity", solverVelocity}
                 };
 				jsonData["meshPath"] = "obj/convexMesh/quille.obj";
-                const auto& camera = app->cameraComponents[id];
+                const auto& camera = entityManager->cameraComponents[id];
                 jsonData["PinCamera"] = {
                     {"fov", camera.fov},
                     {"aspectRatio", camera.aspectRatio},
@@ -40,7 +40,7 @@ void SaverJSON::savePins(App* app)
                 };
                 savePinMaterial(app, id);
             }
-            pin["id"] = app->entityNames[transformComponents.first];
+            pin["id"] = entityManager->entityNames[transformComponents.first];
             pin["position"] = {
                 {"x", transformComponents.second.position.x},
                 {"y", transformComponents.second.position.y},
@@ -60,7 +60,7 @@ void SaverJSON::savePins(App* app)
 
 void SaverJSON::savePinMaterial(App* app, int pinId)
 {
-    auto physics = app->physicsComponents.at(pinId);
+    auto physics = entityManager->physicsComponents.at(pinId);
 
     const int maxShapes = 10;
     physx::PxShape* shapes[maxShapes];
@@ -81,13 +81,13 @@ void SaverJSON::savePinMaterial(App* app, int pinId)
 
 void SaverJSON::saveBall(App* app)
 {
-    unsigned int ballEntity = app->getEntityByName("Ball");
-    const auto& camera = app->cameraComponents[ballEntity];
+    unsigned int ballEntity = entityManager->getEntityByName("Ball");
+    const auto& camera = entityManager->cameraComponents[ballEntity];
     if (ballEntity) {
-        const auto& transform = app->transformComponents[ballEntity];
-        const auto& physics = app->physicsComponents[ballEntity];
+        const auto& transform = entityManager->transformComponents[ballEntity];
+        const auto& physics = entityManager->physicsComponents[ballEntity];
         jsonData["ball"] = {
-            {"id", app->entityNames[ballEntity]},
+            {"id", entityManager->entityNames[ballEntity]},
             {"position", {
                 {"x", transform.position.x},
                 {"y", transform.position.y},
@@ -134,14 +134,14 @@ void SaverJSON::saveBall(App* app)
 void SaverJSON::saveLights(App* app)
 {
     jsonData["lights"] = json::array();
-    for (const auto& transformComponents : app->transformComponents) {
+    for (const auto& transformComponents : entityManager->transformComponents) {
 		int id = transformComponents.first;
         std::regex keyPattern(".*Light.*");
-        if (std::regex_match(app->entityNames[transformComponents.first], keyPattern)) {
-            const auto& transform = app->transformComponents.at(id);
-			const auto& light = app->lightComponents.at(id);
+        if (std::regex_match(entityManager->entityNames[transformComponents.first], keyPattern)) {
+            const auto& transform = entityManager->transformComponents.at(id);
+			const auto& light = entityManager->lightComponents.at(id);
             json lightData = {
-                {"id", app->entityNames[transformComponents.first]},
+                {"id", entityManager->entityNames[transformComponents.first]},
                 {"position", {
                     {"x", transform.position.x},
                     {"y", transform.position.y},
@@ -178,12 +178,12 @@ void SaverJSON::saveLights(App* app)
 
 void SaverJSON::saveCamera(App* app)
 {
-    unsigned int cameraEntity = app->getEntityByName("Camera");
+    unsigned int cameraEntity = entityManager->getEntityByName("Camera");
     if (cameraEntity) {
-        const auto& transform = app->transformComponents[cameraEntity];
-        const auto& camera = app->cameraComponents[cameraEntity];
+        const auto& transform = entityManager->transformComponents[cameraEntity];
+        const auto& camera = entityManager->cameraComponents[cameraEntity];
         jsonData["camera"] = {
-            {"id", app->entityNames[cameraEntity]},
+            {"id", entityManager->entityNames[cameraEntity]},
             {"position", {
                 {"x", transform.position.x},
                 {"y", transform.position.y},
@@ -213,12 +213,12 @@ void SaverJSON::saveCamera(App* app)
 void SaverJSON::saveLane(App* app)
 {
     int laneEntity = -1;
-    laneEntity = app->getEntityByName("Lane");
+    laneEntity = entityManager->getEntityByName("Lane");
     if (laneEntity >= 0) {
-        const auto& transform = app->transformComponents[laneEntity];
-        const auto& staticPhysics = app->staticPhysicsComponents[laneEntity];
+        const auto& transform = entityManager->transformComponents[laneEntity];
+        const auto& staticPhysics = entityManager->staticPhysicsComponents[laneEntity];
         jsonData["lane"] = {
-            {"id", app->entityNames[laneEntity]},
+            {"id", entityManager->entityNames[laneEntity]},
             {"position", {
                 {"x", transform.position.x},
                 {"y", transform.position.y},
@@ -272,5 +272,5 @@ SaverJSON::SaverJSON(std::string fileName):
     jsonData["lane"] = json({});
 
 
-}
+}*/
 

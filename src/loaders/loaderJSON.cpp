@@ -1,5 +1,6 @@
 #include "loaderJSON.h"
 
+/*
 void LoaderJSON::loadPins(App* app, CameraComponent *camera) const {
     TransformComponent transform;
     PhysicsComponent physics;
@@ -18,7 +19,7 @@ void LoaderJSON::loadPins(App* app, CameraComponent *camera) const {
 
     // Parcourir toutes les quilles du fichier JSON
     for (const auto& pinData : jsonData["pins"]) {
-        unsigned int pin = app->make_entity(pinData["id"].get<std::string>());
+        unsigned int pin = entityManager->make_entity(pinData["id"].get<std::string>());
 
         transform.position = glm::vec3(
             pinData["position"]["x"].get<float>(),
@@ -295,7 +296,7 @@ LoaderJSON::LoaderJSON(std::string fileName)
     std::ifstream file(fileName);
     file >> jsonData;
 
-}
+}*/
 
 
 
