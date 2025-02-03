@@ -16,11 +16,12 @@ ShadowSystem::ShadowSystem(unsigned int baseShader, unsigned int sShader, unsign
 
 }
 
+ShadowSystem::~ShadowSystem()
+{
+}
+
 void ShadowSystem::Initialize(std::unordered_map<unsigned int, LightComponent>& lightComponents)
 {
-
-
-
     for (auto& entity : lightComponents) {
         LightComponent& light = entity.second;
 

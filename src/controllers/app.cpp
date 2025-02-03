@@ -1,561 +1,24 @@
 #include "app.h"
 
-
 int screenWidth = 1920;
 int screenHeight = 1080;
 
-App::App() {
+
+App::App()
+{
     set_up_glfw();
+    entityManager = new EntityManager();
+    imguiManager = new ImguiManager();
+    meshManager = new MeshManager();
+    systemManager = new SystemManager(window, shader, shadowShader, depthMapDebugShader);
+    inputManager = new InputManager(systemManager, entityManager);
 }
 
 App::~App() {
-    glDeleteBuffers(VBOs.size(), VBOs.data());
-    glDeleteVertexArrays(VAOs.size(), VAOs.data());
-    glDeleteTextures(textures.size(), textures.data());
     glDeleteProgram(shader);
-
-    delete motionSystem;
-    delete cameraSystem;
-    delete renderSystem;
-    delete lineSystem;
-
     glfwTerminate();
 }
 
-unsigned int App::make_entity(const std::string& name) {
-	entityNames.insert(std::make_pair(entity_count, name));
-    return entity_count++;
-}
-
-
-
-
-
-
-static int totalFaces = 0;
-
-void processNode(const aiScene* scene, aiNode* node, std::vector<float>& vertices, std::vector<unsigned int>& indices) {
-    
-  
-    for (unsigned int i = 0; i < node->mNumMeshes; i++) {
-        aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-
-        // Extract vertices
-        for (unsigned int j = 0; j < mesh->mNumVertices; j++) {
-            vertices.push_back(mesh->mVertices[j].x);
-            vertices.push_back(mesh->mVertices[j].y);
-            vertices.push_back(mesh->mVertices[j].z);
-
-            vertices.push_back(mesh->mNormals[j].x);
-            vertices.push_back(mesh->mNormals[j].y);
-            vertices.push_back(mesh->mNormals[j].z);
-
-            vertices.push_back(mesh->mTextureCoords[0][j].x);
-            vertices.push_back(mesh->mTextureCoords[0][j].y);
-
-			vertices.push_back(mesh->mTangents[j].x);
-			vertices.push_back(mesh->mTangents[j].y);
-			vertices.push_back(mesh->mTangents[j].z);
-
-		    vertices.push_back(mesh->mBitangents[j].x);
-		    vertices.push_back(mesh->mBitangents[j].y);
-		    vertices.push_back(mesh->mBitangents[j].z);
-
-
-        
-
-        }
-
-        // Extract indices
-        for (unsigned int j = 0; j < mesh->mNumFaces; j++) {
-            const aiFace& face = mesh->mFaces[j];
-            for (unsigned int k = 0; k < face.mNumIndices; k++) {
-                indices.push_back(face.mIndices[k]);
-            }
-        }
-
-        std::cout << "Mesh name : " << node->mName.C_Str() << std::endl;
-		std::cout << "Faces number : " << mesh->mNumFaces << std::endl;
-        std::cout << "Vertices: " << vertices.size() << std::endl;
-
-        totalFaces += mesh->mNumFaces;
-
-
-    }
-
-    for (unsigned int i = 0; i < node->mNumChildren; i++) {
-        processNode(scene, node->mChildren[i], vertices, indices);
-    }
-    std::cout << "Total faces number : " << totalFaces << std::endl;
-	
-}
-void App::loadGLTF(const char* filePath, const char* texDir, const int EntityID) {
-    Assimp::Importer importer;
-    const aiScene* scene = importer.ReadFile(filePath, aiProcess_OptimizeMeshes | aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
-    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-        std::cout << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
-        exit(-1);
-    }
-	TransformComponent transform;
-	RenderComponent render;
-    unsigned int obj = EntityID;
-    transform.position = { 0.f, 0.f, 9.f };
-    transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
-    transform.size = { 1.0f, 0.168f, 18.0f };
-    transformComponents[obj] = transform;
-
-
-    for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
-        std::vector<float> vertices;
-        std::vector<unsigned int> indices;
-
-        aiMesh* mesh = scene->mMeshes[i];
-
-        // Extract vertices
-        for (unsigned int j = 0; j < mesh->mNumVertices; j++) {
-            // Position
-            vertices.push_back(mesh->mVertices[j].x);
-            vertices.push_back(mesh->mVertices[j].y);
-            vertices.push_back(mesh->mVertices[j].z);
-
-            // Normal
-            vertices.push_back(mesh->mNormals[j].x);
-            vertices.push_back(mesh->mNormals[j].y);
-            vertices.push_back(mesh->mNormals[j].z);
-
-            // Texture coordinates (if available)
-            if (mesh->mTextureCoords[0]) {
-                vertices.push_back(mesh->mTextureCoords[0][j].x);
-                vertices.push_back(mesh->mTextureCoords[0][j].y);
-            }
-            else {
-                vertices.push_back(0.0f);
-                vertices.push_back(0.0f);
-            }
-
-            // Tangent
-            vertices.push_back(mesh->mTangents[j].x);
-            vertices.push_back(mesh->mTangents[j].y);
-            vertices.push_back(mesh->mTangents[j].z);
-
-            // Bitangent
-            vertices.push_back(mesh->mBitangents[j].x);
-            vertices.push_back(mesh->mBitangents[j].y);
-            vertices.push_back(mesh->mBitangents[j].z);
-        }
-
-        // Extract indices
-        for (unsigned int j = 0; j < mesh->mNumFaces; j++) {
-            const aiFace& face = mesh->mFaces[j];
-            for (unsigned int k = 0; k < face.mNumIndices; k++) {
-                indices.push_back(face.mIndices[k]);
-            }
-        }
-
-        std::string diffuseTexturePath = "default_diffuse.jpg";
-        std::string normalTexturePath = "default_normal.jpg";
-        std::string emissiveTexturePath = "default_emissive.jpg";
-
-        aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-
-        aiString path;
-        if (material->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS) {
-            diffuseTexturePath =  std::string(texDir) + path.C_Str();
-            std::cout << "Diffuse texture: " << path.C_Str() << std::endl;
-            texturesList[mesh->mName.C_Str()] = make_texture(diffuseTexturePath.c_str(), false);
-        }
-
-		if (material->GetTexture(aiTextureType_NORMALS, 0, &path) == AI_SUCCESS) {
-			normalTexturePath = std::string(texDir) + path.C_Str();
-			std::cout << "Normal texture: " << std::string(texDir) +  path.C_Str() << std::endl;
-			normalMapsList[mesh->mName.C_Str()] = make_texture(normalTexturePath.c_str(), false);
-		}
-
-
-        // Create VAO
-        unsigned int VAO;
-        glGenVertexArrays(1, &VAO);
-        VAOs.push_back(VAO);
-        glBindVertexArray(VAO);
-
-        // Create VBO for vertices
-        unsigned int VBO;
-        glGenBuffers(1, &VBO);
-        VBOs.push_back(VBO);
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
-
-        // Create EBO for indices
-        unsigned int EBO;
-        glGenBuffers(1, &EBO);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
-
-        // Set vertex attribute pointers
-        // Position attribute
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)0); // 8 * sizeof(float) stride (3 for pos, 3 for normal, 2 for tex)
-
-
-        // Texture coordinate attribute
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(sizeof(float[3]))); // Normal starts after 3 floats for position
-
-
-        // Normal attribute
-        glEnableVertexAttribArray(2);
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(sizeof(float[6]))); // Tex coords start after 6 floats (3 for pos, 3 for normal)
-
-        // Tangent attribute
-        glEnableVertexAttribArray(3);
-        glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(8 * sizeof(float))); // Tangent starts after 8 floats (3 for pos, 3 for normal, 2 for tex)
-
-        // Bitangent attribute
-        glEnableVertexAttribArray(4);
-        glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(11 * sizeof(float))); // Bitangent starts after 11 floats (3 for pos, 3 for normal, 2 for tex, 3 for tangent)
-
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-
-        // Store VAO and index count
-        renderModels[mesh->mName.C_Str()] = std::make_pair(VAO, indices.size());
-        std::cout << mesh->mName.C_Str() << std::endl;
-
-
-        render.mesh = renderModels[mesh->mName.C_Str()].first;
-        render.indexCount = renderModels[mesh->mName.C_Str()].second;
-        render.material = texturesList[mesh->mName.C_Str()];
-		render.normalMap = normalMapsList[mesh->mName.C_Str()];
-        renderComponents[obj].push_back(render);
-    }
-}
-
-std::pair<unsigned int, unsigned int> App::make_model(const char* filePath) {
-
-    std::vector<float> vertices;
-    std::vector<unsigned int> indices;
-
-    Assimp::Importer importer;
-    const aiScene* scene = importer.ReadFile( filePath, aiProcess_OptimizeMeshes | aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
-    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-        std::cout << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
-        exit(-1);
-    }
-
-    processNode(scene, scene->mRootNode, vertices, indices);
-
-    // Create VAO
-    unsigned int VAO;
-    glGenVertexArrays(1, &VAO);
-    VAOs.push_back(VAO);
-    glBindVertexArray(VAO);
-
-    // Create VBO for vertices
-    unsigned int VBO;
-    glGenBuffers(1, &VBO);
-    VBOs.push_back(VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
-
-    // Create EBO for indices
-    unsigned int EBO;
-    glGenBuffers(1, &EBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
-
-    // Set vertex attribute pointers
-    // Position attribute
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)0); // 8 * sizeof(float) stride (3 for pos, 3 for normal, 2 for tex)
-
-
-    // Texture coordinate attribute
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(sizeof(float[3]))); // Normal starts after 3 floats for position
-    
-
-    // Normal attribute
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(sizeof(float[6]))); // Tex coords start after 6 floats (3 for pos, 3 for normal)
-
-    // Tangent attribute
-    glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(8 * sizeof(float))); // Tangent starts after 8 floats (3 for pos, 3 for normal, 2 for tex)
-
-    // Bitangent attribute
-    glEnableVertexAttribArray(4);
-    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(11 * sizeof(float))); // Bitangent starts after 11 floats (3 for pos, 3 for normal, 2 for tex, 3 for tangent)
-    
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
-
-    // Return a tuple of the VAO and the number of indices
-    return std::make_pair(VAO, indices.size());
-}
-
-std::pair<unsigned int, unsigned int> App::make_cube_mesh(glm::vec3 size) {
-
-    // Cube vertex data: each vertex has a position, normal, and texture coordinate
-    // The cube will be centered at (0, 0, 0) and scaled by the given size
-    std::vector<float> vertices = {
-        // Positions            // Normals           // TexCoords
-        -0.5f * size.x, -0.5f * size.y, -0.5f * size.z,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,  // Back face
-         0.5f * size.x, -0.5f * size.y, -0.5f * size.z,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
-         0.5f * size.x,  0.5f * size.y, -0.5f * size.z,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
-        -0.5f * size.x,  0.5f * size.y, -0.5f * size.z,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
-
-        -0.5f * size.x, -0.5f * size.y,  0.5f * size.z,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,  // Front face
-         0.5f * size.x, -0.5f * size.y,  0.5f * size.z,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
-         0.5f * size.x,  0.5f * size.y,  0.5f * size.z,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-        -0.5f * size.x,  0.5f * size.y,  0.5f * size.z,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
-
-        -0.5f * size.x,  0.5f * size.y,  0.5f * size.z, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  // Left face
-        -0.5f * size.x,  0.5f * size.y, -0.5f * size.z, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-        -0.5f * size.x, -0.5f * size.y, -0.5f * size.z, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-        -0.5f * size.x, -0.5f * size.y,  0.5f * size.z, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-
-         0.5f * size.x,  0.5f * size.y,  0.5f * size.z,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  // Right face
-         0.5f * size.x,  0.5f * size.y, -0.5f * size.z,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-         0.5f * size.x, -0.5f * size.y, -0.5f * size.z,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-         0.5f * size.x, -0.5f * size.y,  0.5f * size.z,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-
-        -0.5f * size.x, -0.5f * size.y, -0.5f * size.z,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,  // Bottom face
-         0.5f * size.x, -0.5f * size.y, -0.5f * size.z,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-         0.5f * size.x, -0.5f * size.y,  0.5f * size.z,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
-        -0.5f * size.x, -0.5f * size.y,  0.5f * size.z,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
-
-        -0.5f * size.x,  0.5f * size.y, -0.5f * size.z,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,  // Top face
-         0.5f * size.x,  0.5f * size.y, -0.5f * size.z,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-         0.5f * size.x,  0.5f * size.y,  0.5f * size.z,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
-        -0.5f * size.x,  0.5f * size.y,  0.5f * size.z,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
-    };
-
-    // Cube indices (corrected to counterclockwise winding order for back-face culling)
-    std::vector<unsigned int> indices = {
-        // Back face (now clockwise)
-        3, 1, 0,
-        3, 2, 1,
-
-        // Front face
-        5, 7, 4,
-        6, 7, 5,
-
-        // Left face
-        9, 11, 8,
-        10, 11, 9,
-
-        // Right face
-        15, 13, 12,
-        15, 14, 13,
-
-        // Bottom face
-        16, 17, 19,
-        17, 18, 19,
-
-        // Top face
-        20,23,21,
-        21, 23, 22
-    };
-
-    // Create VAO
-    unsigned int VAO;
-    glGenVertexArrays(1, &VAO);
-    VAOs.push_back(VAO);
-    glBindVertexArray(VAO);
-
-    // Create VBO for vertices
-    unsigned int VBO;
-    glGenBuffers(1, &VBO);
-    VBOs.push_back(VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
-
-    // Create EBO for indices
-    unsigned int EBO;
-    glGenBuffers(1, &EBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
-
-    // Set vertex attribute pointers
-    // Position attribute
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-
-    // Normal attribute
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-
-    // Texture coordinate attribute
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-
-    // Return a pair of the VAO and the number of indices
-    return std::make_pair(VAO, indices.size());
-}
-
-unsigned int App::make_texture(const char* filename, const bool flipTex) {
-
-    int width, height, channels;
-    stbi_set_flip_vertically_on_load(flipTex);
-    unsigned char* data = stbi_load(
-        filename, &width, &height, &channels, STBI_rgb_alpha);
-
-    if (!data) {
-        std::cerr << "Failed to load texture: " << filename << std::endl;
-        return 0;  // Return 0 if texture loading fails
-    }
-
-    //make the texture
-    unsigned int texture;
-    glGenTextures(1, &texture);
-    textures.push_back(texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-
-    //load data
-    glTexImage2D(GL_TEXTURE_2D,
-        0, GL_RGBA, width, height, 0,
-        GL_RGBA, GL_UNSIGNED_BYTE, data);
-
-    //free data
-    stbi_image_free(data);
-
-    //Configure sampler
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    
-
-    return texture;
-}
-
-// TODO: Place this function in a specific ImGui file
-bool App::DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale)
-{
-    // From glm::decompose in matrix_decompose.inl
-
-    using namespace glm;
-    using T = float;
-
-    mat4 LocalMatrix(transform);
-
-    // Normalize the matrix.
-    if (epsilonEqual(LocalMatrix[3][3], static_cast<float>(0), epsilon<T>()))
-        return false;
-
-    // First, isolate perspective.  This is the messiest.
-    if (
-        epsilonNotEqual(LocalMatrix[0][3], static_cast<T>(0), epsilon<T>()) ||
-        epsilonNotEqual(LocalMatrix[1][3], static_cast<T>(0), epsilon<T>()) ||
-        epsilonNotEqual(LocalMatrix[2][3], static_cast<T>(0), epsilon<T>()))
-    {
-        // Clear the perspective partition
-        LocalMatrix[0][3] = LocalMatrix[1][3] = LocalMatrix[2][3] = static_cast<T>(0);
-        LocalMatrix[3][3] = static_cast<T>(1);
-    }
-
-    // Next take care of translation (easy).
-    translation = vec3(LocalMatrix[3]);
-    LocalMatrix[3] = vec4(0, 0, 0, LocalMatrix[3].w);
-
-    vec3 Row[3], Pdum3;
-
-    // Now get scale and shear.
-    for (length_t i = 0; i < 3; ++i)
-        for (length_t j = 0; j < 3; ++j)
-            Row[i][j] = LocalMatrix[i][j];
-
-    // Compute X scale factor and normalize first row.
-    scale.x = length(Row[0]);
-    Row[0] = detail::scale(Row[0], static_cast<T>(1));
-    scale.y = length(Row[1]);
-    Row[1] = detail::scale(Row[1], static_cast<T>(1));
-    scale.z = length(Row[2]);
-    Row[2] = detail::scale(Row[2], static_cast<T>(1));
-
-    // At this point, the matrix (in rows[]) is orthonormal.
-    // Check for a coordinate system flip.  If the determinant
-    // is -1, then negate the matrix and the scaling factors.
-#if 0
-    Pdum3 = cross(Row[1], Row[2]); // v3Cross(row[1], row[2], Pdum3);
-    if (dot(Row[0], Pdum3) < 0)
-    {
-        for (length_t i = 0; i < 3; i++)
-        {
-            scale[i] *= static_cast<T>(-1);
-            Row[i] *= static_cast<T>(-1);
-        }
-    }
-#endif
-
-    rotation.y = asin(-Row[0][2]);
-    if (cos(rotation.y) != 0) {
-        rotation.x = atan2(Row[1][2], Row[2][2]);
-        rotation.z = atan2(Row[0][1], Row[0][0]);
-    }
-    else {
-        rotation.x = atan2(-Row[2][0], Row[1][1]);
-        rotation.z = 0;
-    }
-
-
-    return true;
-}
-
-
-//ImGui variables
-unsigned int selectedEntityID = 0;
-int gizmo_type = -1;
-bool gizmo_world = true;
-physx::PxVec3 force = { 0.f, 0.f, 0.f };
-float targetMass;
-glm::vec2 targetSolverIteration;
-glm::vec2 targetDamping;
-float targetSleepT = 0.f;
-physx::PxVec3 targetCMass;
-
-// Imgui Create Entity Variables
-    //Global
-char newEntityName[128] = "NewObject";
-static bool addTransform = false;
-static bool addPhysics = false;
-static bool addRender = false;
-static bool addLight = false;
-
-    // Transform
-static glm::vec3 newPosition = { 0,0,0 };
-static glm::quat newEulers = { 0,0,0,0 };
-
-    // Physics
-static int isStatic = 1;
-static int geometry = 0;
-static physx::PxVec3 boxSize = { 0, 0, 0 };
-static float sphereRadius = 0.0f;
-static std::string selectedModelName = "";
-static float newEntityStaticFriction = 0.5f;
-static float newEntityDynamicFriction = 0.5f;
-static float newEntityRestitution = 0.5f;
-static float newEntityMass = 1.f;
-static int newEntitySolverPosition = 4;
-static int newEntitySolverVelocity = 4;
-static float newEntityLinearDamping = 0.5f;
-static float newEntityAngularDamping = 0.5f;
-static float newEntitySleepT = 0.1f;
-
-static std::string selectedRModelName = "";
-static std::string selectedTexturesName = "";
-
-    // Light
-static glm::vec3 newEntityColor = { 0,0,0 };
-static float newEntityIntensity = 0.f;
-
-static std::string error_msg = "";
-
-//Lines related variables
-short type_reference_frame = 2;
-bool grid_display = true;
 
 ///<summary>
 /// run methods launching the renderer pipeline :
@@ -565,8 +28,13 @@ void App::run() {
     float fpsTimeCounter = 0.0f;
     int frameCount = 0;
 
+    //Lines related variables
+    short type_reference_frame = 2;
+    bool grid_display = true;
+
+    //systemManager->shadowSystem->Initialize(entityManager->lightComponents);
     //while loop iterating on the renderer pipeline : 
-    shadowSystem->Initialize(lightComponents);
+    //shadowSystem->Initialize(lightComponents);
     while (!glfwWindowShouldClose(window)) {
         // Per-frame time logic
         // -------------------
@@ -597,55 +65,32 @@ void App::run() {
             fpsTimeCounter = 0.0f;
         }
 
-        if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS && hasPhysics) {
-            physx::PxVec3 force(0, 0, 0.5);
-            motionSystem->applyForceToActor(physicsComponents[1].rigidBody, force);
+        bool should_close = inputManager->getInput(window, hasPhysics);
+        if (should_close) {
+            break;
         }
 
         // Update systems
         if (accumulatedTime >= 0.00833) {
-            motionSystem->update(transformComponents, physicsComponents, accumulatedTime);
+            //systemManager->motionSystem->update(entityManager->transformComponents, entityManager->physicsComponents, accumulatedTime);
             accumulatedTime = 0.;
         }
-        bool should_close = cameraSystem->update(transformComponents, cameraComponents, cameraID, deltaTime);
-        if (should_close) {
-            break;
-        }
-        lightSystem->update(lightComponents, transformComponents, cameraID);
-        renderSystem->update(transformComponents, renderComponents, lightComponents);
-        shadowSystem->GenerateShadowMap(lightComponents, transformComponents, renderComponents, screenWidth, screenHeight, cameraID);
+        
+        systemManager->cameraSystem->update(entityManager->transformComponents, entityManager->cameraComponents, entityManager->cameraID, deltaTime);
+        //systemManager->lightSystem->update(entityManager->lightComponents, entityManager->transformComponents, entityManager->cameraID);
+        systemManager->renderSystem->update(entityManager->transformComponents, entityManager->renderComponents, entityManager->lightComponents);
+        //systemManager->shadowSystem->GenerateShadowMap(entityManager->lightComponents, entityManager->transformComponents, entityManager->renderComponents, screenWidth, screenHeight, entityManager->cameraID);
 
         //Draw Lines
         //Add here more lines to draw...
-        lineSystem->render_lines_ref_frame_grid(type_reference_frame, grid_display, transformComponents[cameraID].position, shader);
+        //systemManager ->lineSystem->render_lines_ref_frame_grid(type_reference_frame, grid_display, entityManager->transformComponents[entityManager->cameraID].position, shader);
 
-
-        // Start //ImGui window for debugging
-        ImGui::Begin("Debug");
-
-        // Display FPS
-        ImGui::Text("FPS: %f", 1.0f / deltaTime);
-
-        ImGui::End();
-
-        // --- Entity Tree Window ---
-        ImGui::Begin("Entity Tree");
-
-        // Loop through all entities to create a tree view
-        for (int entityID = 0; entityID < entity_count; entityID++) {
-            std::string entityLabel = entityNames.at(entityID);
-
-            // Display each entity as selectable
-            if (ImGui::Selectable(entityLabel.c_str(), selectedEntityID == entityID)) {
-                selectedEntityID = entityID; // Set the selected entity when clicked
-
-            }
-        }
-
-        ImGui::End(); // End of Entity Tree window
-
+        imguiManager->displayFrameRate(deltaTime);
+        imguiManager->ShowStyleEditor(entityManager->entity_count, entityManager->entityNames, meshManager->texturesList, meshManager->renderModels, entityManager->renderComponents);
+        
+        std::cout << "Camera position: " << entityManager->transformComponents[0].position.x << ", " << entityManager->transformComponents[0].position.y << ", " << entityManager->transformComponents[0].position.z << std::endl;
         // If an entity is selected, show its components
-        if (selectedEntityID < entity_count && selectedEntityID != -1) {
+            /*
             // --- Inspector Window ---
             ImGui::Begin("Inspector");
 
@@ -875,7 +320,7 @@ void App::run() {
 
 
 
-            /*strcpy_s(newEntityName, sizeof(newEntityName), "NewObject");
+            strcpy_s(newEntityName, sizeof(newEntityName), "NewObject");
             addTransform = false;
             addPhysics = false;
             addRender = false;
@@ -911,14 +356,14 @@ void App::run() {
             // Réinitialiser les champs
             addTransform = false;
             addPhysics = false;
-            addRender = false;*/
+            addRender = false;
 
 
 
         }
         ImGui::Text(error_msg.c_str());
 
-        ImGui::End();
+        ImGui::End();*/
 
         // --- Physics Window
         ImGui::Begin("Physics Window");
@@ -944,16 +389,16 @@ void App::run() {
         // --- Camera Window
         ImGui::Begin("Current Camera");
 
-        for (auto const& camera : cameraComponents) {
-            std::string entityLabel = entityNames.at(camera.first);
-            if (ImGui::Selectable(entityLabel.c_str(), cameraID == camera.first)) {
-                cameraID = camera.first;
+        for (auto const& camera : entityManager->cameraComponents) {
+            std::string entityLabel = entityManager->entityNames.at(camera.first);
+            if (ImGui::Selectable(entityLabel.c_str(), entityManager->cameraID == camera.first)) {
+                entityManager->cameraID = camera.first;
             }
         }
 
         ImGui::End(); // End of Camera window
 
-
+        
         // --- Settings Window ---
         ImGui::Begin("Settings");
         ImGui::Text("Reference Frame");
@@ -971,7 +416,7 @@ void App::run() {
             if (ImGui::Button(" Partial Reference Frame ", ImVec2(-1.0f, 0.0f)))
             {
                 type_reference_frame = 2;
-                lineSystem->reset_reference_frame();
+                systemManager->lineSystem->reset_reference_frame();
             }
             ImGui::PopStyleColor(2);
             break;
@@ -992,7 +437,7 @@ void App::run() {
                 if (type_reference_frame == 1)
                 {
                     type_reference_frame = 2;
-                    lineSystem->reset_reference_frame();
+                    systemManager->lineSystem->reset_reference_frame();
                 }
             }
             ImGui::PopStyleColor(2);
@@ -1003,6 +448,9 @@ void App::run() {
                 grid_display = true;
         }
 
+        ImGui::End();
+
+        /*
         // TODO: Make scale work
         ImGui::Text("Gizmo Settings");
         switch (gizmo_type) {
@@ -1084,7 +532,7 @@ void App::run() {
                 transformComponents[selectedEntityID].eulers = currentRotation;
                 transformComponents[selectedEntityID].size = scale;
             }
-        }
+        }*/
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -1121,9 +569,6 @@ void App::set_up_opengl() {
     shader = make_shader(
         "shaders/shader.vert",
         "shaders/shader.frag");
-    shader = make_shader(
-        "shaders/shader.vert",
-        "shaders/shader.frag");
 
     shadowShader = make_shader(
         "shaders/shadowShader.vert",
@@ -1134,25 +579,15 @@ void App::set_up_opengl() {
 		"shaders/depthMap.frag");
 
 
-
     glUseProgram(shader);
     unsigned int projLocation = glGetUniformLocation(shader, "projection");
     //TODO : add configurable perspective :
 }   
 
-void App::make_systems() {
-    motionSystem = new MotionSystem();
-    cameraSystem = new CameraSystem(shader, window);
-	lightSystem = new LightSystem(shader);
-	shadowSystem = new ShadowSystem(shader,shadowShader, depthMapDebugShader);
-    renderSystem = new RenderSystem(shader, window);
-    lineSystem = new LineSystem();
-}
-
 void App::loadModelsAndTextures()
 {
     // Lane
-	const int lane = make_entity("Lane");
+	/*const int lane = make_entity("Lane");
     loadGLTF("obj/nashville/Piste.gltf", "obj/nashville/", lane);
 
     // Lane 2
@@ -1165,12 +600,12 @@ void App::loadModelsAndTextures()
 
     //TV
     const int TV = make_entity("TV");
-	loadGLTF("obj/nashville/TV.gltf", "obj/nashville/", TV);
+	loadGLTF("obj/nashville/TV.gltf", "obj/nashville/", TV);*/
 
-    //Pin Statue
-    const int PinStatue = make_entity("PinStatue");
-	loadGLTF("obj/nashville/PinStatue.gltf", "obj/nashville/", PinStatue);
+    //entityManager->transformComponents[entityManager->cameraEntity] = transform;
 
+
+    /*
     //Ball1
 	const int Ball1 = make_entity("Ball1");
 	loadGLTF("obj/nashville/Ball1.gltf", "obj/nashville/", Ball1);
@@ -1199,12 +634,12 @@ void App::loadModelsAndTextures()
     physicsModels["Pin"] = meshes;
     renderModels["Pin"] = pinModel;
     texturesList["Pin"] = make_texture("obj/bowling/textures/Bowling_Pack_Diffuse.png", false);
-    normalMapsList["Pin"] = make_texture("obj/bowling/textures/Bowling_Pack_Normal.png", false);
+    //normalMapsList["Pin"] = make_texture("obj/bowling/textures/Bowling_Pack_Normal.png", false);*/
 
     // Light
-    std::pair<unsigned int, unsigned int> defaultCubeModel = make_cube_mesh({ 0.1f, 0.1f, 0.1f });
-    renderModels["Light"] = defaultCubeModel;
-    texturesList["Light"] = make_texture("tex/lightTex.png", false);
+    std::pair<unsigned int, unsigned int> defaultCubeModel = meshManager->make_cube_mesh({ 0.1f, 0.1f, 0.1f });
+    meshManager->renderModels["Light"] = defaultCubeModel;
+    meshManager->texturesList["Light"] = meshManager->make_texture("tex/lightTex.png", false);
 }
 
 void App::loadEntities()
@@ -1302,10 +737,10 @@ void App::loadEntities()
  //   }
 
  //   // Camera
-    unsigned int cameraEntity = make_entity("Camera");
+    unsigned int cameraEntity = entityManager->make_entity("Camera");
     transform.position = { 0.0f, 0.0f, 0.0f };
     transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
-    transformComponents[cameraEntity] = transform;
+    entityManager->transformComponents[cameraEntity] = transform;
     
     camera.fov = 45.0f;
     camera.aspectRatio = 16.0f / 9.0f;
@@ -1313,67 +748,58 @@ void App::loadEntities()
     camera.farPlane = 100.0f;
     camera.sensitivity = 0.5f;
     camera.initialForward = { 0,0,1,0 };
-    cameraComponents[cameraEntity] = camera;
-    cameraID = cameraEntity;
+    entityManager->cameraComponents[cameraEntity] = camera;
+    entityManager->cameraID = cameraEntity;
 
     //First light
-    unsigned int lightEntity1 = make_entity("First Light");
+    /*
+    unsigned int lightEntity1 = entityManager->make_entity("First Light");
     transform.position = { 0.0f, 0.0f, 0.0f };
     transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
-    transformComponents[lightEntity1] = transform;
+    entityManager->transformComponents[lightEntity1] = transform;
+    printf("%d \n", lightEntity1);
 
     light.color = { 0.0f, 1.0f, 1.0f };
     light.intensity = 1.0f;
-    lightComponents[lightEntity1] = light;
+    entityManager->lightComponents[lightEntity1] = light;
 
-    render.mesh = renderModels["Light"].first;
-    render.indexCount = renderModels["Light"].second;
-    render.material = texturesList["Light"];
-    renderComponents[lightEntity1].push_back(render);
-
+    render.mesh = meshManager->renderModels["Light"].first;
+    render.indexCount = meshManager->renderModels["Light"].second;
+    render.material = meshManager->texturesList["Light"];
+    entityManager->renderComponents[lightEntity1].push_back(render);
+    */
     //Second light: 
-    unsigned int lightEntity2 = make_entity("Second Light");
+    unsigned int lightEntity2 = entityManager->make_entity("Second Light");
     transform.position = { 0.0f, 4.0f, 4.0f };
     transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
-    transformComponents[lightEntity2] = transform;
+    entityManager->transformComponents[lightEntity2] = transform;
+    printf("%d \n", lightEntity2);
 
     light.color = { 1.0f, 1.0f, 1.0f };
     light.intensity = 1.0f;
     light.isDirectional = true;
     light.direction = { 1.0f, -6.0f, 4.0f };
-    lightComponents[lightEntity2] = light;
+    entityManager->lightComponents[lightEntity2] = light;
 
-    render.mesh = renderModels["Light"].first;
-    render.indexCount = renderModels["Light"].second;
-    render.material = texturesList["Light"];
-    renderComponents[lightEntity2].push_back(render);
+    render.mesh = meshManager->renderModels["Light"].first;
+    render.indexCount = meshManager->renderModels["Light"].second;
+    render.material = meshManager->texturesList["Light"];
+    entityManager->renderComponents[lightEntity2].push_back(render);
 
-}
+    /*
+    //Pin Statue
+    const int PinStatue = entityManager->make_entity("PinStatue");
+    meshManager->loadGLTF("obj/nashville/PinStatue.gltf", "obj/nashville/", PinStatue);
 
-MotionSystem* App::getMotionSystem()
-{
-    return motionSystem;
-}
-
-std::unordered_map<std::string, std::pair<unsigned int, unsigned int>> App::getRenderModels() const
-{
-    return renderModels;
-}
-
-std::unordered_map<std::string, unsigned int> App::getTexturesList() const
-{
-    return texturesList;
-}
-
-std::unordered_map<std::string, std::vector<physx::PxConvexMesh*>> App::getPhysicsModels() const
-{
-    return physicsModels;
+    transform.position = { 0.0f, 0.0f, 0.0f };
+    transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
+    entityManager->transformComponents[PinStatue] = transform;*/
 }
 
 int App::getEntityByName(std::string name) const
 {
     int id = -1;
-    for (const auto& pair : entityNames) {
+    for (const auto& pair : entityManager->entityNames) {
         if (pair.second == name) {
             id = pair.first;
         }
@@ -1382,9 +808,6 @@ int App::getEntityByName(std::string name) const
 
 
 }
-
-
-
 /// <summary>
 /// Callback function for when the window is resized
 /// </summary>
@@ -1411,7 +834,7 @@ void App::set_up_glfw() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 
-    window = glfwCreateWindow(1920, 1080, "Guillaume Engine", NULL, NULL);
+    window = glfwCreateWindow(1920, 1080, "Gutter Engine", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -1434,5 +857,4 @@ void App::set_up_glfw() {
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 460");
-
 }

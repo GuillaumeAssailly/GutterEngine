@@ -1,6 +1,7 @@
 #include "saverJSON.h"
 #include <regex>
 
+/*
 void SaverJSON::savePins(App* app)
 {
     int countPins = 0;
@@ -272,5 +273,5 @@ SaverJSON::SaverJSON(std::string fileName):
     jsonData["lane"] = json({});
 
 
-}
+}*/
 

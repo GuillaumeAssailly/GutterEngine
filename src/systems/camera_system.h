@@ -19,16 +19,18 @@ public:
 private:
     unsigned int viewLocation;
     GLint projectionLocation;
+    float baseSpeed;
+    float speedMultiplier;
+    bool moving = false;
 
     bool firstMouse = true;
-
-    bool moving = false;
     double mouse_x_ref = .0f;
     double mouse_y_ref = .0f;
 
     glm::mat4 viewMatrix;
     glm::mat4 projectionMatrix;
 
-    glm::vec3 global_up = { 0.0f, 1.0f, 0.0f };
+    glm::vec3 global_up = { 0.f, 1.f, 0.f };
+    glm::vec3 dPos = { 0.f, 0.f, 0.f };
     GLFWwindow* window;
 };

@@ -1,5 +1,6 @@
 #include "loaderJSON.h"
 
+/*
 void LoaderJSON::loadPins(App* app, CameraComponent *camera) const {
     TransformComponent transform;
     PhysicsComponent physics;
@@ -296,6 +297,6 @@ LoaderJSON::LoaderJSON(std::string fileName)
     file >> jsonData;
 
 }
-
+*/
 
 

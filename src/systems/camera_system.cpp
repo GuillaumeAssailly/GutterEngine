@@ -1,7 +1,7 @@
 #include "camera_system.h"
 
 // Constructor for CameraSystem: Initializes with the shader program and GLFW window
-CameraSystem::CameraSystem(unsigned int shader, GLFWwindow* window) {
+CameraSystem::CameraSystem(unsigned int shader, GLFWwindow* window){
     this->window = window;
 
     glUseProgram(shader);
@@ -12,7 +12,7 @@ CameraSystem::CameraSystem(unsigned int shader, GLFWwindow* window) {
 // Updates the camera system state, applying transformations and handling user inputs
 bool CameraSystem::update(
     std::unordered_map<unsigned int, TransformComponent>& transformComponents,
-    std::unordered_map<unsigned int, CameraComponent>& cameraComponents,   
+    std::unordered_map<unsigned int, CameraComponent>& cameraComponents,
     unsigned int cameraID, float dt
 ) {
     // Access the position and rotation of the current camera's transform
@@ -85,8 +85,8 @@ bool CameraSystem::update(
 
             float speed = baseSpeed * speedMultiplier * dt;
             pos += speed * dPos.x * forward;
-            pos += speed * dPos.y * right;  
-            pos += speed * dPos.z * up;   
+            pos += speed * dPos.y * right;
+            pos += speed * dPos.z * up;
         }
 
         // Handle mouse input for camera rotation
