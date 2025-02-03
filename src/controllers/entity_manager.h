@@ -8,6 +8,7 @@
 #include "../components/render_component.h"
 class App;
 class MeshManager;
+class Inputmanager;
 
 class EntityManager
 {
@@ -17,6 +18,7 @@ public:
 
     friend class App;
     friend class MeshManager;
+    friend class InputManager;
 
     unsigned int make_entity(const std::string&);
     std::unordered_map<unsigned int, std::string>& getEntityNames();

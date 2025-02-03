@@ -10,6 +10,7 @@ App::App() {
     entityManager = new EntityManager();
     systemManager = new SystemManager(window, shader, shadowShader, depthMapDebugShader);
     meshManager = new MeshManager(entityManager);
+    inputManager = new InputManager(systemManager, entityManager);
 }
 
 App::~App() {
@@ -20,6 +21,7 @@ App::~App() {
 
     delete systemManager;
     delete entityManager;
+    delete meshManager;
 
     glfwTerminate();
 }
@@ -190,9 +192,9 @@ void App::run() {
             fpsTimeCounter = 0.0f;
         }
 
-        if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS && hasPhysics) {
-            physx::PxVec3 force(0, 0, 0.5);
-            systemManager->motionSystem->applyForceToActor(entityManager->physicsComponents[1].rigidBody, force);
+        bool should_close = inputManager->getInput(window, hasPhysics);
+        if (should_close) {
+            break;
         }
 
         // Update systems
@@ -200,10 +202,7 @@ void App::run() {
             systemManager->motionSystem->update(entityManager->transformComponents, entityManager->physicsComponents, accumulatedTime);
             accumulatedTime = 0.;
         }
-        bool should_close = systemManager->cameraSystem->update(entityManager->transformComponents, entityManager->cameraComponents, entityManager->cameraID, deltaTime);
-        if (should_close) {
-            break;
-        }
+        systemManager->cameraSystem->update(entityManager->transformComponents, entityManager->cameraComponents, entityManager->cameraID, deltaTime);
         systemManager->lightSystem->update(entityManager->lightComponents, entityManager->transformComponents, entityManager->cameraID);
         systemManager->renderSystem->update(entityManager->transformComponents, entityManager->renderComponents, entityManager->lightComponents);
         systemManager->shadowSystem->GenerateShadowMap(entityManager->lightComponents, entityManager->transformComponents, entityManager->renderComponents, screenWidth, screenHeight, entityManager->cameraID);

@@ -10,7 +10,7 @@ CameraSystem::CameraSystem(unsigned int shader, GLFWwindow* window) {
 }
 
 // Updates the camera system state, applying transformations and handling user inputs
-bool CameraSystem::update(
+void CameraSystem::update(
     std::unordered_map<unsigned int, TransformComponent>& transformComponents,
     std::unordered_map<unsigned int, CameraComponent>& cameraComponents,   
     unsigned int cameraID, float dt
@@ -42,11 +42,6 @@ bool CameraSystem::update(
     // Send matrices to the shader
     glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(viewMatrix));
     glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
-
-    // Check if the ESC key is pressed to exit the update loop
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-        return true;
-    }
 
     // Handle right mouse button press for enabling/disabling movement
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
@@ -107,7 +102,6 @@ bool CameraSystem::update(
     }
 
     glfwPollEvents();
-    return false;
 }
 
 glm::mat4 CameraSystem::GetViewMatrix() {

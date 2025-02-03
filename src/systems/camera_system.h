@@ -8,7 +8,7 @@ public:
 
     CameraSystem(unsigned int shader, GLFWwindow* window);
 
-    bool update(
+    void update(
         std::unordered_map<unsigned int, TransformComponent>& transformComponents,
         std::unordered_map<unsigned int, CameraComponent>& cameraComponents,
         unsigned int cameraID, float dt);

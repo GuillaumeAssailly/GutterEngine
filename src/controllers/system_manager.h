@@ -9,6 +9,7 @@
 #include "../systems/shadow_system.h"
 
 class App;
+class InputManager;
 
 class SystemManager
 {
@@ -26,4 +27,5 @@ public:
     ~SystemManager();
 
     friend class App;
+    friend class InputManager;
 };
