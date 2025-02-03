@@ -7,6 +7,7 @@
 #include "../components/light_component.h"
 #include "../components/render_component.h"
 class App;
+class MeshManager;
 
 class EntityManager
 {
@@ -15,6 +16,7 @@ public:
     ~EntityManager();
 
     friend class App;
+    friend class MeshManager;
 
     unsigned int make_entity(const std::string&);
     std::unordered_map<unsigned int, std::string>& getEntityNames();

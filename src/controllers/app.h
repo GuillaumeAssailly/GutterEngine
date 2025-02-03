@@ -3,6 +3,7 @@
 
 #include "entity_manager.h"
 #include "system_manager.h"
+#include "mesh_manager.h"
 
 #include "../view/shader.h"
 #include "../components/light_component.h"
@@ -11,20 +12,12 @@
 //Callbacks
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
-
-
 class App {
 public:
     App();
     ~App();
     void run();
-    
-    std::pair<unsigned int, unsigned int> make_cube_mesh(glm::vec3 size);
-    std::pair<unsigned int, unsigned int>  make_model(const char *);
-    void loadGLTF(const char* filePath, const char * texDir, const int);
-
-
-    unsigned int make_texture(const char* filename, const bool );
+   
     void set_up_opengl();
     void loadModelsAndTextures();
 
@@ -39,6 +32,7 @@ private:
     void set_up_glfw();
     EntityManager* entityManager;
     SystemManager* systemManager;
+    MeshManager* meshManager;
 
     // TODO: Place this function in a specific ImGui file
     bool DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale);

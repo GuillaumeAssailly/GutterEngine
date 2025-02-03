@@ -1,5 +1,6 @@
 #pragma once
 #include "../config.h"
+#include "entity_manager.h"
 
 class App;
 
@@ -14,8 +15,10 @@ private:
     std::vector<unsigned int> VAOs;
     std::vector<unsigned int> VBOs;
     std::vector<unsigned int> textures;
+
+    EntityManager* entityManager;
 public:
-    MeshManager();
+    MeshManager(EntityManager* em);
     ~MeshManager();
 
     friend class App;

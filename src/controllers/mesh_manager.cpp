@@ -1,6 +1,6 @@
 #include "mesh_manager.h"
 
-/*
+
 static int totalFaces = 0;
 
 void processNode(const aiScene* scene, aiNode* node, std::vector<float>& vertices, std::vector<unsigned int>& indices) {
@@ -52,6 +52,71 @@ void processNode(const aiScene* scene, aiNode* node, std::vector<float>& vertice
     std::cout << "Total faces number : " << totalFaces << std::endl;
 
 }
+
+std::pair<unsigned int, unsigned int> MeshManager::make_model(const char* filePath) {
+
+    std::vector<float> vertices;
+    std::vector<unsigned int> indices;
+
+    Assimp::Importer importer;
+    const aiScene* scene = importer.ReadFile(filePath, aiProcess_OptimizeMeshes | aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+        std::cout << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
+        exit(-1);
+    }
+
+    processNode(scene, scene->mRootNode, vertices, indices);
+
+    // Create VAO
+    unsigned int VAO;
+    glGenVertexArrays(1, &VAO);
+    VAOs.push_back(VAO);
+    glBindVertexArray(VAO);
+
+    // Create VBO for vertices
+    unsigned int VBO;
+    glGenBuffers(1, &VBO);
+    VBOs.push_back(VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+
+    // Create EBO for indices
+    unsigned int EBO;
+    glGenBuffers(1, &EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
+
+    // Set vertex attribute pointers
+    // Position attribute
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)0); // 8 * sizeof(float) stride (3 for pos, 3 for normal, 2 for tex)
+
+
+    // Texture coordinate attribute
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(sizeof(float[3]))); // Normal starts after 3 floats for position
+
+
+    // Normal attribute
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(sizeof(float[6]))); // Tex coords start after 6 floats (3 for pos, 3 for normal)
+
+    // Tangent attribute
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(8 * sizeof(float))); // Tangent starts after 8 floats (3 for pos, 3 for normal, 2 for tex)
+
+    // Bitangent attribute
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(11 * sizeof(float))); // Bitangent starts after 11 floats (3 for pos, 3 for normal, 2 for tex, 3 for tangent)
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+
+    // Return a tuple of the VAO and the number of indices
+    return std::make_pair(VAO, indices.size());
+}
+
 void MeshManager::loadGLTF(const char* filePath, const char* texDir, const int EntityID) {
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(filePath, aiProcess_OptimizeMeshes | aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
@@ -59,6 +124,14 @@ void MeshManager::loadGLTF(const char* filePath, const char* texDir, const int E
         std::cout << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
         exit(-1);
     }
+    TransformComponent transform;
+    RenderComponent render;
+    unsigned int obj = EntityID;
+    transform.position = { 0.f, 0.f, 9.f };
+    transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
+    transform.size = { 1.0f, 0.168f, 18.0f };
+    entityManager->transformComponents[obj] = transform;
+
 
     for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
         std::vector<float> vertices;
@@ -175,74 +248,17 @@ void MeshManager::loadGLTF(const char* filePath, const char* texDir, const int E
         // Store VAO and index count
         renderModels[mesh->mName.C_Str()] = std::make_pair(VAO, indices.size());
         std::cout << mesh->mName.C_Str() << std::endl;
+
+
+        render.mesh = renderModels[mesh->mName.C_Str()].first;
+        render.indexCount = renderModels[mesh->mName.C_Str()].second;
+        render.material = texturesList[mesh->mName.C_Str()];
+        render.normalMap = normalMapsList[mesh->mName.C_Str()];
+        entityManager->renderComponents[obj].push_back(render);
     }
 }
 
-std::pair<unsigned int, unsigned int> MeshManager::make_model(const char* filePath) {
-
-    std::vector<float> vertices;
-    std::vector<unsigned int> indices;
-
-    Assimp::Importer importer;
-    const aiScene* scene = importer.ReadFile(filePath, aiProcess_OptimizeMeshes | aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
-    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-        std::cout << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
-        exit(-1);
-    }
-
-    processNode(scene, scene->mRootNode, vertices, indices);
-
-    // Create VAO
-    unsigned int VAO;
-    glGenVertexArrays(1, &VAO);
-    VAOs.push_back(VAO);
-    glBindVertexArray(VAO);
-
-    // Create VBO for vertices
-    unsigned int VBO;
-    glGenBuffers(1, &VBO);
-    VBOs.push_back(VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
-
-    // Create EBO for indices
-    unsigned int EBO;
-    glGenBuffers(1, &EBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
-
-    // Set vertex attribute pointers
-    // Position attribute
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)0); // 8 * sizeof(float) stride (3 for pos, 3 for normal, 2 for tex)
-
-
-    // Texture coordinate attribute
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(sizeof(float[3]))); // Normal starts after 3 floats for position
-
-
-    // Normal attribute
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(sizeof(float[6]))); // Tex coords start after 6 floats (3 for pos, 3 for normal)
-
-    // Tangent attribute
-    glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(8 * sizeof(float))); // Tangent starts after 8 floats (3 for pos, 3 for normal, 2 for tex)
-
-    // Bitangent attribute
-    glEnableVertexAttribArray(4);
-    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(11 * sizeof(float))); // Bitangent starts after 11 floats (3 for pos, 3 for normal, 2 for tex, 3 for tangent)
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
-
-    // Return a tuple of the VAO and the number of indices
-    return std::make_pair(VAO, indices.size());
-}
-
-MeshManager::MeshManager()
+MeshManager::MeshManager(EntityManager* em) : entityManager(em)
 {
 }
 
@@ -388,4 +404,4 @@ unsigned int MeshManager::make_texture(const char* filename, const bool flipTex)
 
 
     return texture;
-}*/
+}
