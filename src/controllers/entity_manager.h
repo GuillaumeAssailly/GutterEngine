@@ -9,6 +9,7 @@
 class App;
 class MeshManager;
 class Inputmanager;
+class UI;
 
 class EntityManager
 {
@@ -19,6 +20,7 @@ public:
     friend class App;
     friend class MeshManager;
     friend class InputManager;
+    friend class UI;
 
     unsigned int make_entity(const std::string&);
     std::unordered_map<unsigned int, std::string>& getEntityNames();

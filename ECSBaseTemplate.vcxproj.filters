@@ -52,6 +52,18 @@
     <ClCompile Include="src\savers\saverJSON.cpp">
       <Filter>src\savers</Filter>
     </ClCompile>
+    <ClCompile Include="src\controllers\entity_manager.cpp">
+      <Filter>src\controllers</Filter>
+    </ClCompile>
+    <ClCompile Include="src\controllers\input_manager.cpp">
+      <Filter>src\controllers</Filter>
+    </ClCompile>
+    <ClCompile Include="src\controllers\system_manager.cpp">
+      <Filter>src\controllers</Filter>
+    </ClCompile>
+    <ClCompile Include="src\controllers\UI.cpp">
+      <Filter>src\controllers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\config.h">
@@ -119,6 +131,18 @@
     </ClInclude>
     <ClInclude Include="src\savers\saverJSON.h">
       <Filter>src\savers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\controllers\entity_manager.h">
+      <Filter>src\controllers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\controllers\input_manager.h">
+      <Filter>src\controllers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\controllers\system_manager.h">
+      <Filter>src\controllers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\controllers\UI.h">
+      <Filter>src\controllers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

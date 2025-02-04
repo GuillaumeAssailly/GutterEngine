@@ -5,6 +5,7 @@
 #include "system_manager.h"
 #include "mesh_manager.h"
 #include "input_manager.h"
+#include "UI.h"
 
 #include "../view/shader.h"
 
@@ -17,6 +18,8 @@ public:
     App();
     ~App();
     void run();
+
+    int selectedEntityID = -1;
    
     void set_up_opengl();
     void loadModelsAndTextures();
@@ -34,9 +37,8 @@ private:
     SystemManager* systemManager;
     MeshManager* meshManager;
     InputManager* inputManager;
+    UI* ui;
 
-    // TODO: Place this function in a specific ImGui file
-    bool DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale);
     bool hasPhysics = true;
     GLFWwindow* window;
 

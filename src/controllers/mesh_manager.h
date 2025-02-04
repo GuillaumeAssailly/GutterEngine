@@ -3,6 +3,7 @@
 #include "entity_manager.h"
 
 class App;
+class UI;
 
 class MeshManager
 {
@@ -17,11 +18,13 @@ private:
     std::vector<unsigned int> textures;
 
     EntityManager* entityManager;
+
 public:
     MeshManager(EntityManager* em);
     ~MeshManager();
 
     friend class App;
+    friend class UI;
 
     std::pair<unsigned int, unsigned int> make_cube_mesh(glm::vec3 size);
     std::pair<unsigned int, unsigned int>  make_model(const char*);

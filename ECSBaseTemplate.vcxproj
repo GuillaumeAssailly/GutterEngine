@@ -106,6 +106,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\..\Librairies\VHACD;..\..\Librairies\PhysX\physx\include;..\..\Librairies\glfw-3.4.bin.WIN64\include;..\..\Librairies\stb\include;..\..\Librairies\glm;..\..\Librairies\glad\include;..\..\Librairies\assimp-link\include;..\..\Librairies\imgui_x64-windows\include;..\..\Librairies\imguizmo_x64-windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -124,6 +125,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\..\Librairies\VHACD;..\..\Librairies\PhysX\physx\include;..\..\Librairies\glfw-3.4.bin.WIN64\include;..\..\Librairies\stb\include;..\..\Librairies\glm;..\..\Librairies\glad\include;..\..\Librairies\assimp-link\include;..\..\Librairies\imgui_x64-windows\include;..\..\Librairies\imguizmo_x64-windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
