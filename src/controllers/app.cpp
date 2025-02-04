@@ -1129,9 +1129,6 @@ void App::set_up_opengl() {
     shader = make_shader(
         "shaders/shader.vert",
         "shaders/shader.frag");
-    shader = make_shader(
-        "shaders/shader.vert",
-        "shaders/shader.frag");
 
     shadowShader = make_shader(
         "shaders/shadowShader.vert",
@@ -1155,7 +1152,7 @@ void App::make_systems() {
     cameraSystem = new CameraSystem(shader, window);
 	lightSystem = new LightSystem(shader);
 	shadowSystem = new ShadowSystem(shader,shadowShader, depthMapDebugShader);
-    renderSystem = new RenderSystem(shader, window);
+    renderSystem = new RenderSystem(shader, window, shadowSystem->getShadowMapArray());
     lineSystem = new LineSystem();
 	reflectionSystem = new ReflectionSystem(shader,reflectionShader);
 

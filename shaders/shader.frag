@@ -12,7 +12,7 @@ in vec4 ClipSpacePos;
 // texture samplers
 uniform sampler2D texture1;    // First texture sampler
 uniform sampler2D texture2;    // Second texture sampler
-uniform sampler2D shadowMap;   // Shadow map sampler
+uniform sampler2DArray shadowMap;   // Shadow map sampler
 uniform sampler2D normalMap;   // Normal map sampler
 uniform sampler2D reflectionTexture; //Plannar reflection texture sampler
 
@@ -32,6 +32,7 @@ uniform vec3 viewPos;          // Position of the viewer (camera)
 #define MAX_LIGHTS 50
 uniform int numLights;         // Number of lights
 uniform sampler2D shadowMaps[MAX_LIGHTS];
+uniform int shadowMapLayers[MAX_LIGHTS];
 uniform vec3 lightPos[MAX_LIGHTS];     // Array of light positions (max 10 lights)
 uniform vec3 lightColor[MAX_LIGHTS];   // Array of light colors
 uniform int lightType[MAX_LIGHTS]; // Array of boolean values indicating if light is directional or spot
@@ -45,7 +46,6 @@ uniform float quadratic;         // Quadratic attenuation factor
 uniform float intensity[MAX_LIGHTS]; // Intensity for each light
 uniform float spotLightOuterCutoff[MAX_LIGHTS]; // Array of spot light outer cutoff angles
 uniform float spotLightCutoff[MAX_LIGHTS]; // Array of spot light cutoff angles
-
 float shadowCalculation(int lightIndex, vec4 fragPosLightSpace) {
     // Convert to NDC and then to [0, 1] space
     vec3 shadowCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
@@ -69,23 +69,23 @@ float shadowCalculation(int lightIndex, vec4 fragPosLightSpace) {
     int samples = 4; // Increase for a smoother shadow, but higher performance cost
 
     // Sample points in a 3x3 grid around the current fragment's shadow coords
+    int layer = shadowMapLayers[lightIndex];
     for (int x = -1; x <= 1; ++x) {
         for (int y = -1; y <= 1; ++y) {
             // Calculate the offset for the PCF sample
             vec2 offset = vec2(x, y) * pcfRadius;
 
             // Sample the depth from the shadow map
-            float closestDepth = texture(shadowMap, shadowCoords.xy + offset).r;
+            float closestDepth = texture(shadowMap, vec3(shadowCoords.xy + offset, layer)).r;
 
-            // Check if the fragment is in shadow
-            shadow += currentDepth > closestDepth + bias ? 1.0 : 0.0;
+            // Accumulate shadow contribution
+            shadow += currentDepth - bias > closestDepth ? 1.0 : 0.0;
         }
     }
 
-    // Average the shadow factor over all samples to get a softer shadow
-    shadow /= (samples * 2);
+    // Average the shadow contributions
+    shadow /= float(samples);
 
-    // Return the final shadow factor
     return shadow;
 }
 

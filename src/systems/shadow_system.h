@@ -30,10 +30,16 @@ public:
 		float& near_plane, float& far_plane);
 
 	void RenderDepthMap(unsigned int depthMap, int, int);
+
+	unsigned int getShadowMapArray() const { return shadowMapArray; }
 private:
 	unsigned int shader;
 	unsigned int shadowShader;
 	unsigned int depthMapShader;
+
+
+	unsigned int shadowMapArray;
+	unsigned int shadowFBO;
 
 	unsigned int quadVAO, quadVBO;
 

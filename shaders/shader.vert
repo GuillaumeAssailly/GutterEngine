@@ -20,7 +20,7 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 uniform bool isLine;
-uniform mat4 lightSpaceMatrix;
+//uniform mat4 lightSpaceMatrix;
 
 void main()
 {
@@ -31,6 +31,6 @@ void main()
     Tangent = mat3(transpose(inverse(model))) * aTangent;
     Bitangent = mat3(transpose(inverse(model))) * aBitangent;
 	TexCoord = vec2(aTexCoord.x, aTexCoord.y);
-	FragPosLightSpace = lightSpaceMatrix * vec4(FragPos, 1.0);
+	//FragPosLightSpace = lightSpaceMatrix * vec4(FragPos, 1.0);
     ClipSpacePos = projection * view * model * vec4(aPos, 1.0);
 }

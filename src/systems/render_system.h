@@ -7,7 +7,7 @@
 class RenderSystem {
 public:
 
-    RenderSystem(unsigned int shader, GLFWwindow* window);
+    RenderSystem(unsigned int shader, GLFWwindow* window, unsigned int shadowMapArray);
 
     void update(
         std::unordered_map<unsigned int, TransformComponent>& transformComponents,
@@ -21,5 +21,6 @@ private:
     unsigned int reflectionTexLocation;
 	unsigned int lightSpaceMatrixLocation;
 	unsigned int shaderProg;
+	unsigned int shadowMapArray;
     GLFWwindow* window;
 };

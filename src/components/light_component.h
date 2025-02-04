@@ -11,11 +11,13 @@ struct LightComponent {
 	glm::vec3 color;
 	float intensity;
 	glm::vec3 direction;
-	unsigned int shadowFBO;
-	unsigned int depthMap;
+	//unsigned int shadowFBO;
+	//unsigned int depthMap;
 	LightType type = LightType::POINT;
 	glm::mat4 lightSpaceMatrix;
 	float cutoff = 0.0f;
 	float outerCutoff = 0.0f;
+
+	unsigned int shadowMapLayer;
 
 };
