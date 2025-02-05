@@ -15,6 +15,7 @@ uniform sampler2D texture2;    // Second texture sampler
 uniform sampler2DArray shadowMap;   // Shadow map sampler
 uniform sampler2D normalMap;   // Normal map sampler
 uniform sampler2D reflectionTexture; //Plannar reflection texture sampler
+uniform sampler2D emissiveMap; // Emissive map sampler (for emissive lighting)
 
 // Phong material properties
 uniform vec3 ambientStrength;  // Ambient reflectivity
@@ -24,7 +25,8 @@ uniform float shininess;       // Shininess factor
 uniform bool isLine;           // Drawing a line or not
 uniform int hasNormalMap;
 uniform bool isPlanarReflectable;
-
+uniform int hasEmissive;
+uniform float emissiveForce;
 
 uniform vec3 viewPos;          // Position of the viewer (camera)
 
@@ -209,6 +211,11 @@ void main()
     // Combine the lighting components
     vec3 phong = ambient + diffuse + specular;
 
+    vec3 emissive = vec3(0.0);
+    if (hasEmissive == 1) {
+        emissive = texture(emissiveMap, TexCoord).rgb * emissiveForce;
+    }
+
     if(isPlanarReflectable){
 
         // Convert clip space position to texture coordinates
@@ -218,11 +225,11 @@ void main()
         vec3 reflectionColor = blurReflection(reflectionTexture, reflectionUV);
         
         // Blend reflection with the original texture
-        FragColor = mix(texColor, vec4(reflectionColor, 1.0), 0.3) * vec4(phong, 1.0); 
+        FragColor = mix(texColor, vec4(reflectionColor, 1.0), 0.3) * vec4(phong + emissive, 1.0); 
     }
     else {
      // Apply the final color with Phong lighting and texture
-        FragColor = texColor * vec4(phong, 1.0);
+        FragColor = texColor * vec4(phong + emissive, 1.0);
     }
 
 

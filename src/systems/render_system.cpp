@@ -29,18 +29,6 @@ void RenderSystem::update(
     glBindTexture(GL_TEXTURE_2D_ARRAY, shadowMapArray);
     glUniform1i(shadowMapLocation, 4); // Tell the shader the texture unit
 
-    int lightIndex = 0;
-    for (auto& lightEntity : lightComponents) {
-        LightComponent& light = lightEntity.second;
-        if (light.type == POINT) {
-            lightIndex++;
-            continue; // Skip point lights
-        }
-
-
-
-    }
-
     for (auto& entity : renderComponents) {
         TransformComponent& transform = transformComponents[entity.first];
 
@@ -73,6 +61,17 @@ void RenderSystem::update(
             else {
                 glUniform1i(glGetUniformLocation(shaderProg, "hasNormalMap"), 0);
             }
+
+			if (render.emissiveMap != 0) {
+				glActiveTexture(GL_TEXTURE5);
+				glBindTexture(GL_TEXTURE_2D, render.emissiveMap);
+				glUniform1i(glGetUniformLocation(shaderProg, "emissiveMap"), 5);
+				glUniform1i(glGetUniformLocation(shaderProg, "hasEmissive"), 1);
+				glUniform1f(glGetUniformLocation(shaderProg, "emissiveForce"), render.emissiveForce);
+			}
+			else {
+				glUniform1i(glGetUniformLocation(shaderProg, "hasEmissive"), 0);
+			}
 
             // Draw the object
             glBindVertexArray(render.mesh);

@@ -176,6 +176,12 @@ void App::loadGLTF(const char* filePath, const char* texDir, const int EntityID)
 			normalMapsList[mesh->mName.C_Str()] = make_texture(normalTexturePath.c_str(), false);
 		}
 
+		if (material->GetTexture(aiTextureType_EMISSIVE, 0, &path) == AI_SUCCESS) {
+			emissiveTexturePath = std::string(texDir) + path.C_Str();
+			std::cout << "Emissive texture: " << path.C_Str() << std::endl;
+			emissiveList[mesh->mName.C_Str()] = make_texture(emissiveTexturePath.c_str(), false);
+			
+		}
 
         // Create VAO
         unsigned int VAO;
@@ -231,6 +237,7 @@ void App::loadGLTF(const char* filePath, const char* texDir, const int EntityID)
         render.indexCount = renderModels[mesh->mName.C_Str()].second;
         render.material = texturesList[mesh->mName.C_Str()];
 		render.normalMap = normalMapsList[mesh->mName.C_Str()];
+		render.emissiveMap = emissiveList[mesh->mName.C_Str()];
         renderComponents[obj].push_back(render);
     }
 }
