@@ -21,7 +21,7 @@ void ShadowSystem::Initialize(std::unordered_map<unsigned int, LightComponent>& 
 
 	glGenTextures(1, &shadowMapArray);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, shadowMapArray);
-	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 4, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT32F, SHADOW_WIDTH, SHADOW_HEIGHT, 10, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
@@ -67,30 +67,57 @@ void ShadowSystem::Initialize(std::unordered_map<unsigned int, LightComponent>& 
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
     glBindVertexArray(0);
 
+    GLint maxArrayLayers;
+    glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &maxArrayLayers);
+    std::cout << "Max texture array layers: " << maxArrayLayers << std::endl;
+
+    GLint maxTextureSize;
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
+    std::cout << "Max texture size (width/height): " << maxTextureSize << std::endl;
+
 }
-
-void ShadowSystem::RenderDepthMap(unsigned int depthMap, int screenWidth, int screenHeight)
+void ShadowSystem::RenderDepthMap(unsigned int depthMapArray, int screenWidth, int screenHeight)
 {
-    // Set the viewport to the bottom-right corner
-    int viewportWidth = screenWidth / 4;  // Adjust the size as needed
-    int viewportHeight = screenHeight / 4; // Adjust the size as needed
-    glViewport(0, 0, viewportWidth, viewportHeight);
+    // Debug window configuration
+    const int cols = 2;                     // 2 columns
+    const int rows = 5;                     // 5 rows (2x5 = 10 layers)
+    const int numLayers = cols * rows;
+    const int padding = 10;                 // Padding from screen edges
 
-    // Use the depth map shader
+    // Calculate dimensions based on screen size
+    const int debugWidth = screenWidth / 8;         // Width of debug panel
+    const int tileSize = debugWidth / cols;         // Size of each layer tile
+    const int debugHeight = tileSize * rows;        // Total debug panel height
+
+    // Position calculation
+    const int startX = padding;
+    const int startY = screenHeight - debugHeight - padding;
+
+    // Set up shader and texture
     glUseProgram(depthMapShader);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, depthMap);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, depthMapArray);
     glUniform1i(glGetUniformLocation(depthMapShader, "depthMap"), 0);
 
-    // Render the quad
-    glBindVertexArray(quadVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-    glBindVertexArray(0);
+    // Render each layer tile
+    for (int layer = 0; layer < numLayers; ++layer) {
+        const int col = layer % cols;
+        const int row = layer / cols;
 
-    // Reset the viewport to the full screen
+        const int x = startX + col * tileSize;
+        const int y = startY + (rows - 1 - row) * tileSize; // Flip Y-axis
+
+        glViewport(x, y, tileSize, tileSize);
+        glUniform1i(glGetUniformLocation(depthMapShader, "layer"), layer);
+
+        glBindVertexArray(quadVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glBindVertexArray(0);
+    }
+
+    // Reset viewport
     glViewport(0, 0, screenWidth, screenHeight);
 }
-
 
 void ShadowSystem::GenerateShadowMap(std::unordered_map<unsigned int, LightComponent>& lightComponents,
     std::unordered_map<unsigned int, TransformComponent>& transformComponents,
@@ -99,13 +126,11 @@ void ShadowSystem::GenerateShadowMap(std::unordered_map<unsigned int, LightCompo
 )
 {
     glUseProgram(shadowShader);
-
     for (auto& entity : lightComponents) {
 
         if (entity.second.type == POINT) continue; //Only directional lights and spotlights cast shadows (for now ;-)
         unsigned int entityID = entity.first;
         LightComponent& light = entity.second;
-
         glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
         glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, shadowMapArray, 0, light.shadowMapLayer);
 
@@ -186,13 +211,15 @@ void ShadowSystem::GenerateShadowMap(std::unordered_map<unsigned int, LightCompo
         }
 
 
-        //Unbinding framebuffer : 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-        // Render the depth map to the screen
-        //RenderDepthMap(light.depthMap, screenWidth, screenHeight);
+       
 
     }
+
+    //Unbinding framebuffer : 
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // Render the depth map to the screen
+    RenderDepthMap(shadowMapArray, screenWidth, screenHeight);
 
     glViewport(0, 0, screenWidth, screenHeight);
     //Give back control to the main shader :

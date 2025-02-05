@@ -7,7 +7,11 @@
 class RenderSystem {
 public:
 
+
+
     RenderSystem(unsigned int shader, GLFWwindow* window, unsigned int shadowMapArray);
+
+	void Initialize(unsigned int shadowMapArray);
 
     void update(
         std::unordered_map<unsigned int, TransformComponent>& transformComponents,

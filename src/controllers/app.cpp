@@ -573,6 +573,8 @@ void App::run() {
     //while loop iterating on the renderer pipeline : 
     shadowSystem->Initialize(lightComponents);
 	reflectionSystem->Initialize(renderComponents,1024,1024);
+    //We will initialize after every other system : 
+    renderSystem->Initialize(shadowSystem->getShadowMapArray());
     while (!glfwWindowShouldClose(window)) {
         // Per-frame time logic
         // -------------------

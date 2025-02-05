@@ -29,7 +29,7 @@ public:
 		float& left, float& right, float& bottom, float& top,
 		float& near_plane, float& far_plane);
 
-	void RenderDepthMap(unsigned int depthMap, int, int);
+	void RenderDepthMap(unsigned int depthMapArray, int screenWidth, int screenHeight);
 
 	unsigned int getShadowMapArray() const { return shadowMapArray; }
 private:

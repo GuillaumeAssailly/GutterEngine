@@ -55,10 +55,10 @@ void LightSystem::update(std::unordered_map<unsigned int, LightComponent>&  ligh
 		GLint lightSpaceMatrixLoc = glGetUniformLocation(shaderProgram, lightSpaceMatrixUniform.c_str());
 		glUniformMatrix4fv(lightSpaceMatrixLoc, 1, GL_FALSE, glm::value_ptr(lights[i].lightSpaceMatrix));
 
-		//Set shadowMap
-		std::string shadowMapUniform = "shadowMaps[" + std::to_string(i) + "]";
-		GLint shadowMapLoc = glGetUniformLocation(shaderProgram, shadowMapUniform.c_str());
-		glUniform1i(shadowMapLoc, 4 + i);
+		// Pass the shadow map layer index to the shader
+		std::string shadowLayerUniform = "shadowMapLayers[" + std::to_string(i) + "]";
+		GLint shadowLayerLoc = glGetUniformLocation(shaderProgram, shadowLayerUniform.c_str());
+		glUniform1i(shadowLayerLoc, lights[i].shadowMapLayer);
 		
 	}
 }

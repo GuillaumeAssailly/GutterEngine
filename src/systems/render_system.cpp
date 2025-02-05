@@ -7,8 +7,12 @@ RenderSystem::RenderSystem(unsigned int shader, GLFWwindow* window, unsigned int
 	reflectionTexLocation = glGetUniformLocation(shader, "reflectionTexture");
 	lightSpaceMatrixLocation = glGetUniformLocation(shader, "lightSpaceMatrix");
     shaderProg = shader;
-	this->shadowMapArray = shadowMapArray;
     this->window = window;
+}
+
+//Need to call this function after the init of every other system
+void RenderSystem::Initialize(unsigned int shadowMapArray) {
+    this->shadowMapArray = shadowMapArray;
 }
 
 void RenderSystem::update(
@@ -20,7 +24,7 @@ void RenderSystem::update(
 
     glUseProgram(shaderProg);
 
-    // Bind the shadow map array (only once)
+    // Bind the shadow map array
     glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_2D_ARRAY, shadowMapArray);
     glUniform1i(shadowMapLocation, 4); // Tell the shader the texture unit
@@ -33,16 +37,7 @@ void RenderSystem::update(
             continue; // Skip point lights
         }
 
-        // Pass the light space matrix to the shader
-        std::string lightSpaceMatrixUniform = "lightSpaceMatrices[" + std::to_string(lightIndex) + "]";
-        GLint lightSpaceMatrixLoc = glGetUniformLocation(shaderProg, lightSpaceMatrixUniform.c_str());
-        glUniformMatrix4fv(lightSpaceMatrixLoc, 1, GL_FALSE, glm::value_ptr(light.lightSpaceMatrix));
 
-        // Pass the shadow map layer index to the shader
-        std::string shadowLayerUniform = "shadowMapLayers[" + std::to_string(lightIndex) + "]";
-        GLint shadowLayerLoc = glGetUniformLocation(shaderProg, shadowLayerUniform.c_str());
-        glUniform1i(shadowLayerLoc, light.shadowMapLayer);
-        lightIndex++;
 
     }
 

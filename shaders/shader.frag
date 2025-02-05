@@ -31,7 +31,6 @@ uniform vec3 viewPos;          // Position of the viewer (camera)
 // Light properties
 #define MAX_LIGHTS 50
 uniform int numLights;         // Number of lights
-uniform sampler2D shadowMaps[MAX_LIGHTS];
 uniform int shadowMapLayers[MAX_LIGHTS];
 uniform vec3 lightPos[MAX_LIGHTS];     // Array of light positions (max 10 lights)
 uniform vec3 lightColor[MAX_LIGHTS];   // Array of light colors
@@ -141,14 +140,14 @@ void main()
     }
     
 
-        // Initialize lighting components
-        vec3 ambient = vec3(0.0);
-        vec3 diffuse = vec3(0.0);
-        vec3 specular = vec3(0.0);
+    // Initialize lighting components
+    vec3 ambient = vec3(0.0);
+    vec3 diffuse = vec3(0.0);
+    vec3 specular = vec3(0.0);
 
-        // Loop over all lights
-        for (int i = 0; i < numLights; i++) {
-        
+    // Loop over all lights
+    for (int i = 0; i < numLights; i++) 
+    {
         vec3 lightDir;
         float attenuation = 1.0;
         float shadow = 0.0f;
@@ -175,19 +174,12 @@ void main()
             vec4 fragPosLightSpace = lightSpaceMatrix[i] * vec4(FragPos, 1.0);
 
             shadow = shadowCalculation(i, fragPosLightSpace);
-            attenuation *= intensityFactor *  (1.0 - shadow); // Apply spotlight effect
-
-
-
-
+            attenuation *= intensityFactor; // Apply spotlight effect
         } else {
             lightDir = normalize(lightPos[i] - FragPos);
             float distance = length(lightPos[i] - FragPos);
             attenuation = 1.0 / (constant + linear * distance + quadratic * (distance * distance));
         }
-
-
-        
        
         // Ambient lighting
         ambient += ambientStrength * lightColor[i] * intensity[i] * attenuation;
@@ -196,8 +188,8 @@ void main()
         float diff = max(dot(norm, lightDir), 0.0);
         diffuse += (1.0 - shadow) * diffuseStrength * diff * lightColor[i] * intensity[i] * attenuation;
 
-            // Specular lighting
-            float spec = 0;
+        // Specular lighting
+        float spec = 0;
         
         vec3 viewDir = normalize(viewPos - FragPos);
         vec3 reflectDir = reflect(-lightDir, norm);
@@ -210,7 +202,7 @@ void main()
 
        
         
-        }
+    }
 
 
 
