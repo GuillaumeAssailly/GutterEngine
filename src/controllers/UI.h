@@ -15,6 +15,11 @@ class UI
     int screenWidth = 1920;
     int screenHeight = 1080;
 
+    float dockspace_width = 300.0f; // Largeur initiale du dockspace
+    const float min_width = 200.0f;        // Largeur minimale
+    const float max_width = 600.0f;        // Largeur maximale
+    void CreateLeftDockspace();
+    void CreateRightDockspace();
    
     int gizmo_type = -1;
     bool gizmo_world = true;
@@ -72,7 +77,7 @@ public:
 
     void update(int, int, double);
     void displayEntityDetail();
-
+    void displayNavBar();
     void displayFrameRate(double deltaTime);
     void displaySceneHierarchy();
 

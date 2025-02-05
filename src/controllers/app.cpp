@@ -621,6 +621,10 @@ void App::set_up_opengl() {
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
 
+    // Activer le scissoring pour limiter le rendu
+    glEnable(GL_SCISSOR_TEST);
+    glScissor(w / 5, 0, w - 2 * w / 5, h);
+
     //WIREFRAME MOD : 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -895,6 +899,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 
     glViewport(0, 0, width, height);
+    glScissor(width/5, 0, width - 2 * width/5, height);
 }
 
 /// <summary>

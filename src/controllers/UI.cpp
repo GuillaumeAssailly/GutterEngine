@@ -9,6 +9,7 @@ UI::UI(GLFWwindow* window, EntityManager* em, MeshManager* mm)
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 460");
 }
@@ -24,10 +25,10 @@ void UI::displayFrameRate(double deltaTime)
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
     // Start //ImGui window for debugging
-    ImGui::Begin("Debug", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar);
+    ImGui::Begin("Debug", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoDocking);
 
     // Display FPS
-    ImGui::Text("FPS: %0.3f", 1.0f / deltaTime);
+    ImGui::Text("FPS: %0.2f", 1.0f / deltaTime);
 
     ImGui::End();
     ImGui::PopStyleVar();
@@ -36,12 +37,13 @@ void UI::displayFrameRate(double deltaTime)
 
 void UI::displaySceneHierarchy()
 {
+    /*
     ImVec2 position = ImVec2(0, 0);
     ImVec2 size = ImVec2(screenWidth / 3, screenHeight);
 
     ImGui::SetNextWindowPos(position); // Définit la position
-    ImGui::SetNextWindowSize(size); // Définit la taille
-    ImGui::Begin("Entity Tree", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
+    ImGui::SetNextWindowSize(size); // Définit la taille*/
+    ImGui::Begin("Entity Tree", nullptr);
 
     // Loop through all entities to create a tree view
     for (int entityID = 0; entityID < entityManager->entity_count; entityID++) {
@@ -57,17 +59,117 @@ void UI::displaySceneHierarchy()
     ImGui::End();
 }
 
+void UI::CreateLeftDockspace()
+{
+
+    // Obtenir le viewport principal (toute la fenêtre)
+    ImGuiViewport* viewport = ImGui::GetMainViewport();
+
+    // Définir la position et la taille du dockspace (collé à gauche)
+    ImVec2 dockspace_pos = ImVec2(0, 30);
+    ImVec2 dockspace_size = ImVec2(screenWidth/5, viewport->WorkSize.y);
+
+    ImGui::SetNextWindowPos(dockspace_pos);
+    ImGui::SetNextWindowSize(dockspace_size);
+    ImGui::SetNextWindowViewport(viewport->ID);
+
+    // Désactiver le scroll et empêcher les ajustements non contrôlés
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar |
+        ImGuiWindowFlags_NoCollapse |
+        ImGuiWindowFlags_NoMove |
+        ImGuiWindowFlags_NoBringToFrontOnFocus |
+        ImGuiWindowFlags_NoNavFocus |
+        ImGuiWindowFlags_NoScrollbar |
+        ImGuiWindowFlags_NoScrollWithMouse;
+
+    // Style pour un rendu propre
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+
+    if (ImGui::Begin("Left DockSpace", nullptr, window_flags))
+    {
+        // Créer un espace de docking
+        ImGuiID dockspace_id = ImGui::GetID("LeftDockSpace");
+        ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+    }
+    ImGui::End();
+
+    ImGui::PopStyleVar(2);
+}
+
+void UI::CreateRightDockspace()
+{
+
+    // Obtenir le viewport principal (toute la fenêtre)
+    ImGuiViewport* viewport = ImGui::GetMainViewport();
+
+    // Définir la position et la taille du dockspace (collé à gauche)
+    ImVec2 dockspace_pos = ImVec2(screenWidth - screenWidth/5, 30);
+    ImVec2 dockspace_size = ImVec2(screenWidth / 5, viewport->WorkSize.y);
+
+    ImGui::SetNextWindowPos(dockspace_pos);
+    ImGui::SetNextWindowSize(dockspace_size);
+    ImGui::SetNextWindowViewport(viewport->ID);
+
+    // Désactiver le scroll et empêcher les ajustements non contrôlés
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar |
+        ImGuiWindowFlags_NoCollapse |
+        ImGuiWindowFlags_NoMove |
+        ImGuiWindowFlags_NoResize |
+        ImGuiWindowFlags_NoBringToFrontOnFocus |
+        ImGuiWindowFlags_NoNavFocus |
+        ImGuiWindowFlags_NoScrollbar |
+        ImGuiWindowFlags_NoScrollWithMouse;
+
+    // Style pour un rendu propre
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+
+    if (ImGui::Begin("Right DockSpace", nullptr, window_flags))
+    {
+        // Créer un espace de docking
+        ImGuiID dockspace_id = ImGui::GetID("RightDockSpace");
+        ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+    }
+    ImGui::End();
+
+    ImGui::PopStyleVar(2);
+}
+
 void UI::update(int screenW, int screenH, double deltaTime) {
     screenWidth = screenW;
     screenHeight = screenH;
+    CreateLeftDockspace();
+    CreateRightDockspace();
     if (displayInspector == false) {
         selectedEntityID = -1;
     }
     displaySceneHierarchy();
     displayEntityDetail();
     displayFrameRate(deltaTime);
+    displayNavBar();
 
+
+    /*
+    if (ImGui::Button("Open File Dialog")) {
+        IGFD::FileDialogConfig config;
+        config.path = ".";
+        ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".gltf, .obj ,.fbx", config);
+    }
+    // display
+    if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey")) {
+        if (ImGuiFileDialog::Instance()->IsOk()) { // action if OK
+            std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+            std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+            ImGui::Text(filePathName.c_str());
+            ImGui::Text(filePath.c_str());
+        }
+
+        // close
+        ImGuiFileDialog::Instance()->Close();
+    }*/
 }
+
 
 void UI::displayEntityDetail()
 {
@@ -122,6 +224,38 @@ void UI::displayEntityDetail()
             ImGui::EndTabBar();
         }
         ImGui::End();
+    }
+}
+
+
+void UI::displayNavBar()
+{
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10.0f, 10.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10.0f, 30.0f));
+    if (ImGui::BeginMainMenuBar()) // Barre de menu en haut de la fenêtre
+    {
+        if (ImGui::BeginMenu("File"))
+        {
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10.0f, 10.0f));
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10.0f, 10.0f));
+            ImGui::MenuItem("Open");
+            ImGui::MenuItem("Save");
+            ImGui::PopStyleVar(2);
+            ImGui::EndMenu();
+
+        }
+        if (ImGui::BeginMenu("Edit"))
+        {
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10.0f, 10.0f));
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10.0f, 10.0f));
+            ImGui::MenuItem("Cut");
+            ImGui::MenuItem("Copy");
+            ImGui::MenuItem("Paste");
+            ImGui::PopStyleVar(2);
+            ImGui::EndMenu();
+        }
+        ImGui::PopStyleVar(2);
+        ImGui::EndMainMenuBar();
     }
 }
 
