@@ -161,6 +161,7 @@ void App::loadGLTF(const char* filePath, const char* texDir, const int EntityID)
         std::string normalTexturePath = "default_normal.jpg";
         std::string emissiveTexturePath = "default_emissive.jpg";
 		std::string aoTexturePath = "default_ao.jpg";
+		std::string metalnessRoughness = "default_metalness_roughness.jpg";
 
         aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
@@ -188,6 +189,12 @@ void App::loadGLTF(const char* filePath, const char* texDir, const int EntityID)
 			aoTexturePath = std::string(texDir) + path.C_Str();
 			std::cout << "AO texture: " << path.C_Str() << std::endl;
 			aoList[mesh->mName.C_Str()] = make_texture(aoTexturePath.c_str(), false);
+		}
+
+		if (material->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &path) == AI_SUCCESS) {
+			metalnessRoughness = std::string(texDir) + path.C_Str();
+			std::cout << "Roughness texture: " << path.C_Str() << std::endl;
+			metalnessRoughnessList[mesh->mName.C_Str()] = make_texture(metalnessRoughness.c_str(), false);
 		}
 
         // Create VAO
@@ -246,7 +253,9 @@ void App::loadGLTF(const char* filePath, const char* texDir, const int EntityID)
 		render.normalMap = normalMapsList[mesh->mName.C_Str()];
 		render.emissiveMap = emissiveList[mesh->mName.C_Str()];
 		render.aoMap = aoList[mesh->mName.C_Str()];
+		render.metalnessRoughnessMap = metalnessRoughnessList[mesh->mName.C_Str()];
         renderComponents[obj].push_back(render);
+
     }
 }
 
@@ -1200,11 +1209,13 @@ void App::loadModelsAndTextures()
     //Ball Return
 	const int ballreturn = make_entity("BallReturn");
 	loadGLTF("obj/nashville/BallReturn.gltf", "obj/nashville/", ballreturn);
+    transformComponents[ballreturn].position = { -3.861, 0, 9.00 };
+    transformComponents[ballreturn].eulers = glm::angleAxis(glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     //TV
     const int TV = make_entity("TV");
 	loadGLTF("obj/nashville/TV.gltf", "obj/nashville/", TV);
-    transformComponents[TV].position = { -3.568f, 3.356f, 9.137f };
+    transformComponents[TV].position = { -3.568f, 3.356f, 9.0f };
     transformComponents[TV].eulers = glm::angleAxis(glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     //Pin Statue
@@ -1216,7 +1227,7 @@ void App::loadModelsAndTextures()
     //Ball1
 	const int Ball1 = make_entity("Ball1");
 	loadGLTF("obj/nashville/Ball1.gltf", "obj/nashville/", Ball1);
-    transformComponents[Ball1].position = { 1.0f, 0.f, 0.f };
+    transformComponents[Ball1].position = { -1.913, 0.474, 8.776 };
 
 	//Ball2
 	const int Ball2 = make_entity("Ball2");
@@ -1383,13 +1394,13 @@ void App::loadEntities()
     LightComponent light2;
     //Second light: 
     unsigned int lightEntity2 = make_entity("Second Light");
-    transform.position = { -7.038, 5.153f, 8.147f };
+    transform.position = { -2.396, 0.762, 9.091};
     transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
     transformComponents[lightEntity2] = transform;
 
     light2.color = { 1.0f, 1.0f, 1.0f };
     light2.intensity = 1.0f;
-    light2.type = SPOT;
+    light2.type = POINT;
     //light2.direction = { 1.0f, -6.0f, 4.0f };
     light2.direction = glm::normalize(glm::vec3(0.0f, -1.0f, 0.0f));
 	light2.cutoff = glm::cos(glm::radians(15.0f));

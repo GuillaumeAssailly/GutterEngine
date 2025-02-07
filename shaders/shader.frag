@@ -17,6 +17,7 @@ uniform sampler2D normalMap;   // Normal map sampler
 uniform sampler2D reflectionTexture; //Plannar reflection texture sampler
 uniform sampler2D emissiveMap; // Emissive map sampler (for emissive lighting)
 uniform sampler2D aoMap; // Ambient occlusion map sampler
+uniform sampler2D metalRoughnessMap; // Metalness-roughness map sampler
 
 // Phong material properties
 uniform vec3 ambientStrength;  // Ambient reflectivity
@@ -28,6 +29,8 @@ uniform int hasNormalMap;
 uniform bool isPlanarReflectable;
 uniform int hasEmissive;
 uniform float emissiveForce;
+uniform int hasMetalRoughnessMap;
+
 uniform int hasAOMap;
 uniform vec3 viewPos;          // Position of the viewer (camera)
 
@@ -68,7 +71,7 @@ float shadowCalculation(int lightIndex, vec4 fragPosLightSpace) {
 
     // Initialize shadow accumulator
     float shadow = 0.0;
-    int samples = 4; // Increase for a smoother shadow, but higher performance cost
+    int samples = 16; // Increase for a smoother shadow, but higher performance cost
 
     // Sample points in a 3x3 grid around the current fragment's shadow coords
     int layer = shadowMapLayers[lightIndex];
@@ -116,18 +119,16 @@ vec3 blurReflection(sampler2D textureSampler, vec2 uv) {
     // Return the averaged color
     return color / (8.0 * blurStrength); // Normalize by total number of samples
 }
-
-
 void main()
 {
     // Combine textures using mix
     vec4 texColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), 0.5);
 
     vec3 norm;
-    if(hasNormalMap == 1){
+    if (hasNormalMap == 1) {
         // Retrieve the normal from the normal map
         vec3 normalMapValue = texture(normalMap, TexCoord).rgb;
-        normalMapValue = normalMapValue * 2.0 - 1.0f; // Transform from [0,1] to [-1,1]
+        normalMapValue = normalMapValue * 2.0 - 1.0; // Transform from [0,1] to [-1,1]
 
         // Construct the TBN matrix
         vec3 T = normalize(Tangent);
@@ -137,114 +138,115 @@ void main()
 
         // Transform the normal from tangent space to world space
         norm = normalize(TBN * normalMapValue);
-    }
-    else {
+    } else {
         norm = normalize(Normal);
     }
-    
 
     // Initialize lighting components
     vec3 ambient = vec3(0.0);
     vec3 diffuse = vec3(0.0);
     vec3 specular = vec3(0.0);
 
+    // Metalness and roughness
+    float metalness = 0.0;
+    float roughness = 0.5;
+    if (hasMetalRoughnessMap == 1) {
+        vec3 metalRough = texture(metalRoughnessMap, TexCoord).rgb;
+        if (any(isnan(metalRough)) || any(isinf(metalRough))) {
+            metalness = 0.0;
+            roughness = 0.5;
+        } else {
+            metalness = pow(clamp(metalRough.b, 0.0, 1.0), 0.5);
+            roughness = clamp(metalRough.g * 2.0, 0.0, 1.0);
+        }
+    }
+
+    // Base reflectivity
+    float baseReflectivity = mix(0.6, 1.0, metalness); // 0.4 for non-metals, 1.0 for metals
+
+    // Adjust roughness for non-metals
+    float adjustedRoughness = roughness;
+    if (metalness < 0.5) {
+        adjustedRoughness = roughness * 0.5; // Reduce roughness for non-metals
+    }
+
     // Loop over all lights
-    for (int i = 0; i < numLights; i++) 
-    {
+    for (int i = 0; i < numLights; i++) {
         vec3 lightDir;
         float attenuation = 1.0;
-        float shadow = 0.0f;
-        //If directionnal :
-        if(lightType[i] == 1)
-        {
+        float shadow = 0.0;
+
+        if (lightType[i] == 1) { // Directional light
             lightDir = normalize(-lightsDir[i]);
-            
-            //Calculate the shadow factor
             vec4 fragPosLightSpace = lightSpaceMatrix[i] * vec4(FragPos, 1.0);
-
             shadow = shadowCalculation(i, fragPosLightSpace);
-        }
-        else if(lightType[i] == 2)
-        {
+        } else if (lightType[i] == 2) { // Spotlight
             lightDir = normalize(lightPos[i] - FragPos);
             float distance = length(lightPos[i] - FragPos);
             attenuation = 1.0 / (constant + linear * distance + quadratic * (distance * distance));
 
-             // Spotlight intensity calculation
-            float theta = dot(lightDir, normalize(-lightsDir[i])); // Angle between light direction and fragment
-            float epsilon = spotLightCutoff[i] - spotLightOuterCutoff[i]; // Soft transition range
-            float intensityFactor = clamp((theta - spotLightOuterCutoff[i]) / epsilon, 0.0, 1.0); // Smooth transition
+            float theta = dot(lightDir, normalize(-lightsDir[i]));
+            float epsilon = spotLightCutoff[i] - spotLightOuterCutoff[i];
+            float intensityFactor = clamp((theta - spotLightOuterCutoff[i]) / epsilon, 0.0, 1.0);
             vec4 fragPosLightSpace = lightSpaceMatrix[i] * vec4(FragPos, 1.0);
-
             shadow = shadowCalculation(i, fragPosLightSpace);
-            attenuation *= intensityFactor; // Apply spotlight effect
-        } else {
+            attenuation *= intensityFactor;
+        } else { // Point light
             lightDir = normalize(lightPos[i] - FragPos);
             float distance = length(lightPos[i] - FragPos);
             attenuation = 1.0 / (constant + linear * distance + quadratic * (distance * distance));
         }
-       
+
         // Ambient lighting
         ambient += ambientStrength * lightColor[i] * intensity[i] * attenuation;
 
-        // Diffuse lighting
+        // Diffuse lighting (reduced for metals)
         float diff = max(dot(norm, lightDir), 0.0);
-        diffuse += (1.0 - shadow) * diffuseStrength * diff * lightColor[i] * intensity[i] * attenuation;
+        diffuse += (1.0 - shadow) * diffuseStrength * diff * lightColor[i] * intensity[i] * attenuation * (1.0 - metalness);
 
         // Specular lighting
-        float spec = 0;
-        
+        float spec = 0.0;
         vec3 viewDir = normalize(viewPos - FragPos);
         vec3 reflectDir = reflect(-lightDir, norm);
-        if(dot(norm, lightDir) >=0.0)
-        {
-            spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
-        }        
-        specular += (1.0 - shadow) * specularStrength * spec * lightColor[i] * intensity[i] * attenuation;
-       
 
-       
-        
+        if (dot(norm, lightDir) >= 0.0) {
+            spec = pow(max(dot(viewDir, reflectDir), 0.0), mix(2.0, shininess, 1.0 - adjustedRoughness));
+        }
+
+        // Fresnel effect (Schlick approximation)
+        float fresnelFactor = pow(1.0 - max(dot(viewDir, norm), 0.0), 5.0);
+        fresnelFactor = mix(fresnelFactor, 0.1, metalness); // Boost Fresnel for metals
+
+        // Apply specular and Fresnel terms
+        specular += (1.0 - shadow) * specularStrength * spec * baseReflectivity * lightColor[i] * intensity[i] * attenuation;
+        specular += fresnelFactor * baseReflectivity * lightColor[i] * intensity[i] * attenuation; // Boost Fresnel contribution
     }
 
+    // Ambient occlusion
     float ao = 1.0;
-    if(hasAOMap == 1) {
-        ao = texture(aoMap, TexCoord).r ;
+    if (hasAOMap == 1) {
+        ao = texture(aoMap, TexCoord).r;
     }
     ambient *= ao;
     diffuse *= ao;
     specular *= ao;
-    // Combine the lighting components
+
+    // Combine lighting components
     vec3 phong = ambient + diffuse + specular;
 
+    // Emissive lighting
     vec3 emissive = vec3(0.0);
     if (hasEmissive == 1) {
         emissive = texture(emissiveMap, TexCoord).rgb * emissiveForce;
     }
 
-   
-
-
-    if(isPlanarReflectable){
-
-        // Convert clip space position to texture coordinates
+    // Planar reflection
+    if (isPlanarReflectable) {
         vec2 reflectionUV = ClipSpacePos.xy / ClipSpacePos.w * 0.5 + 0.5;
-        reflectionUV.y = 1.0 - reflectionUV.y; // Flip Y to match OpenGL convention
-
+        reflectionUV.y = 1.0 - reflectionUV.y;
         vec3 reflectionColor = blurReflection(reflectionTexture, reflectionUV);
-        
-        // Blend reflection with the original texture
-        FragColor = mix(texColor, vec4(reflectionColor, 1.0), 0.3) * vec4(phong + emissive, 1.0); 
-    }
-    else {
-     // Apply the final color with Phong lighting and texture
+        FragColor = mix(texColor, vec4(reflectionColor, 1.0), 0.5) * vec4(phong + emissive, 1.0);
+    } else {
         FragColor = texColor * vec4(phong + emissive, 1.0);
     }
-
-
-   
-
-    //Debug normal : 
-    //FragColor = vec4(norm * 0.5 + 0.5, 1.0);
-
 }

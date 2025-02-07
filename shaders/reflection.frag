@@ -80,5 +80,5 @@ void main() {
     vec4 baseColor = texture(materialTexture, TexCoord);
 
     // Combine the base color with the emissive color
-    FragColor = (baseColor + vec4(emissive, 0.0));
+    FragColor = (baseColor * 0.2f + vec4(emissive, 0.0));
 }

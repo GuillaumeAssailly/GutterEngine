@@ -74,6 +74,7 @@ private:
 	std::unordered_map<std::string, unsigned int> normalMapsList;
 	std::unordered_map<std::string, unsigned int> emissiveList;
     std::unordered_map<std::string, unsigned int> aoList;
+	std::unordered_map<std::string, unsigned int> metalnessRoughnessList;
 
     std::vector<unsigned int> VAOs;
     std::vector<unsigned int> VBOs;

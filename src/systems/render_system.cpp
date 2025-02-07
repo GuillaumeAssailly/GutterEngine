@@ -83,6 +83,16 @@ void RenderSystem::update(
 				glUniform1i(glGetUniformLocation(shaderProg, "hasAOMap"), 0);
             }
 
+            if (render.metalnessRoughnessMap != 0) {
+                glActiveTexture(GL_TEXTURE7);
+                glBindTexture(GL_TEXTURE_2D, render.metalnessRoughnessMap);
+                glUniform1i(glGetUniformLocation(shaderProg, "metalRoughnessMap"), 7);
+                glUniform1i(glGetUniformLocation(shaderProg, "hasMetalRoughnessMap"), 1);
+            }
+			else {
+				glUniform1i(glGetUniformLocation(shaderProg, "hasMetalRoughnessMap"), 0);
+			}
+
             // Draw the object
             glBindVertexArray(render.mesh);
             glDrawElements(GL_TRIANGLES, render.indexCount, GL_UNSIGNED_INT, 0);
