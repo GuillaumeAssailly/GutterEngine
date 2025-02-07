@@ -73,6 +73,16 @@ void RenderSystem::update(
 				glUniform1i(glGetUniformLocation(shaderProg, "hasEmissive"), 0);
 			}
 
+            if (render.aoMap != 0) {
+				glActiveTexture(GL_TEXTURE6);
+				glBindTexture(GL_TEXTURE_2D, render.aoMap);
+				glUniform1i(glGetUniformLocation(shaderProg, "aoMap"), 6);
+				glUniform1i(glGetUniformLocation(shaderProg, "hasAOMap"), 1);
+            } 
+            else {
+				glUniform1i(glGetUniformLocation(shaderProg, "hasAOMap"), 0);
+            }
+
             // Draw the object
             glBindVertexArray(render.mesh);
             glDrawElements(GL_TRIANGLES, render.indexCount, GL_UNSIGNED_INT, 0);

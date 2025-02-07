@@ -16,6 +16,7 @@ uniform sampler2DArray shadowMap;   // Shadow map sampler
 uniform sampler2D normalMap;   // Normal map sampler
 uniform sampler2D reflectionTexture; //Plannar reflection texture sampler
 uniform sampler2D emissiveMap; // Emissive map sampler (for emissive lighting)
+uniform sampler2D aoMap; // Ambient occlusion map sampler
 
 // Phong material properties
 uniform vec3 ambientStrength;  // Ambient reflectivity
@@ -27,7 +28,7 @@ uniform int hasNormalMap;
 uniform bool isPlanarReflectable;
 uniform int hasEmissive;
 uniform float emissiveForce;
-
+uniform int hasAOMap;
 uniform vec3 viewPos;          // Position of the viewer (camera)
 
 // Light properties
@@ -206,8 +207,13 @@ void main()
         
     }
 
-
-
+    float ao = 1.0;
+    if(hasAOMap == 1) {
+        ao = texture(aoMap, TexCoord).r ;
+    }
+    ambient *= ao;
+    diffuse *= ao;
+    specular *= ao;
     // Combine the lighting components
     vec3 phong = ambient + diffuse + specular;
 
@@ -215,6 +221,9 @@ void main()
     if (hasEmissive == 1) {
         emissive = texture(emissiveMap, TexCoord).rgb * emissiveForce;
     }
+
+   
+
 
     if(isPlanarReflectable){
 

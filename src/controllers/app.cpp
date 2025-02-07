@@ -160,6 +160,7 @@ void App::loadGLTF(const char* filePath, const char* texDir, const int EntityID)
         std::string diffuseTexturePath = "default_diffuse.jpg";
         std::string normalTexturePath = "default_normal.jpg";
         std::string emissiveTexturePath = "default_emissive.jpg";
+		std::string aoTexturePath = "default_ao.jpg";
 
         aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
@@ -181,6 +182,12 @@ void App::loadGLTF(const char* filePath, const char* texDir, const int EntityID)
 			std::cout << "Emissive texture: " << path.C_Str() << std::endl;
 			emissiveList[mesh->mName.C_Str()] = make_texture(emissiveTexturePath.c_str(), false);
 			
+		}
+
+		if (material->GetTexture(aiTextureType_LIGHTMAP, 0, &path) == AI_SUCCESS) {
+			aoTexturePath = std::string(texDir) + path.C_Str();
+			std::cout << "AO texture: " << path.C_Str() << std::endl;
+			aoList[mesh->mName.C_Str()] = make_texture(aoTexturePath.c_str(), false);
 		}
 
         // Create VAO
@@ -238,6 +245,7 @@ void App::loadGLTF(const char* filePath, const char* texDir, const int EntityID)
         render.material = texturesList[mesh->mName.C_Str()];
 		render.normalMap = normalMapsList[mesh->mName.C_Str()];
 		render.emissiveMap = emissiveList[mesh->mName.C_Str()];
+		render.aoMap = aoList[mesh->mName.C_Str()];
         renderComponents[obj].push_back(render);
     }
 }
@@ -1159,11 +1167,11 @@ void App::set_up_opengl() {
 void App::make_systems() {
     motionSystem = new MotionSystem();
     cameraSystem = new CameraSystem(shader, window);
-	lightSystem = new LightSystem(shader);
 	shadowSystem = new ShadowSystem(shader,shadowShader, depthMapDebugShader);
     renderSystem = new RenderSystem(shader, window, shadowSystem->getShadowMapArray());
     lineSystem = new LineSystem();
 	reflectionSystem = new ReflectionSystem(shader,reflectionShader);
+	lightSystem = new LightSystem(shader, reflectionShader);
 
 }
 

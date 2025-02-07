@@ -114,7 +114,16 @@ void ReflectionSystem::RenderReflection(std::unordered_map<unsigned int, Transfo
                     glBindTexture(GL_TEXTURE_2D, render.material);
 					glUniform1i(glGetUniformLocation(reflectionShader, "materialTexture"), 0);
 
-                   
+                    if (render.emissiveMap != 0) {
+                        glActiveTexture(GL_TEXTURE5);
+                        glBindTexture(GL_TEXTURE_2D, render.emissiveMap);
+                        glUniform1i(glGetUniformLocation(reflectionShader, "emissiveMap"), 5);
+                        glUniform1i(glGetUniformLocation(reflectionShader, "hasEmissive"), 1);
+                        glUniform1f(glGetUniformLocation(reflectionShader, "emissiveForce"), render.emissiveForce);
+                    }
+                    else {
+                        glUniform1i(glGetUniformLocation(reflectionShader, "hasEmissive"), 0);
+                    }
 
                     // Bind VAO and draw the entity
                     glBindVertexArray(render.mesh);
