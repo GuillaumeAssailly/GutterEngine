@@ -20,6 +20,8 @@ public:
     void run();
 
     int selectedEntityID = -1;
+    const float window_width = 0;
+    const float window_height = 0;
    
     void set_up_opengl();
     void loadModelsAndTextures();

@@ -9,9 +9,7 @@ class MeshManager
 {
 private:
     std::unordered_map<std::string, std::vector<physx::PxBase*>> physicsModels;
-    std::unordered_map<std::string, std::pair<unsigned int, unsigned int>> renderModels;
-    std::unordered_map<std::string, unsigned int> texturesList;
-    std::unordered_map<std::string, unsigned int> normalMapsList;
+    std::unordered_map<std::string, std::vector<std::tuple<unsigned int, unsigned int, Material>>> renderList;
 
     std::vector<unsigned int> VAOs;
     std::vector<unsigned int> VBOs;
@@ -29,5 +27,6 @@ public:
     std::pair<unsigned int, unsigned int> make_cube_mesh(glm::vec3 size);
     std::pair<unsigned int, unsigned int>  make_model(const char*);
     unsigned int make_texture(const char* filename, const bool);
-    void loadGLTF(const char* filePath, const char* texDir, const int);
+    void applyRenderModel(unsigned int entity, std::string model);
+    void loadGLTF(const char* filePath, const char* texDir);
 };

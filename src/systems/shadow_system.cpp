@@ -81,7 +81,6 @@ void ShadowSystem::RenderDepthMap(unsigned int depthMap, int screenWidth, int sc
 
     // Reset the viewport to the full screen
     glViewport(0, 0, screenWidth, screenHeight);
-    glScissor(screenWidth / 5, 0, screenWidth - 2 * screenWidth / 5, screenHeight);
 }
 
 
@@ -166,7 +165,6 @@ void ShadowSystem::GenerateShadowMap(std::unordered_map<unsigned int, LightCompo
     }
 
     glViewport(0, 0, screenWidth, screenHeight);
-    glScissor(screenWidth / 5, 0, screenWidth - 2 * screenWidth / 5, screenHeight);
     //Give back control to the main shader :
     glUseProgram(shader);
 

@@ -3,14 +3,54 @@
 int screenWidth = 1920;
 int screenHeight = 1080;
 
+GLuint FBO, texture_id, RBO;
+void create_framebuffer()
+{
+    glGenFramebuffers(1, &FBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+
+    glGenTextures(1, &texture_id);
+    glBindTexture(GL_TEXTURE_2D, texture_id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_id, 0);
+
+    glGenRenderbuffers(1, &RBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, RBO);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, screenWidth, screenHeight);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!\n";
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+}
+
+void rescale_framebuffer(float width, float height)
+{
+    glBindTexture(GL_TEXTURE_2D, texture_id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_id, 0);
+
+    glBindRenderbuffer(GL_RENDERBUFFER, RBO);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
+}
+
 App::App() {
     set_up_glfw();
     set_up_opengl();
+    create_framebuffer();
     entityManager = new EntityManager();
     systemManager = new SystemManager(window, shader, shadowShader, depthMapDebugShader);
     meshManager = new MeshManager(entityManager);
     inputManager = new InputManager(systemManager, entityManager);
-    ui = new UI(window, entityManager, meshManager);
+    ui = new UI(window, entityManager, meshManager, systemManager);
 
 }
 
@@ -118,35 +158,24 @@ void App::run() {
             break;
         }
 
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+
         // Update systems
+        ui->update(screenWidth, screenHeight, texture_id, deltaTime);
         if (accumulatedTime >= 0.00833) {
             systemManager->motionSystem->update(entityManager->transformComponents, entityManager->physicsComponents, accumulatedTime);
             accumulatedTime = 0.;
         }
-        systemManager->cameraSystem->update(entityManager->transformComponents, entityManager->cameraComponents, entityManager->cameraID, deltaTime);
         systemManager->lightSystem->update(entityManager->lightComponents, entityManager->transformComponents, entityManager->cameraID);
         systemManager->renderSystem->update(entityManager->transformComponents, entityManager->renderComponents, entityManager->lightComponents);
         systemManager->shadowSystem->GenerateShadowMap(entityManager->lightComponents, entityManager->transformComponents, entityManager->renderComponents, screenWidth, screenHeight, entityManager->cameraID);
-
-        //Draw Lines
-        //Add here more lines to draw...
         systemManager->lineSystem->render_lines_ref_frame_grid(type_reference_frame, grid_display, entityManager->transformComponents[entityManager->cameraID].position, shader);
+        systemManager->cameraSystem->update(entityManager->transformComponents, entityManager->cameraComponents, entityManager->cameraID, deltaTime);
 
-                // Calculate and display FPS in window title every second
-        if (fpsTimeCounter >= 1.0f) {
-            // Reset counters for the next FPS calculation
-            frameCount = 0;
-            fpsTimeCounter = 0.0f;
-        }
-        ui->update(screenWidth, screenHeight, deltaTime);
-        // Start //ImGui window for debugging
-        
-        /*ImGui::Begin("Debug");
-
-        // Display FPS
-        ImGui::Text("FPS: %f", 1.0f / deltaTime);
-
-        ImGui::End();*/
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+ 
 
        // End of Entity Tree window
         /*
@@ -199,30 +228,6 @@ void App::run() {
                     }
                 }
             }
-
-            // Display LightComponent if present
-            if (entityManager->lightComponents.find(selectedEntityID) != entityManager->lightComponents.end()) {
-                ImGui::Text("Light Component");
-                LightComponent& light = entityManager->lightComponents[selectedEntityID];
-                ImGui::ColorEdit3("Light Color", &light.color[0]);
-                ImGui::SliderFloat("Intensity", &light.intensity, 0.0f, 10.0f);
-                ImGui::Checkbox("Is Directional", &light.isDirectional);
-                if (light.isDirectional == true) {
-                    ImGui::DragFloat3("Light Direction", &light.direction[0], 0.1);
-                }
-
-            }
-
-            // Display RenderComponent if present
-            if (entityManager->renderComponents.find(selectedEntityID) != entityManager->renderComponents.end()) {
-                ImGui::Text("Render Component");
-                //RenderComponent& render = renderComponents[selectedEntityID];
-               // ImGui::InputInt("Mesh ID", (int*)&render.mesh);
-            }
-            if (ImGui::Button("Close")) {
-                selectedEntityID = -1;
-            }
-            ImGui::End();    // End of Inspector window
         }
 
         ImGui::Begin("Object Creator");
@@ -379,8 +384,6 @@ void App::run() {
                 error_msg = "Please fill all the fields";
             }
 
-
-
             /*strcpy_s(newEntityName, sizeof(newEntityName), "NewObject");
             addTransform = false;
             addPhysics = false;
@@ -459,138 +462,6 @@ void App::run() {
 
         ImGui::End(); // End of Camera window
 
-
-        // --- Settings Window ---
-        ImGui::Begin("Settings");
-        ImGui::Text("Reference Frame");
-        switch (type_reference_frame) {
-        case 2:
-            ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.43f, 0.7f, 0.75f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.43f, 0.9f, 0.9f));
-            if (ImGui::Button(" Full Reference Frame ", ImVec2(-1.0f, 0.0f)))
-                type_reference_frame = 0;
-            ImGui::PopStyleColor(2);
-            break;
-        case 1:
-            ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.43f, 0.5f, 0.55f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.43f, 0.7f, 0.7f));
-            if (ImGui::Button(" Partial Reference Frame ", ImVec2(-1.0f, 0.0f)))
-            {
-                type_reference_frame = 2;
-                systemManager->lineSystem->reset_reference_frame();
-            }
-            ImGui::PopStyleColor(2);
-            break;
-        default:
-            if (ImGui::Button(" Hidden Reference Frame ", ImVec2(-1.0f, 0.0f)))
-                type_reference_frame = (grid_display) ? 1 : 2;
-            break;
-        }
-
-        ImGui::Text("Grid");
-        if (grid_display)
-        {
-            ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.43f, 0.7f, 0.75f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.43f, 1.0f, 1.0f));
-            if (ImGui::Button(" Displayed Grid ", ImVec2(-1.0f, 0.0f)))
-            {
-                grid_display = false;
-                if (type_reference_frame == 1)
-                {
-                    type_reference_frame = 2;
-                    systemManager->lineSystem->reset_reference_frame();
-                }
-            }
-            ImGui::PopStyleColor(2);
-        }
-        else
-        {
-            if (ImGui::Button(" Hidden Grid ", ImVec2(-1.0f, 0.0f)))
-                grid_display = true;
-        }
-
-        // TODO: Make scale work
-        ImGui::Text("Gizmo Settings");
-        switch (gizmo_type) {
-        case ImGuizmo::OPERATION::SCALE:
-            if (ImGui::Button(" Scaling #LOCK ", ImVec2(-1.0f, 0.0f)))
-                gizmo_type = -1;
-            break;
-        case ImGuizmo::OPERATION::ROTATE:
-            if (ImGui::Button(" Rotation ", ImVec2(-1.0f, 0.0f)))
-                gizmo_type = ImGuizmo::OPERATION::SCALE;
-            break;
-        case ImGuizmo::OPERATION::TRANSLATE:
-            if (ImGui::Button(" Translation ", ImVec2(-1.0f, 0.0f)))
-            {
-                gizmo_type = ImGuizmo::OPERATION::ROTATE;
-            }
-            break;
-        default:
-            if (ImGui::Button(" None ", ImVec2(-1.0f, 0.0f)))
-                gizmo_type = ImGuizmo::OPERATION::TRANSLATE;
-            break;
-        }
-
-        if (ImGui::Button((gizmo_world) ? " Gizmo World " : " Gizmo Local ", ImVec2(-1.0f, 0.0f)))
-            gizmo_world = !gizmo_world;
-
-        ImGui::End(); // End of Settings window
-
-
-        // ImGuizmo
-        if (gizmo_type != -1) {
-            ImGuizmo::SetOrthographic(false);
-            ImGuiIO& io = ImGui::GetIO();
-            ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
-
-            auto camera = entityManager->transformComponents[entityManager->cameraID];
-            glm::mat4 cameraView = systemManager->cameraSystem->GetViewMatrix();
-            glm::mat4 cameraProjection = systemManager->cameraSystem->GetProjectionMatrix();
-            glm::mat4 transformSelectedEntity = glm::translate(glm::mat4(1.0f), entityManager->transformComponents[selectedEntityID].position) *
-                glm::toMat4(entityManager->transformComponents[selectedEntityID].eulers) *
-                glm::scale(glm::mat4(1.0f), entityManager->transformComponents[selectedEntityID].size);
-
-            // Manipulation de l'entité sélectionnée avec ImGuizmo
-            ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
-                (ImGuizmo::OPERATION)gizmo_type, (ImGuizmo::MODE)gizmo_world,
-                glm::value_ptr(transformSelectedEntity));
-
-            if (ImGuizmo::IsUsing())
-            {
-                glm::vec3 translation, rotation, scale;
-
-                DecomposeTransform(transformSelectedEntity, translation, rotation, scale);
-
-                glm::quat currentRotation = glm::quat(rotation);
-
-                if (entityManager->physicsComponents.find(selectedEntityID) != entityManager->physicsComponents.end())
-                {
-                    physx::PxTransform transform = entityManager->physicsComponents[selectedEntityID].rigidBody->getGlobalPose();
-
-                    transform.p.x = translation.x;
-                    transform.p.y = translation.y;
-                    transform.p.z = translation.z;
-
-                    transform.q = physx::PxQuat(currentRotation.x, currentRotation.y, currentRotation.z, currentRotation.w);
-                    entityManager->physicsComponents[selectedEntityID].rigidBody->setGlobalPose(transform);
-                }
-                else if (entityManager->staticPhysicsComponents.find(selectedEntityID) != entityManager->staticPhysicsComponents.end()) {
-                    physx::PxTransform transform = entityManager->staticPhysicsComponents[selectedEntityID].rigidBody->getGlobalPose();
-
-                    transform.p.x = translation.x;
-                    transform.p.y = translation.y;
-                    transform.p.z = translation.z;
-
-                    transform.q = physx::PxQuat(currentRotation.x, currentRotation.y, currentRotation.z, currentRotation.w);
-                    entityManager->staticPhysicsComponents[selectedEntityID].rigidBody->setGlobalPose(transform);
-                }
-
-                entityManager->transformComponents[selectedEntityID].position = translation;
-                entityManager->transformComponents[selectedEntityID].eulers = currentRotation;
-                entityManager->transformComponents[selectedEntityID].size = scale;
-            }
-        }
         */
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -614,6 +485,7 @@ void App::set_up_opengl() {
     glfwGetFramebufferSize(window, &w, &h);
     //(left, top, width, height)
     glViewport(0, 0, w, h);
+    glEnable(GL_SCISSOR_TEST);
 
     glEnable(GL_MULTISAMPLE);
     glEnable(GL_DEPTH_TEST);
@@ -621,16 +493,9 @@ void App::set_up_opengl() {
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
 
-    // Activer le scissoring pour limiter le rendu
-    glEnable(GL_SCISSOR_TEST);
-    glScissor(w / 5, 0, w - 2 * w / 5, h);
-
     //WIREFRAME MOD : 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-    shader = make_shader(
-        "shaders/shader.vert",
-        "shaders/shader.frag");
     shader = make_shader(
         "shaders/shader.vert",
         "shaders/shader.frag");
@@ -643,8 +508,6 @@ void App::set_up_opengl() {
 		"shaders/depthMap.vert",
 		"shaders/depthMap.frag");
 
-
-
     glUseProgram(shader);
     unsigned int projLocation = glGetUniformLocation(shader, "projection");
     //TODO : add configurable perspective :
@@ -653,36 +516,28 @@ void App::set_up_opengl() {
 void App::loadModelsAndTextures()
 {
     // Lane
-	const int lane = entityManager->make_entity("Lane");
-    meshManager->loadGLTF("obj/nashville/Piste.gltf", "obj/nashville/", lane);
+    meshManager->loadGLTF("obj/nashville/Piste.gltf", "obj/nashville/");
 
     // Lane 2
-	const int lane2 = entityManager->make_entity("Lane2");
-    meshManager->loadGLTF("obj/nashville/Piste2.gltf", "obj/nashville/", lane2);
+    meshManager->loadGLTF("obj/nashville/Piste2.gltf", "obj/nashville/");
    
     //Ball Return
-	const int ballreturn = entityManager->make_entity("BallReturn");
-    meshManager->loadGLTF("obj/nashville/BallReturn.gltf", "obj/nashville/", ballreturn);
+    meshManager->loadGLTF("obj/nashville/BallReturn.gltf", "obj/nashville/");
 
     //TV
-    const int TV = entityManager->make_entity("TV");
-    meshManager->loadGLTF("obj/nashville/TV.gltf", "obj/nashville/", TV);
+    meshManager->loadGLTF("obj/nashville/TV.gltf", "obj/nashville/");
 
     //Pin Statue
-    const int PinStatue = entityManager->make_entity("PinStatue");
-    meshManager->loadGLTF("obj/nashville/PinStatue.gltf", "obj/nashville/", PinStatue);
+    meshManager->loadGLTF("obj/nashville/PinStatue.gltf", "obj/nashville/");
 
     //Ball1
-	const int Ball1 = entityManager->make_entity("Ball1");
-    meshManager->loadGLTF("obj/nashville/Ball1.gltf", "obj/nashville/", Ball1);
+    meshManager->loadGLTF("obj/nashville/Ball1.gltf", "obj/nashville/");
 
 	//Ball2
-	const int Ball2 = entityManager->make_entity("Ball2");
-    meshManager->loadGLTF("obj/nashville/Ball2.gltf", "obj/nashville/", Ball2);
+    meshManager->loadGLTF("obj/nashville/Ball2.gltf", "obj/nashville/");
 
 	//Ball3
-	const int Ball3 = entityManager->make_entity("Ball3");
-    meshManager->loadGLTF("obj/nashville/Ball3.gltf", "obj/nashville/", Ball3);
+    meshManager->loadGLTF("obj/nashville/Ball3.gltf", "obj/nashville/");
 
 
     // Ball
@@ -899,7 +754,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 
     glViewport(0, 0, width, height);
-    glScissor(width/5, 0, width - 2 * width/5, height);
 }
 
 /// <summary>

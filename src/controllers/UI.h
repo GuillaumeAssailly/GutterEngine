@@ -2,24 +2,32 @@
 #include "../config.h"
 #include "entity_manager.h"
 #include "mesh_manager.h"
+#include "system_manager.h"
 
 class UI
 {
     EntityManager* entityManager;
     MeshManager* meshManager;
+    SystemManager* systemManager;
 
     //ImGui variables
     int selectedEntityID = -1;
     bool displaySceneEntities = true;
-    bool displayInspector = false;
     int screenWidth = 1920;
     int screenHeight = 1080;
 
-    float dockspace_width = 300.0f; // Largeur initiale du dockspace
-    const float min_width = 200.0f;        // Largeur minimale
-    const float max_width = 600.0f;        // Largeur maximale
-    void CreateLeftDockspace();
-    void CreateRightDockspace();
+    //Inspector
+    std::string remove_error_msg = "";
+    char renameBuffer[128] = { 0 };
+    bool displayInspector = false;
+
+    // Guizmo
+    int type_reference_frame = -1;
+    bool grid_display = false;
+
+
+    void CreateDockspace();
+
    
     int gizmo_type = -1;
     bool gizmo_world = true;
@@ -72,14 +80,15 @@ class UI
     bool DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale);
 
 public:
-    UI(GLFWwindow* window, EntityManager* entityManager, MeshManager* meshManager);
+    UI(GLFWwindow* window, EntityManager* entityManager, MeshManager* meshManager, SystemManager*);
     ~UI();
 
-    void update(int, int, double);
+    void update(int, int, GLuint, double);
     void displayEntityDetail();
     void displayNavBar();
     void displayFrameRate(double deltaTime);
     void displaySceneHierarchy();
-
-    void ShowStyleEditor();
+    void displayCatalog();
+    void displayScene(GLuint texture_id, double);
+    void displaySettings();
 };

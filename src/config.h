@@ -35,3 +35,9 @@
 #include <sstream>
 #include <string>
 #include <cstring>
+
+struct Material {
+    unsigned int baseColor = -1;
+    unsigned int normalMap = -1;
+    unsigned int emissiveMap = -1;
+};

@@ -10,6 +10,7 @@
 
 class App;
 class InputManager;
+class UI;
 
 class SystemManager
 {
@@ -28,4 +29,5 @@ public:
 
     friend class App;
     friend class InputManager;
+    friend class UI;
 };

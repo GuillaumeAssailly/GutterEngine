@@ -24,6 +24,8 @@ public:
 
     unsigned int make_entity(const std::string&);
     std::unordered_map<unsigned int, std::string>& getEntityNames();
+    void renameEntity(unsigned int, std::string);
+    std::string removeEntity(unsigned int);
 
     int cameraID = 0;
 

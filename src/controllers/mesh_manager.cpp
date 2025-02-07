@@ -117,21 +117,13 @@ std::pair<unsigned int, unsigned int> MeshManager::make_model(const char* filePa
     return std::make_pair(VAO, indices.size());
 }
 
-void MeshManager::loadGLTF(const char* filePath, const char* texDir, const int EntityID) {
+void MeshManager::loadGLTF(const char* filePath, const char* texDir) {
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(filePath, aiProcess_OptimizeMeshes | aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
         std::cout << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
         exit(-1);
     }
-    TransformComponent transform;
-    RenderComponent render;
-    unsigned int obj = EntityID;
-    transform.position = { 0.f, 0.f, 9.f };
-    transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
-    transform.size = { 1.0f, 0.168f, 18.0f };
-    entityManager->transformComponents[obj] = transform;
-
 
     for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
         std::vector<float> vertices;
@@ -185,20 +177,19 @@ void MeshManager::loadGLTF(const char* filePath, const char* texDir, const int E
         std::string emissiveTexturePath = "default_emissive.jpg";
 
         aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-
+        Material mat;
         aiString path;
         if (material->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS) {
             diffuseTexturePath = std::string(texDir) + path.C_Str();
             std::cout << "Diffuse texture: " << path.C_Str() << std::endl;
-            texturesList[mesh->mName.C_Str()] = make_texture(diffuseTexturePath.c_str(), false);
+            mat.baseColor = make_texture(diffuseTexturePath.c_str(), false);
         }
 
         if (material->GetTexture(aiTextureType_NORMALS, 0, &path) == AI_SUCCESS) {
             normalTexturePath = std::string(texDir) + path.C_Str();
             std::cout << "Normal texture: " << std::string(texDir) + path.C_Str() << std::endl;
-            normalMapsList[mesh->mName.C_Str()] = make_texture(normalTexturePath.c_str(), false);
+            mat.normalMap = make_texture(normalTexturePath.c_str(), false);
         }
-
 
         // Create VAO
         unsigned int VAO;
@@ -246,15 +237,9 @@ void MeshManager::loadGLTF(const char* filePath, const char* texDir, const int E
         glBindVertexArray(0);
 
         // Store VAO and index count
-        renderModels[mesh->mName.C_Str()] = std::make_pair(VAO, indices.size());
         std::cout << mesh->mName.C_Str() << std::endl;
 
-
-        render.mesh = renderModels[mesh->mName.C_Str()].first;
-        render.indexCount = renderModels[mesh->mName.C_Str()].second;
-        render.material = texturesList[mesh->mName.C_Str()];
-        render.normalMap = normalMapsList[mesh->mName.C_Str()];
-        entityManager->renderComponents[obj].push_back(render);
+        renderList[scene->mRootNode->mName.C_Str()].push_back(std::make_tuple(VAO, indices.size(), mat));
     }
 }
 
@@ -404,4 +389,19 @@ unsigned int MeshManager::make_texture(const char* filename, const bool flipTex)
 
 
     return texture;
+}
+
+void MeshManager::applyRenderModel(unsigned int entity, std::string model)
+{
+    for (auto render : renderList[model]) {
+        Material mat = std::get<2>(render);
+        RenderComponent renderComponent;
+        renderComponent.mesh = std::get<0>(render);
+        renderComponent.indexCount = std::get<1>(render);
+        renderComponent.material = mat.baseColor;
+        renderComponent.normalMap = mat.normalMap;
+        entityManager->renderComponents[entity].push_back(renderComponent);
+    }
+
+
 }
