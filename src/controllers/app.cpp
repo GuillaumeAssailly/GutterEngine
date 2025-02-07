@@ -1204,6 +1204,8 @@ void App::loadModelsAndTextures()
     //TV
     const int TV = make_entity("TV");
 	loadGLTF("obj/nashville/TV.gltf", "obj/nashville/", TV);
+    transformComponents[TV].position = { -3.568f, 3.356f, 9.137f };
+    transformComponents[TV].eulers = glm::angleAxis(glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     //Pin Statue
     const int PinStatue = make_entity("PinStatue");
@@ -1361,12 +1363,12 @@ void App::loadEntities()
 
     //First light
     unsigned int lightEntity1 = make_entity("First Light");
-    transform.position = { 0.0f, 0.0f, 0.0f };
+    transform.position = { -1.964f, 4.687f, 8.845f };
     transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
     transformComponents[lightEntity1] = transform;
 
     light.color = { 0.0f, 1.0f, 1.0f };
-    light.intensity = 1.0f;
+    light.intensity = 2.0f;
     light.type = SPOT;
     light.direction = glm::normalize(glm::vec3(0.0f, -1.0f, 0.0f));
     light.cutoff = glm::cos(glm::radians(15.0f));
@@ -1381,7 +1383,7 @@ void App::loadEntities()
     LightComponent light2;
     //Second light: 
     unsigned int lightEntity2 = make_entity("Second Light");
-    transform.position = { 0.0f, 4.0f, 4.0f };
+    transform.position = { -7.038, 5.153f, 8.147f };
     transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
     transformComponents[lightEntity2] = transform;
 
