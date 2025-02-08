@@ -48,6 +48,9 @@ private:
     std::unordered_map<std::string, std::pair<unsigned int, unsigned int>> renderModels;
     std::unordered_map<std::string, unsigned int> texturesList;
 	std::unordered_map<std::string, unsigned int> normalMapsList;
+	std::unordered_map<std::string, unsigned int> emissiveList;
+    std::unordered_map<std::string, unsigned int> aoList;
+	std::unordered_map<std::string, unsigned int> metalnessRoughnessList;
 
     std::vector<unsigned int> VAOs;
     std::vector<unsigned int> VBOs;
@@ -56,8 +59,22 @@ private:
     unsigned int shader;
     unsigned int shadowShader;
     unsigned int depthMapDebugShader;
+    unsigned int reflectionShader;
 
 	float deltaTime = 0.0f;
 	float lastFrame = 0.0f;
     float accumulatedTime = 0.0f;
+
+    //Systems
+    CameraSystem* cameraSystem;
+    MotionSystem* motionSystem;
+    RenderSystem* renderSystem;
+    LightSystem* lightSystem;
+    LineSystem* lineSystem;
+	ShadowSystem* shadowSystem;
+
+
+    
+
+    
 };

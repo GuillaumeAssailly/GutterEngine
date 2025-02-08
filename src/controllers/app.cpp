@@ -479,7 +479,7 @@ void App::run() {
 /// </summary>
 void App::set_up_opengl() {
 
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     //Set the rendering region to the actual screen size
     int w, h;
     glfwGetFramebufferSize(window, &w, &h);
@@ -507,6 +507,9 @@ void App::set_up_opengl() {
 	depthMapDebugShader = make_shader(
 		"shaders/depthMap.vert",
 		"shaders/depthMap.frag");
+	reflectionShader = make_shader(
+		"shaders/reflection.vert",
+		"shaders/reflection.frag");
 
     glUseProgram(shader);
     unsigned int projLocation = glGetUniformLocation(shader, "projection");
@@ -687,6 +690,7 @@ void App::loadEntities()
     render.material = texturesList["Light"];
     entityManager->renderComponents[lightEntity1].push_back(render);
 
+    LightComponent light2;
     //Second light: 
     unsigned int lightEntity2 = entityManager->make_entity("Second Light");
     transform.position = { 0.0f, 4.0f, 4.0f };
