@@ -175,6 +175,9 @@ void MeshManager::loadGLTF(const char* filePath, const char* texDir) {
         std::string diffuseTexturePath = "default_diffuse.jpg";
         std::string normalTexturePath = "default_normal.jpg";
         std::string emissiveTexturePath = "default_emissive.jpg";
+        std::string aoTexturePath = "default_ao.jpg";
+        std::string metalnessRoughness = "default_metalness_roughness.jpg";
+
 
         aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
         Material mat;
@@ -189,6 +192,26 @@ void MeshManager::loadGLTF(const char* filePath, const char* texDir) {
             normalTexturePath = std::string(texDir) + path.C_Str();
             std::cout << "Normal texture: " << std::string(texDir) + path.C_Str() << std::endl;
             mat.normalMap = make_texture(normalTexturePath.c_str(), false);
+        }
+
+
+        if (material->GetTexture(aiTextureType_EMISSIVE, 0, &path) == AI_SUCCESS) {
+            emissiveTexturePath = std::string(texDir) + path.C_Str();
+            std::cout << "Emissive texture: " << path.C_Str() << std::endl;
+            mat.emissiveMap = make_texture(emissiveTexturePath.c_str(), false);
+
+        }
+
+        if (material->GetTexture(aiTextureType_LIGHTMAP, 0, &path) == AI_SUCCESS) {
+            aoTexturePath = std::string(texDir) + path.C_Str();
+            std::cout << "AO texture: " << path.C_Str() << std::endl;
+            mat.aoMap = make_texture(aoTexturePath.c_str(), false);
+        }
+
+        if (material->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &path) == AI_SUCCESS) {
+            metalnessRoughness = std::string(texDir) + path.C_Str();
+            std::cout << "Roughness texture: " << path.C_Str() << std::endl;
+            mat.metalnessRoughnessMap = make_texture(metalnessRoughness.c_str(), false);
         }
 
         // Create VAO
@@ -400,6 +423,10 @@ void MeshManager::applyRenderModel(unsigned int entity, std::string model)
         renderComponent.indexCount = std::get<1>(render);
         renderComponent.material = mat.baseColor;
         renderComponent.normalMap = mat.normalMap;
+        renderComponent.aoMap = mat.aoMap;
+        renderComponent.emissiveMap = mat.emissiveMap;
+        renderComponent.metalnessRoughnessMap = mat.metalnessRoughnessMap;
+
         entityManager->renderComponents[entity].push_back(renderComponent);
     }
 

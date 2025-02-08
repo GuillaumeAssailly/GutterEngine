@@ -47,7 +47,7 @@ App::App() {
     set_up_opengl();
     create_framebuffer();
     entityManager = new EntityManager();
-    systemManager = new SystemManager(window, shader, shadowShader, depthMapDebugShader);
+    systemManager = new SystemManager(window, shader, shadowShader, depthMapDebugShader, reflectionShader);
     meshManager = new MeshManager(entityManager);
     inputManager = new InputManager(systemManager, entityManager);
     ui = new UI(window, entityManager, meshManager, systemManager);
@@ -58,6 +58,7 @@ App::~App() {
     glDeleteBuffers(VBOs.size(), VBOs.data());
     glDeleteVertexArrays(VAOs.size(), VAOs.data());
     glDeleteTextures(textures.size(), textures.data());
+    glDeleteProgram(reflectionShader);
     glDeleteProgram(shader);
 
     delete inputManager;
@@ -132,6 +133,7 @@ void App::run() {
 
     //while loop iterating on the renderer pipeline : 
     systemManager->shadowSystem->Initialize(entityManager->lightComponents);
+    systemManager->reflectionSystem->Initialize(entityManager->renderComponents, 1024, 1024);
     while (!glfwWindowShouldClose(window)) {
         // Per-frame time logic
         // -------------------
@@ -169,6 +171,7 @@ void App::run() {
             accumulatedTime = 0.;
         }
         systemManager->lightSystem->update(entityManager->lightComponents, entityManager->transformComponents, entityManager->cameraID);
+        systemManager->reflectionSystem->RenderReflection(entityManager->transformComponents, entityManager->renderComponents, systemManager->cameraSystem->GetViewMatrix(), systemManager->cameraSystem->GetProjectionMatrix(), screenWidth, screenHeight, entityManager->cameraID);
         systemManager->renderSystem->update(entityManager->transformComponents, entityManager->renderComponents, entityManager->lightComponents);
         systemManager->shadowSystem->GenerateShadowMap(entityManager->lightComponents, entityManager->transformComponents, entityManager->renderComponents, screenWidth, screenHeight, entityManager->cameraID);
         systemManager->lineSystem->render_lines_ref_frame_grid(type_reference_frame, grid_display, entityManager->transformComponents[entityManager->cameraID].position, shader);
@@ -507,6 +510,7 @@ void App::set_up_opengl() {
 	depthMapDebugShader = make_shader(
 		"shaders/depthMap.vert",
 		"shaders/depthMap.frag");
+
 	reflectionShader = make_shader(
 		"shaders/reflection.vert",
 		"shaders/reflection.frag");
@@ -699,7 +703,7 @@ void App::loadEntities()
 
     light.color = { 1.0f, 1.0f, 1.0f };
     light.intensity = 1.0f;
-    light.isDirectional = true;
+    //light.isDirectional = true;
     light.direction = { 1.0f, -6.0f, 4.0f };
     entityManager->lightComponents[lightEntity2] = light;
 
@@ -707,40 +711,6 @@ void App::loadEntities()
     render.indexCount = renderModels["Light"].second;
     render.material = texturesList["Light"];
     entityManager->renderComponents[lightEntity2].push_back(render);
-
-}
-
-MotionSystem* App::getMotionSystem()
-{
-    return systemManager->motionSystem;
-}
-
-std::unordered_map<std::string, std::pair<unsigned int, unsigned int>> App::getRenderModels() const
-{
-    return renderModels;
-}
-
-std::unordered_map<std::string, unsigned int> App::getTexturesList() const
-{
-    return texturesList;
-}
-
-std::unordered_map<std::string, std::vector<physx::PxConvexMesh*>> App::getPhysicsModels() const
-{
-    return physicsModels;
-}
-
-
-int App::getEntityByName(std::string name) const
-{
-    int id = -1;
-    for (const auto& pair : entityManager->entityNames) {
-        if (pair.second == name) {
-            id = pair.first;
-        }
-    }
-    return id;
-
 
 }
 

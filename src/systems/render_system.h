@@ -7,8 +7,6 @@
 class RenderSystem {
 public:
 
-
-
     RenderSystem(unsigned int shader, GLFWwindow* window, unsigned int shadowMapArray);
 
 	void Initialize(unsigned int shadowMapArray);

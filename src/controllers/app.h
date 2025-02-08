@@ -19,7 +19,6 @@ public:
     ~App();
     void run();
 
-    int selectedEntityID = -1;
     const float window_width = 0;
     const float window_height = 0;
    
@@ -27,11 +26,6 @@ public:
     void loadModelsAndTextures();
 
     void loadEntities();
-    MotionSystem * getMotionSystem();
-    std::unordered_map<std::string, std::pair<unsigned int, unsigned int>> getRenderModels() const;
-    std::unordered_map<std::string, unsigned int> getTexturesList() const;
-    std::unordered_map<std::string, std::vector<physx::PxConvexMesh*>> getPhysicsModels() const;
-    int getEntityByName(std::string name) const;
 
 private:
     void set_up_glfw();
@@ -64,17 +58,5 @@ private:
 	float deltaTime = 0.0f;
 	float lastFrame = 0.0f;
     float accumulatedTime = 0.0f;
-
-    //Systems
-    CameraSystem* cameraSystem;
-    MotionSystem* motionSystem;
-    RenderSystem* renderSystem;
-    LightSystem* lightSystem;
-    LineSystem* lineSystem;
-	ShadowSystem* shadowSystem;
-
-
-    
-
     
 };

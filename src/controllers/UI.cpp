@@ -162,10 +162,10 @@ void UI::displayEntityDetail()
                 LightComponent& light = entityManager->lightComponents[selectedEntityID];
                 ImGui::ColorEdit3("Light Color", &light.color[0]);
                 ImGui::SliderFloat("Intensity", &light.intensity, 0.0f, 10.0f);
-                ImGui::Checkbox("Is Directional", &light.isDirectional);
+                /*ImGui::Checkbox("Is Directional", &light.isDirectional);
                 if (light.isDirectional == true) {
                     ImGui::DragFloat3("Light Direction", &light.direction[0], 0.1);
-                }
+                }*/
                 ImGui::EndTabItem();
             }
             ImGui::EndTabBar();
