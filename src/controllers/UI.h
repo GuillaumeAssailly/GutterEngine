@@ -15,6 +15,7 @@ class UI
     bool displaySceneEntities = true;
     int screenWidth = 1920;
     int screenHeight = 1080;
+    bool isDragging = false;
 
     //Inspector
     std::string remove_error_msg = "";

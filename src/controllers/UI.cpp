@@ -31,11 +31,9 @@ void UI::displaySceneHierarchy()
 {
     ImGui::Begin("Entity List", nullptr);
 
-    // Loop through all entities to create a tree view
     for (const auto& [id, name] : entityManager->entityNames) {
-        // Display each entity as selectable
         if (ImGui::Selectable(name.c_str(), selectedEntityID == id)) {
-            selectedEntityID = id; // Set the selected entity when clicked
+            selectedEntityID = id;
             displayInspector = true;
             remove_error_msg = "";
             strncpy_s(renameBuffer, sizeof(renameBuffer), name.c_str(), _TRUNCATE);
@@ -47,6 +45,7 @@ void UI::displaySceneHierarchy()
 void UI::displayCatalog()
 {
     ImGui::Begin("Objects list");
+    isDragging = false;
     for (const auto& obj : meshManager->renderList)
     {
         // Détecter si l'élément est en train d'être glissé
@@ -57,8 +56,10 @@ void UI::displayCatalog()
         //src_flags |= ImGuiDragDropFlags_SourceNoPreviewTooltip; // Hide the tooltip
         if (ImGui::BeginDragDropSource(src_flags))
         {
-            if (!(src_flags & ImGuiDragDropFlags_SourceNoPreviewTooltip))
-                ImGui::Text("Moving \"%s\"", obj.first.c_str());
+            if (!(src_flags & ImGuiDragDropFlags_SourceNoPreviewTooltip)) {
+                ImGui::Text("\"%s\"", obj.first.c_str());
+                isDragging = true;
+            }
             ImGui::SetDragDropPayload("OBJECT_TYPE", obj.first.c_str(), obj.first.size() + 1);
             ImGui::EndDragDropSource();
         }
@@ -237,8 +238,9 @@ void UI::displayScene(GLuint texture_id, double deltaTime) {
         uv0,
         uv1
     );
-    
-    //ImGui::InvisibleButton("##drop_target", ImVec2(window_width, window_height));
+
+    if(isDragging)
+        ImGui::InvisibleButton("##drop_target", ImVec2(window_width, window_height));
 
     if (ImGui::BeginDragDropTarget())
     {
@@ -442,9 +444,9 @@ void UI::update(int screenW, int screenH, GLuint tex, double deltaTime) {
     }
     displaySceneHierarchy();
     displayEntityDetail();
-    displayCatalog();
     displayNavBar();
     displayScene(tex, deltaTime);
+    displayCatalog();
     displaySettings();
 
 
