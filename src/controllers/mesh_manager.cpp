@@ -429,6 +429,4 @@ void MeshManager::applyRenderModel(unsigned int entity, std::string model)
 
         entityManager->renderComponents[entity].push_back(renderComponent);
     }
-
-
 }

@@ -220,13 +220,13 @@ void UI::displayScene(GLuint texture_id, double deltaTime) {
     const float window_width = ImGui::GetContentRegionAvail().x;
     const float window_height = ImGui::GetContentRegionAvail().y;
 
-    int cropX = (screenWidth - window_width) / 2;
-    int cropY = (screenHeight - window_height) / 2;
-
+    entityManager->cameraComponents[entityManager->cameraID].aspectRatio = window_width / window_height;
     ImVec2 pos = ImGui::GetCursorScreenPos();
 
-    float crop_x = (screenWidth - window_width) / (2 * screenWidth);
-    float crop_y = (screenHeight - window_height) / (2 * screenHeight);
+    //float crop_x = (screenWidth - window_width) / (2 * screenWidth);
+    //float crop_y = (screenHeight - window_height) / (2 * screenHeight);
+    float crop_y = 0;
+    float crop_x = 0;
 
     ImVec2 uv0 = ImVec2(crop_x, 1 - crop_y);         
     ImVec2 uv1 = ImVec2(1.0f - crop_x, crop_y);
