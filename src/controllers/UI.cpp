@@ -163,10 +163,21 @@ void UI::displayEntityDetail()
                 LightComponent& light = entityManager->lightComponents[selectedEntityID];
                 ImGui::ColorEdit3("Light Color", &light.color[0]);
                 ImGui::SliderFloat("Intensity", &light.intensity, 0.0f, 10.0f);
-                /*ImGui::Checkbox("Is Directional", &light.isDirectional);
-                if (light.isDirectional == true) {
-                    ImGui::DragFloat3("Light Direction", &light.direction[0], 0.1);
-                }*/
+
+                if (ImGui::RadioButton("Point Light", light.type == LightType::POINT)) {
+                    light.type = LightType::POINT;
+                    systemManager->shadowSystem->Initialize(entityManager->lightComponents);
+                }
+                ImGui::SameLine();
+                if (ImGui::RadioButton("Directional Light", light.type  == LightType::DIRECTIONAL)) {
+                    light.type = LightType::DIRECTIONAL;
+                    systemManager->shadowSystem->Initialize(entityManager->lightComponents);
+                }
+                ImGui::SameLine();
+                if (ImGui::RadioButton("Spot Light", light.type == LightType::SPOT)) {
+                    light.type = LightType::SPOT;
+                    systemManager->shadowSystem->Initialize(entityManager->lightComponents);
+                }
                 ImGui::EndTabItem();
             }
             ImGui::EndTabBar();
@@ -344,6 +355,33 @@ void UI::displayScene(GLuint texture_id, double deltaTime) {
 
 
 }
+void UI::displayShadowMap()
+{
+    ImGui::Begin("ShadowMap");
+
+    const float window_width = ImGui::GetContentRegionAvail().x;
+    const float window_height = ImGui::GetContentRegionAvail().y;
+
+    ImVec2 pos = ImGui::GetCursorScreenPos();
+    ImVec2 uv0 = ImVec2(0.0f, 1.0f);
+    ImVec2 uv1 = ImVec2(1.0f, 0.0f);
+
+    if (entityManager->lightComponents.find(selectedEntityID) != entityManager->lightComponents.end() 
+        && (entityManager->lightComponents[selectedEntityID].type == LightType::DIRECTIONAL
+        || entityManager->lightComponents[selectedEntityID].type == LightType::SPOT)) {
+
+        // Affiche dans ImGui avec ImGui::Image
+        ImGui::GetWindowDrawList()->AddImage(
+            entityManager->lightComponents[selectedEntityID].shadowMapLayer,
+            ImVec2(pos.x, pos.y),
+            ImVec2(pos.x + window_width, pos.y + window_height),
+            uv0,
+            uv1
+        );
+        printf("it's ok : %d\n", entityManager->lightComponents[selectedEntityID].shadowMapLayer);
+    }
+    ImGui::End();
+}
 void UI::displaySettings()
 {
     ImGui::Begin("Settings");
@@ -449,6 +487,7 @@ void UI::update(int screenW, int screenH, GLuint tex, double deltaTime) {
     displayScene(tex, deltaTime);
     displayCatalog();
     displaySettings();
+    displayShadowMap();
 
 
     /*

@@ -32,6 +32,8 @@ public:
 	void RenderDepthMap(unsigned int depthMapArray, int screenWidth, int screenHeight);
 
 	unsigned int getShadowMapArray() const { return shadowMapArray; }
+
+	unsigned int getShadowFBO() { return shadowFBO; }
 private:
 	unsigned int shader;
 	unsigned int shadowShader;

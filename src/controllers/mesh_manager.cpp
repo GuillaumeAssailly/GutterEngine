@@ -427,6 +427,7 @@ void MeshManager::applyRenderModel(unsigned int entity, std::string model)
         renderComponent.emissiveMap = mat.emissiveMap;
         renderComponent.metalnessRoughnessMap = mat.metalnessRoughnessMap;
 
+
         entityManager->renderComponents[entity].push_back(renderComponent);
     }
 }

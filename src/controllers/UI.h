@@ -91,5 +91,6 @@ public:
     void displaySceneHierarchy();
     void displayCatalog();
     void displayScene(GLuint texture_id, double);
+    void displayShadowMap();
     void displaySettings();
 };

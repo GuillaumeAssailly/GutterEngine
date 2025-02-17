@@ -129,6 +129,7 @@ void ShadowSystem::GenerateShadowMap(std::unordered_map<unsigned int, LightCompo
    int cameraID
 )
 {
+
     glUseProgram(shadowShader);
     for (auto& entity : lightComponents) {
 
