@@ -100,8 +100,9 @@ void UI::CreateDockspace()
         // Créer un espace de docking
         ImGuiID dockspace_id = ImGui::GetID("DockSpace");
         ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+        ImGui::End();
     }
-    ImGui::End();
+
 
     ImGui::PopStyleVar(2);
 }
