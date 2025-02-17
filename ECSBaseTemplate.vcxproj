@@ -135,6 +135,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="scripts\MainLoop.cpp" />
     <ClCompile Include="src\config.cpp" />
     <ClCompile Include="src\controllers\app.cpp" />
     <ClCompile Include="src\controllers\entity_manager.cpp" />
@@ -142,6 +143,7 @@
     <ClCompile Include="src\controllers\mesh_manager.cpp">
       <DeploymentContent>false</DeploymentContent>
     </ClCompile>
+    <ClCompile Include="src\controllers\script_manager.cpp" />
     <ClCompile Include="src\controllers\system_manager.cpp" />
     <ClCompile Include="src\controllers\UI.cpp" />
     <ClCompile Include="src\glad.c" />
@@ -166,6 +168,7 @@
     <ClCompile Include="src\view\shader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="scripts\MainLoop.h" />
     <ClInclude Include="src\components\camera_component.h" />
     <ClInclude Include="src\components\light_component.h">
       <DeploymentContent>false</DeploymentContent>
@@ -181,6 +184,7 @@
     <ClInclude Include="src\controllers\mesh_manager.h">
       <DeploymentContent>false</DeploymentContent>
     </ClInclude>
+    <ClInclude Include="src\controllers\script_manager.h" />
     <ClInclude Include="src\controllers\system_manager.h" />
     <ClInclude Include="src\controllers\UI.h" />
     <ClInclude Include="src\loaders\json.hpp" />

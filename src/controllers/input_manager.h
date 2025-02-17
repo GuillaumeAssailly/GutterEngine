@@ -8,9 +8,17 @@ class InputManager
 private:
     SystemManager* systemManager;
     EntityManager* entityManager;
+
+    std::vector<int> input_not_release_yet;
 public:
     InputManager(SystemManager* systemManager, EntityManager* entityManager);
     ~InputManager();
 
-    bool getInput(GLFWwindow* window, int hasPhysics);
+    friend class ScriptManager;
+
+    //bool getInput(GLFWwindow* window, int hasPhysics);
+
+    bool getInput_Press(int input);
+    bool getInput_Release(int input);
+    bool getInput_PressOneTime(int input);
 };

@@ -29,7 +29,7 @@ void CameraSystem::update(
 
     // Compute the view direction vectors based on the camera's rotation
     glm::mat4 rotationMatrix = glm::mat4_cast(rotation);
-    glm::vec3 forward = glm::normalize(rotationMatrix * camera.initialForward);
+    forward = glm::normalize(rotationMatrix * camera.initialForward);
     glm::vec3 right = glm::normalize(rotationMatrix * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f));
     glm::vec3 up = glm::normalize(rotationMatrix * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f));
     glm::vec3 target = pos + forward;
@@ -102,6 +102,11 @@ void CameraSystem::update(
     }
 
     glfwPollEvents();
+}
+
+glm::vec3 CameraSystem::getForward()
+{
+    return forward;
 }
 
 glm::mat4 CameraSystem::GetViewMatrix() {

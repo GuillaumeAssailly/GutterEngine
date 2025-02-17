@@ -10,6 +10,7 @@ InputManager::~InputManager()
     delete entityManager;
 }
 
+/*
 bool InputManager::getInput(GLFWwindow* window, int hasPhysics)
 {
     // Check if the ESC key is pressed to exit the update loop
@@ -23,4 +24,31 @@ bool InputManager::getInput(GLFWwindow* window, int hasPhysics)
     }
     glfwPollEvents();
     return false;
+}
+*/
+
+bool InputManager::getInput_Press(int input) {
+    return glfwGetKey(systemManager->cameraSystem->window, input) == GLFW_PRESS;
+}
+
+bool InputManager::getInput_Release(int input) {
+    return glfwGetKey(systemManager->cameraSystem->window, input) == GLFW_RELEASE;
+}
+
+bool InputManager::getInput_PressOneTime(int input) {
+    auto it = find(input_not_release_yet.begin(), input_not_release_yet.end(), input);
+    if (it != input_not_release_yet.end()) {
+        if (glfwGetKey(systemManager->cameraSystem->window, input) == GLFW_RELEASE){
+            input_not_release_yet.erase(it);
+        }
+        return false;
+    }
+    else
+    {
+        if (glfwGetKey(systemManager->cameraSystem->window, input) == GLFW_PRESS) {
+            input_not_release_yet.push_back(input);
+            return true;
+        }
+        return false;
+    }
 }

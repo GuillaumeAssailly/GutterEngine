@@ -11,6 +11,7 @@ App::App() {
     systemManager = new SystemManager(window, shader, shadowShader, depthMapDebugShader);
     meshManager = new MeshManager(entityManager);
     inputManager = new InputManager(systemManager, entityManager);
+    scriptManager = new ScriptManager(inputManager);
 }
 
 App::~App() {
@@ -22,6 +23,7 @@ App::~App() {
     delete systemManager;
     delete entityManager;
     delete meshManager;
+    delete scriptManager;
 
     glfwTerminate();
 }
@@ -152,6 +154,9 @@ static std::string error_msg = "";
 short type_reference_frame = 2;
 bool grid_display = true;
 
+// Game variables
+bool game_paused = false;
+
 ///<summary>
 /// run methods launching the renderer pipeline :
 ///</summary>
@@ -192,7 +197,21 @@ void App::run() {
             fpsTimeCounter = 0.0f;
         }
 
-        bool should_close = inputManager->getInput(window, hasPhysics);
+        // ScriptManager and extern gameplay
+        if (!game_paused) {
+            scriptManager->addTime(deltaTime);
+            try {
+                scriptManager->scriptManager_one_frame();
+
+            }
+            catch (const std::exception& e) {
+                std::cout << e.what() << std::endl;
+                game_paused = true;
+            }
+        }
+        
+
+        bool should_close = false; //inputManager->getInput(window, hasPhysics);
         if (should_close) {
             break;
         }
@@ -428,7 +447,7 @@ void App::run() {
                         if (!isStatic)
                             physics.rigidBody = systemManager->motionSystem->createDynamic(physicsModels[selectedModelName], material, newPosition, newEntityMass, newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping);
                         else
-                            systemManager->motionSystem->createStatic(physicsModels[selectedModelName], material, newPosition);
+                            //systemManager->motionSystem->createStatic(physicsModels[selectedModelName], material, newPosition);
                         break;
                     case 1:
                         if (!isStatic)
@@ -595,6 +614,26 @@ void App::run() {
                 grid_display = true;
         }
 
+        
+        ImGui::Text("Game Engine");
+        if (!game_paused)
+        {
+            ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.43f, 0.7f, 0.75f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.43f, 1.0f, 1.0f));
+            if (ImGui::Button(" Game Running... ", ImVec2(-1.0f, 0.0f)))
+            {
+                game_paused = true;
+            }
+            ImGui::PopStyleColor(2);
+        }
+        else
+        {
+            if (ImGui::Button(" Relauch Game ", ImVec2(-1.0f, 0.0f)))
+                game_paused = false;
+        }
+        
+
+
         // TODO: Make scale work
         ImGui::Text("Gizmo Settings");
         switch (gizmo_type) {
@@ -737,34 +776,90 @@ void App::loadModelsAndTextures()
     // Lane
 	const int lane = entityManager->make_entity("Lane");
     meshManager->loadGLTF("obj/nashville/Piste.gltf", "obj/nashville/", lane);
+    TransformComponent transform_lane;
+    transform_lane.position = { 0.f, 0.f, 5.f };
+    transform_lane.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
+    transform_lane.size = { 1.0f, 0.168f, 18.0f };
+    entityManager->transformComponents[lane] = transform_lane;
+    glm::vec3 material = { newEntityStaticFriction, newEntityDynamicFriction, newEntityRestitution };
+    
+    
 
     // Lane 2
 	const int lane2 = entityManager->make_entity("Lane2");
     meshManager->loadGLTF("obj/nashville/Piste2.gltf", "obj/nashville/", lane2);
+    glm::vec3 position_lane2 = { 0.f, 0.f, 9.f };
+    std::vector<physx::PxTriangleMesh*> meshes;
+    systemManager->motionSystem->loadStaticObjToPhysX("obj/nashville/Piste2.gltf", meshes);
+    systemManager->motionSystem->createStatic(meshes, material, position_lane2);
+
+    // Lane 3
+    const int lane3 = entityManager->make_entity("Lane3");
+    meshManager->loadGLTF("obj/nashville/Piste2.gltf", "obj/nashville/", lane3);
+    TransformComponent transform_lane3;
+    transform_lane3.position = { 0.f, 0.f, 13.f };
+    transform_lane3.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
+    transform_lane3.size = { 1.0f, 0.168f, 18.0f };
+    entityManager->transformComponents[lane3] = transform_lane3;
    
     //Ball Return
 	const int ballreturn = entityManager->make_entity("BallReturn");
     meshManager->loadGLTF("obj/nashville/BallReturn.gltf", "obj/nashville/", ballreturn);
+    TransformComponent transform_ballreturn;
+    transform_ballreturn.position = { -4.f, 0.f, 7.f };
+    transform_ballreturn.eulers = { 0.0f, 0.0f, -1.0f, 0.f };
+    transform_ballreturn.size = { 1.0f, 0.168f, 18.0f };
+    entityManager->transformComponents[ballreturn] = transform_ballreturn;
 
     //TV
     const int TV = entityManager->make_entity("TV");
     meshManager->loadGLTF("obj/nashville/TV.gltf", "obj/nashville/", TV);
+    TransformComponent transform_TV;
+    transform_TV.position = { -7.f, 4.f, 7.f };
+    transform_TV.eulers = { 0.7f, 0.f, 0.7f, 0.f };
+    transform_TV.size = { 1.0f, 0.168f, 18.0f };
+    entityManager->transformComponents[TV] = transform_TV;
 
     //Pin Statue
     const int PinStatue = entityManager->make_entity("PinStatue");
     meshManager->loadGLTF("obj/nashville/PinStatue.gltf", "obj/nashville/", PinStatue);
+    TransformComponent transform_PinStatue;
+    transform_PinStatue.position = { -23.f, 1.713f, 7.f };
+    transform_PinStatue.eulers = { 0.706f, 0.f, 0.706f, 0.f };
+    transform_PinStatue.size = { 1.0f, 0.168f, 18.0f };
+    entityManager->transformComponents[PinStatue] = transform_PinStatue;
 
     //Ball1
 	const int Ball1 = entityManager->make_entity("Ball1");
     meshManager->loadGLTF("obj/nashville/Ball1.gltf", "obj/nashville/", Ball1);
+    TransformComponent transform_Ball;
+    transform_Ball.position = { -3.5f, 5.0f, 3.5f };
+    transform_Ball.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
+    transform_Ball.size = { 1.0f, 0.168f, 18.0f };
+    entityManager->transformComponents[Ball1] = transform_Ball;
+    PhysicsComponent physics;
+    const physx::PxSphereGeometry sphereGeometry(0.105f);
+    physics.rigidBody = systemManager->motionSystem->createDynamic(sphereGeometry, material, transform_Ball.position, newEntityMass, newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping);
+    physics.rigidBody->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, true);
+    entityManager->physicsComponents[Ball1] = physics;
 
 	//Ball2
 	const int Ball2 = entityManager->make_entity("Ball2");
     meshManager->loadGLTF("obj/nashville/Ball2.gltf", "obj/nashville/", Ball2);
+    TransformComponent transform_Ball2;
+    transform_Ball2.position = { -1.363f, 0.472f, 6.780f };
+    transform_Ball2.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
+    transform_Ball2.size = { 1.0f, 0.168f, 18.0f };
+    entityManager->transformComponents[Ball2] = transform_Ball2;
 
 	//Ball3
 	const int Ball3 = entityManager->make_entity("Ball3");
     meshManager->loadGLTF("obj/nashville/Ball3.gltf", "obj/nashville/", Ball3);
+    TransformComponent transform_Ball3;
+    transform_Ball3.position = { -1.587f, 0.472f, 6.780f };
+    transform_Ball3.eulers = { 0.0f, 0.f, -1.f, 0.f };
+    transform_Ball3.size = { 1.0f, 0.168f, 18.0f };
+    entityManager->transformComponents[Ball3] = transform_Ball3;
 
 
     // Ball
@@ -775,11 +870,11 @@ void App::loadModelsAndTextures()
 
     // Pin
     //motionSystem->concaveToConvex("obj/servoskull/quille.obj", "obj/convexMesh/", "quille");
-    std::vector<physx::PxConvexMesh*> meshes;
-    systemManager->motionSystem->loadObjToPhysX("obj/convexMesh/quille.obj", meshes);
+    std::vector<physx::PxConvexMesh*> convexMeshes;
+    systemManager->motionSystem->loadObjToPhysX("obj/convexMesh/quille.obj", convexMeshes);
 
     std::pair<unsigned int, unsigned int> pinModel = meshManager->make_model("obj/servoskull/quille.obj");
-    physicsModels["Pin"] = meshes;
+    physicsModels["Pin"] = convexMeshes;
     renderModels["Pin"] = pinModel;
     texturesList["Pin"] = meshManager->make_texture("obj/bowling/textures/Bowling_Pack_Diffuse.png", false);
     normalMapsList["Pin"] = meshManager->make_texture("obj/bowling/textures/Bowling_Pack_Normal.png", false);
@@ -884,7 +979,7 @@ void App::loadEntities()
  //       cameraComponents[pin] = camera;
  //   }
 
- //   // Camera
+ //   // Camera 1
     unsigned int cameraEntity = entityManager->make_entity("Camera");
     transform.position = { 0.0f, 0.0f, 0.0f };
     transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
@@ -898,6 +993,20 @@ void App::loadEntities()
     camera.initialForward = { 0,0,1,0 };
     entityManager->cameraComponents[cameraEntity] = camera;
     entityManager->cameraID = cameraEntity;
+
+    //   // Camera 2
+    unsigned int cameraEntity2 = entityManager->make_entity("Camera2");
+    transform.position = { -19.0f, 1.108f, 4.0f };
+    transform.eulers = { 0.8937f, 0.0908155f, -0.437126f, 0.0444197f };
+    entityManager->transformComponents[cameraEntity2] = transform;
+
+    camera.fov = 45.0f;
+    camera.aspectRatio = 16.0f / 9.0f;
+    camera.nearPlane = 0.1f;
+    camera.farPlane = 100.0f;
+    camera.sensitivity = 0.5f;
+    camera.initialForward = { 0,0,1,0 };
+    entityManager->cameraComponents[cameraEntity2] = camera;
 
     //First light
     unsigned int lightEntity1 = entityManager->make_entity("First Light");

@@ -25,6 +25,27 @@ public:
 
     int cameraID = 0;
 
+    glm::vec3 getPositionByName(std::string name);
+    glm::vec3 getPositionByID(int id);
+    void setPositionByName(std::string name, glm::vec3 position);
+    void setPositionByID(int id, glm::vec3 position);
+
+    glm::quat getRotationQuaternionByName(std::string name);
+    glm::quat getRotationQuaternionByID(int id);
+    void setRotationQuaternionByName(std::string name, glm::quat rotation);
+    void setRotationQuaternionByID(int id, glm::quat rotation);
+    glm::vec3 getRotationEulerByName(std::string name);
+    glm::vec3 getRotationEulerByID(int id);
+    void setRotationEulerByName(std::string name, glm::vec3 eulers);
+    void setRotationEulerByID(int id, glm::vec3 eulers);
+
+    std::vector<std::string> getAllCamerasNames();
+    std::vector<int> getAllCamerasID();
+    std::string getMainCameraName();
+    int getMainCameraID();
+    void setMainCameraByName(std::string name);
+    void setMainCameraByID(int id);
+
 private:
     //Components
     std::unordered_map<unsigned int, std::string> entityNames;

@@ -29,6 +29,9 @@
 #include <vector>
 #include <unordered_map>
 
+#include <exception>
+#include <random>
+
 #include <fstream>
 #include <sstream>
 #include <string>

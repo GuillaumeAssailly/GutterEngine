@@ -13,6 +13,7 @@ public:
         std::unordered_map<unsigned int, CameraComponent>& cameraComponents,
         unsigned int cameraID, float dt);
 
+    glm::vec3 getForward();
     glm::mat4 GetViewMatrix();
     glm::mat4 GetProjectionMatrix();
 
@@ -26,9 +27,12 @@ private:
     double mouse_x_ref = .0f;
     double mouse_y_ref = .0f;
 
+    glm::vec3 forward;
     glm::mat4 viewMatrix;
     glm::mat4 projectionMatrix;
 
     glm::vec3 global_up = { 0.0f, 1.0f, 0.0f };
     GLFWwindow* window;
+
+friend class InputManager;
 };
