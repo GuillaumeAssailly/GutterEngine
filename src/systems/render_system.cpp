@@ -52,7 +52,7 @@ void RenderSystem::update(
             glBindTexture(GL_TEXTURE_2D, render.material);
 
             // Bind normal map if available
-            if (render.normalMap != 0) {
+            if (render.normalMap != -1) {
                 glActiveTexture(GL_TEXTURE2);
                 glBindTexture(GL_TEXTURE_2D, render.normalMap);
                 glUniform1i(glGetUniformLocation(shaderProg, "normalMap"), 2);
@@ -62,7 +62,7 @@ void RenderSystem::update(
                 glUniform1i(glGetUniformLocation(shaderProg, "hasNormalMap"), 0);
             }
 
-			if (render.emissiveMap != 0) {
+			if (render.emissiveMap != -1) {
 				glActiveTexture(GL_TEXTURE5);
 				glBindTexture(GL_TEXTURE_2D, render.emissiveMap);
 				glUniform1i(glGetUniformLocation(shaderProg, "emissiveMap"), 5);
@@ -73,7 +73,7 @@ void RenderSystem::update(
 				glUniform1i(glGetUniformLocation(shaderProg, "hasEmissive"), 0);
 			}
 
-            if (render.aoMap != 0) {
+            if (render.aoMap != -1) {
 				glActiveTexture(GL_TEXTURE6);
 				glBindTexture(GL_TEXTURE_2D, render.aoMap);
 				glUniform1i(glGetUniformLocation(shaderProg, "aoMap"), 6);
@@ -83,7 +83,7 @@ void RenderSystem::update(
 				glUniform1i(glGetUniformLocation(shaderProg, "hasAOMap"), 0);
             }
 
-            if (render.metalnessRoughnessMap != 0) {
+            if (render.metalnessRoughnessMap != -1) {
                 glActiveTexture(GL_TEXTURE7);
                 glBindTexture(GL_TEXTURE_2D, render.metalnessRoughnessMap);
                 glUniform1i(glGetUniformLocation(shaderProg, "metalRoughnessMap"), 7);
