@@ -26,6 +26,7 @@ public:
     void loadModelsAndTextures();
 
     void loadEntities();
+	EntityManager* getEntityManager();
 
 private:
     void set_up_glfw();

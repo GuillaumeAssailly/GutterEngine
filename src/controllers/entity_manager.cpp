@@ -18,6 +18,33 @@ std::unordered_map<unsigned int, std::string>& EntityManager::getEntityNames() {
 	return entityNames;
 }
 
+std::unordered_map<unsigned int, TransformComponent>& EntityManager::getTransformComponents()
+{
+    return transformComponents;
+}
+
+std::unordered_map<unsigned int, std::list<RenderComponent>>& EntityManager::getRenderComponents()
+{
+    return renderComponents;
+}
+
+std::unordered_map<unsigned int, CameraComponent>& EntityManager::getCameraComponents()
+{
+	return cameraComponents;
+}
+
+std::unordered_map<unsigned int, LightComponent>& EntityManager::getLightComponents()
+{
+	return lightComponents;
+}
+
+std::unordered_map<unsigned int, PhysicsComponent>& EntityManager::getPhysicsComponents()
+{
+	return physicsComponents;
+}
+
+
+
 void EntityManager::renameEntity(unsigned int entity, std::string newName)
 {
     bool isUnique = true;

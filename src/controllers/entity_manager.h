@@ -24,6 +24,11 @@ public:
 
     unsigned int make_entity(const std::string&);
     std::unordered_map<unsigned int, std::string>& getEntityNames();
+    std::unordered_map<unsigned int, TransformComponent>& getTransformComponents();
+    std::unordered_map<unsigned int, std::list<RenderComponent>>& getRenderComponents();
+    std::unordered_map<unsigned int, CameraComponent>& getCameraComponents();
+    std::unordered_map<unsigned int, LightComponent>& getLightComponents();
+    std::unordered_map<unsigned int, PhysicsComponent>& getPhysicsComponents();
     void renameEntity(unsigned int, std::string);
     std::string removeEntity(unsigned int);
 

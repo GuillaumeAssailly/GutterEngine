@@ -1,322 +1,310 @@
 {
-    "PinCamera": {
-        "aspectRatio": 1.7777777910232544,
-        "farPlane": 100.0,
-        "fov": 45.0,
-        "initialForward": {
-            "w": 0,
-            "x": 0,
-            "y": 0,
-            "z": 1
-        },
-        "nearPlane": 0.10000000149011612,
-        "sensitivity": 0.5
-    },
-    "PinMaterial": {
-        "b": 0.5,
-        "g": 0.5,
-        "r": 0.5
-    },
-    "PinRigidBody": {
-        "dynamicFriction": 0.20000000298023224,
-        "mass": 1.5,
-        "restitution": 0.30000001192092896,
-        "solverPosition": 255,
-        "solverVelocity": 255,
-        "staticFriction": 0.009999999776482582
-    },
-    "ball": {
-        "camera": {
-            "aspectRatio": 1.7777777910232544,
-            "farPlane": 100.0,
-            "fov": 60.0,
-            "initialForward": {
-                "w": 0,
-                "x": 0,
-                "y": 0,
-                "z": 1
-            },
-            "nearPlane": 0.10000000149011612,
-            "sensitivity": 0.10000000149011612
-        },
-        "geometry": {
-            "radius": 0.105,
-            "type": "sphere"
-        },
-        "id": "Ball",
-        "material": {
-            "b": 0.2,
-            "g": 0.05,
-            "r": 0.05
-        },
-        "modelPath": "obj/servoskull/boule.obj",
-        "position": {
-            "x": 0.0,
-            "y": 0.1889999955892563,
-            "z": 3.0
-        },
-        "render": {
-            "meshName": "Ball",
-            "textureName": "Ball"
-        },
-        "rigidBody": {
-            "mass": 6.800000190734863
-        },
-        "rotation": {
-            "w": 1.0,
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0
-        }
-    },
-    "camera": {
-        "aspectRatio": 1.7777777910232544,
-        "farPlane": 100.0,
-        "fov": 60.0,
-        "id": "Camera",
-        "initialForward": {
-            "w": 0.0,
-            "x": 0.0,
-            "y": 0.0,
-            "z": 1.0
-        },
-        "nearPlane": 0.10000000149011612,
-        "position": {
-            "x": 0.007417035289108753,
-            "y": 5.911492347717285,
-            "z": 5.331277370452881
-        },
-        "rotation": {
-            "w": 0.9318190813064575,
-            "x": 0.3374025225639343,
-            "y": -0.12570281326770782,
-            "z": 0.04551571235060692
-        },
-        "sensitivity": 0.10000000149011612
-    },
-    "lane": {
-        "id": "Lane",
-        "material": {
-            "b": 0.0,
-            "g": 0.05,
-            "r": 0.05
-        },
-        "position": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 9.0
-        },
-        "render": {
-            "meshName": "Lane",
-            "textureName": "Lane"
-        },
-        "rotation": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0
-        },
-        "size": {
-            "x": 1.0,
-            "y": 0.1679999977350235,
-            "z": 18.0
-        }
-    },
-    "lights": [
+    "cameras": [
         {
-            "color": {
-                "b": 1.0,
-                "g": 1.0,
-                "r": 0.0
+            "component": {
+                "aspectRatio": 1.077654480934143,
+                "farPlane": 100.0,
+                "fov": 45.0,
+                "initialForward": [
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0
+                ],
+                "nearPlane": 0.10000000149011612,
+                "sensitivity": 0.5
             },
-            "id": "First Light",
-            "intensity": 1.0,
-            "isDirectional": false,
-            "position": {
-                "x": 0.0,
-                "y": 0.2199999988079071,
-                "z": 15.0
-            },
-            "render": {
-                "meshName": "Light",
-                "textureName": "Light"
-            },
-            "rotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-            }
-        },
-        {
-            "color": {
-                "b": 1.0,
-                "g": 1.0,
-                "r": 1.0
-            },
-            "direction": {
-                "x": 1.0,
-                "y": -6.0,
-                "z": 4.0
-            },
-            "id": "Second Light",
-            "intensity": 1.0,
-            "isDirectional": true,
-            "position": {
-                "x": 0.0,
-                "y": 4.0,
-                "z": 4.0
-            },
-            "render": {
-                "meshName": "Light",
-                "textureName": "Light"
-            },
-            "rotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-            }
+            "id": 0,
+            "name": "Camera"
         }
     ],
-    "meshPath": "obj/convexMesh/quille.obj",
-    "pins": [
+    "entityNames": [
         {
-            "id": "Pin 0",
-            "position": {
-                "x": -2.508386387489736e-08,
-                "y": 0.22772589325904846,
-                "z": 15.0
-            },
-            "rotation": {
-                "w": 1.0,
-                "x": -4.5627526645830585e-08,
-                "y": 4.4721709002715215e-08,
-                "z": 8.23929298121584e-08
-            }
+            "id": 0,
+            "name": "Camera"
         },
         {
-            "id": "Pin 1",
-            "position": {
-                "x": 0.15240000188350677,
-                "y": 0.22772589325904846,
-                "z": 15.263500213623047
-            },
-            "rotation": {
-                "w": 1.0,
-                "x": 1.0593792509894229e-08,
-                "y": -2.9790701461251956e-08,
-                "z": 1.0397341654311276e-08
-            }
+            "id": 1,
+            "name": "First Light"
         },
         {
-            "id": "Pin 2",
-            "position": {
-                "x": -0.15240003168582916,
-                "y": 0.22772589325904846,
-                "z": 15.263500213623047
-            },
-            "rotation": {
-                "w": 1.0,
-                "x": 6.308982136715713e-08,
-                "y": 9.660540423173103e-11,
-                "z": 1.1231166752168065e-07
-            }
+            "id": 2,
+            "name": "Second Light"
         },
         {
-            "id": "Pin 3",
-            "position": {
-                "x": -0.304800420999527,
-                "y": 0.22772593796253204,
-                "z": 15.527000427246094
+            "id": 3,
+            "name": "SM_Speaker_29"
+        }
+    ],
+    "lights": [
+        {
+            "component": {
+                "color": [
+                    0.0,
+                    1.0,
+                    1.0
+                ],
+                "cutoff": 0.0,
+                "direction": [
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0
+                ],
+                "intensity": 1.0,
+                "lightSpaceMatrix": [
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0
+                ],
+                "outerCutoff": 0.0,
+                "shadowMapLayer": 0,
+                "type": "POINT"
             },
-            "rotation": {
-                "w": 1.0,
-                "x": 3.95695650468042e-07,
-                "y": -4.3679765582282926e-08,
-                "z": 1.480599053138576e-06
-            }
+            "id": 1,
+            "name": "First Light"
         },
         {
-            "id": "Pin 4",
-            "position": {
-                "x": -1.4770193956792355e-09,
-                "y": 0.22772589325904846,
-                "z": 15.527000427246094
+            "component": {
+                "color": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "cutoff": 0.0,
+                "direction": [
+                    1.0,
+                    -6.0,
+                    4.0
+                ],
+                "intensity": 1.0,
+                "lightSpaceMatrix": [
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0
+                ],
+                "outerCutoff": 0.0,
+                "shadowMapLayer": 1,
+                "type": "POINT"
             },
-            "rotation": {
-                "w": 1.0,
-                "x": -1.5599651348452426e-08,
-                "y": 4.4697660683823415e-08,
-                "z": 5.73345415588733e-09
-            }
+            "id": 2,
+            "name": "Second Light"
         },
         {
-            "id": "Pin 5",
-            "position": {
-                "x": 0.3048003911972046,
-                "y": 0.22772595286369324,
-                "z": 15.527000427246094
+            "component": {
+                "color": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "cutoff": 0.0,
+                "direction": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "intensity": 0.0,
+                "lightSpaceMatrix": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "outerCutoff": 0.0,
+                "shadowMapLayer": 0,
+                "type": "POINT"
             },
-            "rotation": {
-                "w": 1.0,
-                "x": -5.790643058389833e-07,
-                "y": 1.1819669509804953e-07,
-                "z": -1.2647067251236876e-06
-            }
+            "id": 0,
+            "name": "Camera"
+        }
+    ],
+    "renders": [
+        {
+            "component": [
+                {
+                    "aoMap": 0,
+                    "emissiveForce": 8.0,
+                    "emissiveMap": 0,
+                    "indexCount": 36,
+                    "isPlanarReflectable": false,
+                    "material": 67,
+                    "mesh": 21,
+                    "metalnessRoughnessMap": 0,
+                    "normalMap": 0,
+                    "reflectionDepthBuffer": 3435973836,
+                    "reflectionFBO": 3435973836,
+                    "reflectionTexture": 3435973836
+                }
+            ],
+            "id": 1,
+            "name": "First Light"
         },
         {
-            "id": "Pin 6",
-            "position": {
-                "x": 0.15240047872066498,
-                "y": 0.22772599756717682,
-                "z": 15.790499687194824
-            },
-            "rotation": {
-                "w": 1.0,
-                "x": -7.760609150864184e-07,
-                "y": 5.831842031511769e-08,
-                "z": -1.5631740097887814e-06
-            }
+            "component": [
+                {
+                    "aoMap": 0,
+                    "emissiveForce": 8.0,
+                    "emissiveMap": 0,
+                    "indexCount": 36,
+                    "isPlanarReflectable": false,
+                    "material": 67,
+                    "mesh": 21,
+                    "metalnessRoughnessMap": 0,
+                    "normalMap": 0,
+                    "reflectionDepthBuffer": 3435973836,
+                    "reflectionFBO": 3435973836,
+                    "reflectionTexture": 3435973836
+                }
+            ],
+            "id": 2,
+            "name": "Second Light"
         },
         {
-            "id": "Pin 7",
-            "position": {
-                "x": -0.15240050852298737,
-                "y": 0.22772595286369324,
-                "z": 15.790499687194824
+            "component": [
+                {
+                    "aoMap": 57,
+                    "emissiveForce": 8.0,
+                    "emissiveMap": 4294967295,
+                    "indexCount": 2304,
+                    "isPlanarReflectable": false,
+                    "material": 55,
+                    "mesh": 17,
+                    "metalnessRoughnessMap": 58,
+                    "normalMap": 56,
+                    "reflectionDepthBuffer": 3435973836,
+                    "reflectionFBO": 3435973836,
+                    "reflectionTexture": 3435973836
+                }
+            ],
+            "id": 3,
+            "name": "SM_Speaker_29"
+        }
+    ],
+    "transforms": [
+        {
+            "component": {
+                "eulers": [
+                    0.999980092048645,
+                    0.006305652670562267,
+                    0.0,
+                    0.0
+                ],
+                "position": [
+                    0.0,
+                    0.008132453076541424,
+                    -1.6446324586868286
+                ],
+                "size": [
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0
+                ]
             },
-            "rotation": {
-                "w": 1.0,
-                "x": 5.673864507116377e-07,
-                "y": 4.5938492121422314e-08,
-                "z": 1.6901540220715106e-06
-            }
+            "id": 0,
+            "name": "Camera"
         },
         {
-            "id": "Pin 8",
-            "position": {
-                "x": 0.457200288772583,
-                "y": 0.22772592306137085,
-                "z": 15.790499687194824
+            "component": {
+                "eulers": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "size": [
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0
+                ]
             },
-            "rotation": {
-                "w": 1.0,
-                "x": -4.844259251512995e-07,
-                "y": -4.548753196331745e-08,
-                "z": -9.407229981661658e-07
-            }
+            "id": 1,
+            "name": "First Light"
         },
         {
-            "id": "Pin 9",
-            "position": {
-                "x": -0.4572002589702606,
-                "y": 0.22772592306137085,
-                "z": 15.790499687194824
+            "component": {
+                "eulers": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "position": [
+                    0.0,
+                    4.0,
+                    4.0
+                ],
+                "size": [
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0
+                ]
             },
-            "rotation": {
-                "w": 1.0,
-                "x": 4.4880289351567626e-07,
-                "y": 1.0510191827961535e-07,
-                "z": 9.966388461180031e-07
-            }
+            "id": 2,
+            "name": "Second Light"
+        },
+        {
+            "component": {
+                "eulers": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "size": [
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0
+                ]
+            },
+            "id": 3,
+            "name": "SM_Speaker_29"
         }
     ]
 }

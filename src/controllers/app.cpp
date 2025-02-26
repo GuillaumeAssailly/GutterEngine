@@ -737,6 +737,11 @@ void App::loadEntities()
 
 }
 
+EntityManager* App::getEntityManager()
+{
+    return entityManager;
+}
+
 
 
 /// <summary>

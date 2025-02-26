@@ -191,6 +191,8 @@
     <ClInclude Include="src\controllers\system_manager.h" />
     <ClInclude Include="src\controllers\UI.h" />
     <ClInclude Include="src\loaders\json.hpp" />
+    <ClInclude Include="src\loaders\json_glm_utils.hpp" />
+    <ClInclude Include="src\loaders\json_physx_utils.hpp" />
     <ClInclude Include="src\loaders\loader.h" />
     <ClInclude Include="src\loaders\loaderJSON.h" />
     <ClInclude Include="src\loaders\loaderRaw.h" />

@@ -1,5 +1,6 @@
 #pragma once
 #include "../config.h"
+#include "../loaders/json.hpp"
 
 struct RenderComponent {
     unsigned int material;
@@ -15,4 +16,8 @@ struct RenderComponent {
     unsigned int reflectionTexture;
 	unsigned int reflectionDepthBuffer;
 
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(RenderComponent, material, mesh, indexCount, normalMap, emissiveMap, aoMap, 
+        metalnessRoughnessMap, emissiveForce, isPlanarReflectable, reflectionFBO, reflectionTexture, reflectionDepthBuffer)
 };
+

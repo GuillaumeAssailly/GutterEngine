@@ -9,6 +9,7 @@ class Loader {
         virtual void loadLights(App *app, CameraComponent* camera) const = 0;
         virtual void loadCamera(App* app, CameraComponent* camera) const = 0;
         virtual void loadLane(App* app, CameraComponent* camera) const = 0;
+		//virtual void loadTransform(App* app, CameraComponent* camera) const = 0;
     public :
         virtual void loadEntities(App *app) const;
         virtual ~Loader() {}
