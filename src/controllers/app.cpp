@@ -1,4 +1,5 @@
 #include "app.h"
+#include <queue>
 
 
 int screenWidth = 1920;
@@ -94,170 +95,7 @@ void processNode(const aiScene* scene, aiNode* node, std::vector<float>& vertice
     std::cout << "Total faces number : " << totalFaces << std::endl;
 	
 }
-void App::loadGLTF(const char* filePath, const char* texDir, const int EntityID) {
-    Assimp::Importer importer;
-    const aiScene* scene = importer.ReadFile(filePath, aiProcess_OptimizeMeshes | aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
-    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-        std::cout << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
-        exit(-1);
-    }
-	TransformComponent transform;
-	RenderComponent render;
-    unsigned int obj = EntityID;
-    transform.position = { 0.f, 0.f, 9.f };
-    transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
-    transform.size = { 1.0f, 0.168f, 18.0f };
-    transformComponents[obj] = transform;
 
-
-    for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
-        std::vector<float> vertices;
-        std::vector<unsigned int> indices;
-
-        aiMesh* mesh = scene->mMeshes[i];
-
-        // Extract vertices
-        for (unsigned int j = 0; j < mesh->mNumVertices; j++) {
-            // Position
-            vertices.push_back(mesh->mVertices[j].x);
-            vertices.push_back(mesh->mVertices[j].y);
-            vertices.push_back(mesh->mVertices[j].z);
-
-            // Normal
-            vertices.push_back(mesh->mNormals[j].x);
-            vertices.push_back(mesh->mNormals[j].y);
-            vertices.push_back(mesh->mNormals[j].z);
-
-            // Texture coordinates (if available)
-            if (mesh->mTextureCoords[0]) {
-                vertices.push_back(mesh->mTextureCoords[0][j].x);
-                vertices.push_back(mesh->mTextureCoords[0][j].y);
-            }
-            else {
-                vertices.push_back(0.0f);
-                vertices.push_back(0.0f);
-            }
-
-            // Tangent
-            vertices.push_back(mesh->mTangents[j].x);
-            vertices.push_back(mesh->mTangents[j].y);
-            vertices.push_back(mesh->mTangents[j].z);
-
-            // Bitangent
-            vertices.push_back(mesh->mBitangents[j].x);
-            vertices.push_back(mesh->mBitangents[j].y);
-            vertices.push_back(mesh->mBitangents[j].z);
-        }
-
-        // Extract indices
-        for (unsigned int j = 0; j < mesh->mNumFaces; j++) {
-            const aiFace& face = mesh->mFaces[j];
-            for (unsigned int k = 0; k < face.mNumIndices; k++) {
-                indices.push_back(face.mIndices[k]);
-            }
-        }
-
-        std::string diffuseTexturePath = "default_diffuse.jpg";
-        std::string normalTexturePath = "default_normal.jpg";
-        std::string emissiveTexturePath = "default_emissive.jpg";
-		std::string aoTexturePath = "default_ao.jpg";
-		std::string metalnessRoughness = "default_metalness_roughness.jpg";
-
-        aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-
-        aiString path;
-        if (material->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS) {
-            diffuseTexturePath =  std::string(texDir) + path.C_Str();
-            std::cout << "Diffuse texture: " << path.C_Str() << std::endl;
-            texturesList[mesh->mName.C_Str()] = make_texture(diffuseTexturePath.c_str(), false);
-        }
-
-		if (material->GetTexture(aiTextureType_NORMALS, 0, &path) == AI_SUCCESS) {
-			normalTexturePath = std::string(texDir) + path.C_Str();
-			std::cout << "Normal texture: " << std::string(texDir) +  path.C_Str() << std::endl;
-			normalMapsList[mesh->mName.C_Str()] = make_texture(normalTexturePath.c_str(), false);
-		}
-
-		if (material->GetTexture(aiTextureType_EMISSIVE, 0, &path) == AI_SUCCESS) {
-			emissiveTexturePath = std::string(texDir) + path.C_Str();
-			std::cout << "Emissive texture: " << path.C_Str() << std::endl;
-			emissiveList[mesh->mName.C_Str()] = make_texture(emissiveTexturePath.c_str(), false);
-			
-		}
-
-		if (material->GetTexture(aiTextureType_LIGHTMAP, 0, &path) == AI_SUCCESS) {
-			aoTexturePath = std::string(texDir) + path.C_Str();
-			std::cout << "AO texture: " << path.C_Str() << std::endl;
-			aoList[mesh->mName.C_Str()] = make_texture(aoTexturePath.c_str(), false);
-		}
-
-		if (material->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &path) == AI_SUCCESS) {
-			metalnessRoughness = std::string(texDir) + path.C_Str();
-			std::cout << "Roughness texture: " << path.C_Str() << std::endl;
-			metalnessRoughnessList[mesh->mName.C_Str()] = make_texture(metalnessRoughness.c_str(), false);
-		}
-
-        // Create VAO
-        unsigned int VAO;
-        glGenVertexArrays(1, &VAO);
-        VAOs.push_back(VAO);
-        glBindVertexArray(VAO);
-
-        // Create VBO for vertices
-        unsigned int VBO;
-        glGenBuffers(1, &VBO);
-        VBOs.push_back(VBO);
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
-
-        // Create EBO for indices
-        unsigned int EBO;
-        glGenBuffers(1, &EBO);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
-
-        // Set vertex attribute pointers
-        // Position attribute
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)0); // 8 * sizeof(float) stride (3 for pos, 3 for normal, 2 for tex)
-
-
-        // Texture coordinate attribute
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(sizeof(float[3]))); // Normal starts after 3 floats for position
-
-
-        // Normal attribute
-        glEnableVertexAttribArray(2);
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(sizeof(float[6]))); // Tex coords start after 6 floats (3 for pos, 3 for normal)
-
-        // Tangent attribute
-        glEnableVertexAttribArray(3);
-        glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(8 * sizeof(float))); // Tangent starts after 8 floats (3 for pos, 3 for normal, 2 for tex)
-
-        // Bitangent attribute
-        glEnableVertexAttribArray(4);
-        glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(11 * sizeof(float))); // Bitangent starts after 11 floats (3 for pos, 3 for normal, 2 for tex, 3 for tangent)
-
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-
-        // Store VAO and index count
-        renderModels[mesh->mName.C_Str()] = std::make_pair(VAO, indices.size());
-        std::cout << mesh->mName.C_Str() << std::endl;
-
-
-        render.mesh = renderModels[mesh->mName.C_Str()].first;
-        render.indexCount = renderModels[mesh->mName.C_Str()].second;
-        render.material = texturesList[mesh->mName.C_Str()];
-		render.normalMap = normalMapsList[mesh->mName.C_Str()];
-		render.emissiveMap = emissiveList[mesh->mName.C_Str()];
-		render.aoMap = aoList[mesh->mName.C_Str()];
-		render.metalnessRoughnessMap = metalnessRoughnessList[mesh->mName.C_Str()];
-        renderComponents[obj].push_back(render);
-
-    }
-}
 
 std::pair<unsigned int, unsigned int> App::make_model(const char* filePath) {
 
@@ -1146,11 +984,11 @@ void App::set_up_opengl() {
     glEnable(GL_MULTISAMPLE);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
+  /*  glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);*/
 
     //WIREFRAME MOD : 
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     shader = make_shader(
         "shaders/shader.vert",
@@ -1186,81 +1024,87 @@ void App::make_systems() {
 
 void App::loadModelsAndTextures()
 {
-    // Lane
-	const int lane = make_entity("Lane");
-    loadGLTF("obj/nashville/Piste.gltf", "obj/nashville/", lane);
-	auto it = renderComponents[lane].begin();   
-    it->isPlanarReflectable = true;
-    std::advance(it, 1); 
-    it->isPlanarReflectable = true;
+ //   // Lane
+	//const int lane = make_entity("Lane");
+ //   loadGLTF("obj/nashville/Piste.gltf", "obj/nashville/", lane);
+	//auto it = renderComponents[lane].begin();   
+ //   it->isPlanarReflectable = true;
+ //   std::advance(it, 1); 
+ //   it->isPlanarReflectable = true;
 
 
-    // Lane 2
-	const int lane2 = make_entity("Lane2");
-    loadGLTF("obj/nashville/Piste2.gltf", "obj/nashville/", lane2);
-    auto it2 = renderComponents[lane2].begin();
-    std::advance(it2, 1);
-    it2->isPlanarReflectable = true;
-    std::advance(it2, 1);
+ //   // Lane 2
+	//const int lane2 = make_entity("Lane2");
+ //   loadGLTF("obj/nashville/Piste2.gltf", "obj/nashville/", lane2);
+ //   auto it2 = renderComponents[lane2].begin();
+ //   std::advance(it2, 1);
+ //   it2->isPlanarReflectable = true;
+ //   std::advance(it2, 1);
 
-    it2->isPlanarReflectable = true;
-    transformComponents[lane2].position = { 0.0f, 0.0f, 13.0f };
-   
-    //Ball Return
-	const int ballreturn = make_entity("BallReturn");
-	loadGLTF("obj/nashville/BallReturn.gltf", "obj/nashville/", ballreturn);
-    transformComponents[ballreturn].position = { -3.861, 0, 9.00 };
-    transformComponents[ballreturn].eulers = glm::angleAxis(glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+ //   it2->isPlanarReflectable = true;
+ //   transformComponents[lane2].position = { 0.0f, 0.0f, 13.0f };
+ //  
+ //   //Ball Return
+	//const int ballreturn = make_entity("BallReturn");
+	//loadGLTF("obj/nashville/BallReturn.gltf", "obj/nashville/", ballreturn);
+ //   transformComponents[ballreturn].position = { -3.861, 0, 9.00 };
+ //   transformComponents[ballreturn].eulers = glm::angleAxis(glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
-    //TV
-    const int TV = make_entity("TV");
-	loadGLTF("obj/nashville/TV.gltf", "obj/nashville/", TV);
-    transformComponents[TV].position = { -3.568f, 3.356f, 9.0f };
-    transformComponents[TV].eulers = glm::angleAxis(glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+ //   //TV
+ //   const int TV = make_entity("TV");
+	//loadGLTF("obj/nashville/TV.gltf", "obj/nashville/", TV);
+ //   transformComponents[TV].position = { -3.568f, 3.356f, 9.0f };
+ //   transformComponents[TV].eulers = glm::angleAxis(glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
-    //Pin Statue
-    const int PinStatue = make_entity("PinStatue");
-    loadGLTF("obj/nashville/PinStatue.gltf", "obj/nashville/", PinStatue); 
-    transformComponents[PinStatue].position = { -22.778, 1.668, 9.00f };
-    transformComponents[PinStatue].eulers = glm::angleAxis(glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+ //   //Pin Statue
+ //   const int PinStatue = make_entity("PinStatue");
+ //   loadGLTF("obj/nashville/PinStatue.gltf", "obj/nashville/", PinStatue); 
+ //   transformComponents[PinStatue].position = { -22.778, 1.668, 9.00f };
+ //   transformComponents[PinStatue].eulers = glm::angleAxis(glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
-    //Ball1
-	const int Ball1 = make_entity("Ball1");
-	loadGLTF("obj/nashville/Ball1.gltf", "obj/nashville/", Ball1);
-    transformComponents[Ball1].position = { -1.913, 0.474, 8.776 };
+ //   //Ball1
+	//const int Ball1 = make_entity("Ball1");
+	//loadGLTF("obj/nashville/Ball1.gltf", "obj/nashville/", Ball1);
+ //   transformComponents[Ball1].position = { -1.913, 0.474, 8.776 };
 
-	//Ball2
-	const int Ball2 = make_entity("Ball2");
-	loadGLTF("obj/nashville/Ball2.gltf", "obj/nashville/", Ball2);
-	transformComponents[Ball2].position = { 1.0f, 0.f, 0.5f };
+	////Ball2
+	//const int Ball2 = make_entity("Ball2");
+	//loadGLTF("obj/nashville/Ball2.gltf", "obj/nashville/", Ball2);
+	//transformComponents[Ball2].position = { 1.0f, 0.f, 0.5f };
 
-	//Ball3
-	const int Ball3 = make_entity("Ball3");
-	loadGLTF("obj/nashville/Ball3.gltf", "obj/nashville/", Ball3);
-	transformComponents[Ball3].position = { 1.0f, 0.f, 1.0f };
+	////Ball3
+	//const int Ball3 = make_entity("Ball3");
+	//loadGLTF("obj/nashville/Ball3.gltf", "obj/nashville/", Ball3);
+	//transformComponents[Ball3].position = { 1.0f, 0.f, 1.0f };
+
+    const int Dragon = make_entity("Dragon");
+    loadGLTF("obj/avocado/Avocado.gltf", "obj/avocado/", Dragon);
 
 
-    // Ball
-    std::pair<unsigned int, unsigned int> ballModel = make_model("obj/servoskull/boule.obj");
-    renderModels["Ball"] = ballModel;
-    texturesList["Ball"] = make_texture("obj/bowling/textures/Bowling_Pack_Diffuse.png", false);
-    normalMapsList["Ball"] = make_texture("obj/bowling/textures/Bowling_Pack_Normal.png", false);
+    //// Ball
+    //std::pair<unsigned int, unsigned int> ballModel = make_model("obj/servoskull/boule.obj");
+    //renderModels["Ball"] = ballModel;
+    //texturesList["Ball"] = make_texture("obj/bowling/textures/Bowling_Pack_Diffuse.png", false);
+    //normalMapsList["Ball"] = make_texture("obj/bowling/textures/Bowling_Pack_Normal.png", false);
 
-    // Pin
-    //motionSystem->concaveToConvex("obj/servoskull/quille.obj", "obj/convexMesh/", "quille");
-    std::vector<physx::PxConvexMesh*> meshes;
-    motionSystem->loadObjToPhysX("obj/convexMesh/quille.obj", meshes);
+    //// Pin
+    ////motionSystem->concaveToConvex("obj/servoskull/quille.obj", "obj/convexMesh/", "quille");
+    //std::vector<physx::PxConvexMesh*> meshes;
+    //motionSystem->loadObjToPhysX("obj/convexMesh/quille.obj", meshes);
 
-    std::pair<unsigned int, unsigned int> pinModel = make_model("obj/servoskull/quille.obj");
-    physicsModels["Pin"] = meshes;
-    renderModels["Pin"] = pinModel;
-    texturesList["Pin"] = make_texture("obj/bowling/textures/Bowling_Pack_Diffuse.png", false);
-    normalMapsList["Pin"] = make_texture("obj/bowling/textures/Bowling_Pack_Normal.png", false);
+    //std::pair<unsigned int, unsigned int> pinModel = make_model("obj/servoskull/quille.obj");
+    //physicsModels["Pin"] = meshes;
+    //renderModels["Pin"] = pinModel;
+    //texturesList["Pin"] = make_texture("obj/bowling/textures/Bowling_Pack_Diffuse.png", false);
+    //normalMapsList["Pin"] = make_texture("obj/bowling/textures/Bowling_Pack_Normal.png", false);
 
-    // Light
-    std::pair<unsigned int, unsigned int> defaultCubeModel = make_cube_mesh({ 0.1f, 0.1f, 0.1f });
-    renderModels["Light"] = defaultCubeModel;
-    texturesList["Light"] = make_texture("tex/lightTex.png", false);
+    //// Light
+    //std::pair<unsigned int, unsigned int> defaultCubeModel = make_cube_mesh({ 0.1f, 0.1f, 0.1f });
+    //renderModels["Light"] = defaultCubeModel;
+    //texturesList["Light"] = make_texture("tex/lightTex.png", false);
+
+    
+
 }
 
 void App::loadEntities()
@@ -1498,5 +1342,414 @@ void App::set_up_glfw() {
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 460");
+
+}
+// Helper: stride is 14 floats per vertex (position, normal, tex, tangent, bitangent)
+static const int VERTEX_STRIDE = 14;
+
+// Get position of vertex 'idx' from the flat vertices array.
+glm::vec3 getVertexPosition(const std::vector<float>& vertices, unsigned int idx) {
+    return glm::vec3(vertices[idx * VERTEX_STRIDE + 0],
+        vertices[idx * VERTEX_STRIDE + 1],
+        vertices[idx * VERTEX_STRIDE + 2]);
+}
+
+// Set position of vertex 'idx' in the flat vertices array.
+void setVertexPosition(std::vector<float>& vertices, unsigned int idx, const glm::vec3& pos) {
+    vertices[idx * VERTEX_STRIDE + 0] = pos.x;
+    vertices[idx * VERTEX_STRIDE + 1] = pos.y;
+    vertices[idx * VERTEX_STRIDE + 2] = pos.z;
+}
+
+// Compute outer product of a glm::vec4 with itself.
+glm::mat4 outerProduct(const glm::vec4& v) {
+    glm::mat4 m(0.0f);
+    for (int i = 0; i < 4; ++i)
+        for (int j = 0; j < 4; ++j)
+            m[i][j] = v[i] * v[j];
+    return m;
+}
+
+// Compute the plane equation for a triangle (p0, p1, p2).
+// Returns a vec4 (A, B, C, D) such that Ax+By+Cz+D=0.
+glm::vec4 computePlane(const glm::vec3& p0, const glm::vec3& p1, const glm::vec3& p2) {
+    glm::vec3 normal = glm::normalize(glm::cross(p1 - p0, p2 - p0));
+    float d = -glm::dot(normal, p0);
+    return glm::vec4(normal, d);
+}
+
+// A quadric error metric is stored as a 4x4 matrix.
+typedef glm::mat4 Quadric;
+
+// Structure to hold an edge candidate for collapse.
+struct EdgeCandidate {
+    unsigned int v1, v2;   // Endpoints (v1 is the surviving vertex)
+    float error;           // QEM error for collapsing this edge.
+    glm::vec3 newPos;      // Optimal new position after collapse.
+};
+
+// Comparator for the priority queue (min–heap based on error).
+struct EdgeCandidateCompare {
+    bool operator()(const EdgeCandidate& a, const EdgeCandidate& b) const {
+        return a.error > b.error;
+    }
+};
+
+// To avoid duplicate edges, we define an Edge structure (v1 < v2).
+struct Edge {
+    unsigned int v1, v2;
+    Edge(unsigned int a, unsigned int b) {
+        if (a < b) { v1 = a; v2 = b; }
+        else { v1 = b; v2 = a; }
+    }
+    bool operator==(const Edge& other) const {
+        return v1 == other.v1 && v2 == other.v2;
+    }
+};
+
+// Custom hash for Edge.
+struct EdgeHash {
+    std::size_t operator()(const Edge& e) const {
+        return std::hash<unsigned int>()(e.v1) ^ std::hash<unsigned int>()(e.v2);
+    }
+};
+
+// Build per-vertex quadrics from the mesh data.
+void computeVertexQuadrics(const std::vector<float>& vertices, const std::vector<unsigned int>& indices, std::vector<Quadric>& quadrics) {
+    size_t vertexCount = vertices.size() / VERTEX_STRIDE;
+    quadrics.resize(vertexCount, Quadric(0.0f));
+
+    // For each triangle face.
+    for (size_t i = 0; i < indices.size(); i += 3) {
+        unsigned int idx0 = indices[i];
+        unsigned int idx1 = indices[i + 1];
+        unsigned int idx2 = indices[i + 2];
+
+        glm::vec3 p0 = getVertexPosition(vertices, idx0);
+        glm::vec3 p1 = getVertexPosition(vertices, idx1);
+        glm::vec3 p2 = getVertexPosition(vertices, idx2);
+
+        glm::vec4 plane = computePlane(p0, p1, p2);
+        glm::mat4 Kp = outerProduct(plane);
+
+        quadrics[idx0] += Kp;
+        quadrics[idx1] += Kp;
+        quadrics[idx2] += Kp;
+    }
+}
+
+// Compute an edge candidate collapse between vertices v1 and v2.
+EdgeCandidate computeEdgeCandidate(unsigned int v1, unsigned int v2,
+    const std::vector<Quadric>& quadrics, const std::vector<float>& vertices)
+{
+    Quadric Q = quadrics[v1] + quadrics[v2];
+
+    // Modify Q so that the last row becomes [0,0,0,1]
+    glm::mat4 Qtemp = Q;
+    Qtemp[0][3] = 0.0f;
+    Qtemp[1][3] = 0.0f;
+    Qtemp[2][3] = 0.0f;
+    Qtemp[3][0] = 0.0f;
+    Qtemp[3][1] = 0.0f;
+    Qtemp[3][2] = 0.0f;
+    Qtemp[3][3] = 1.0f;
+
+    glm::vec3 optimalPos;
+    float det = glm::determinant(Qtemp);
+    if (std::fabs(det) > 1e-6f) {
+        glm::vec4 v = glm::inverse(Qtemp) * glm::vec4(0, 0, 0, 1);
+        optimalPos = glm::vec3(v) / v.w;
+    }
+    else {
+        // Fallback: use the midpoint
+        glm::vec3 p1 = getVertexPosition(vertices, v1);
+        glm::vec3 p2 = getVertexPosition(vertices, v2);
+        optimalPos = (p1 + p2) * 0.5f;
+    }
+    glm::vec4 vOptimal(optimalPos, 1.0f);
+    float error = glm::dot(vOptimal, Q * vOptimal);
+
+    EdgeCandidate candidate;
+    candidate.v1 = v1;
+    candidate.v2 = v2;
+    candidate.newPos = optimalPos;
+    candidate.error = error;
+    return candidate;
+}
+
+// Rebuild candidate edge list from current mesh (based on indices).
+void buildEdgeCandidates(const std::vector<float>& vertices, const std::vector<unsigned int>& indices,
+    const std::vector<Quadric>& quadrics, const std::vector<bool>& valid,
+    std::priority_queue<EdgeCandidate, std::vector<EdgeCandidate>, EdgeCandidateCompare>& queue)
+{
+    std::unordered_set<Edge, EdgeHash> uniqueEdges;
+    // Iterate over all triangles.
+    for (size_t i = 0; i < indices.size(); i += 3) {
+        unsigned int idx[3] = { indices[i], indices[i + 1], indices[i + 2] };
+        // Only consider faces with valid vertices.
+        if (!valid[idx[0]] || !valid[idx[1]] || !valid[idx[2]])
+            continue;
+        uniqueEdges.insert(Edge(idx[0], idx[1]));
+        uniqueEdges.insert(Edge(idx[1], idx[2]));
+        uniqueEdges.insert(Edge(idx[2], idx[0]));
+    }
+    // Build candidate queue.
+    while (!queue.empty())
+        queue.pop();
+    for (const auto& edge : uniqueEdges) {
+        // Ensure both vertices are still valid.
+        if (!valid[edge.v1] || !valid[edge.v2])
+            continue;
+        EdgeCandidate candidate = computeEdgeCandidate(edge.v1, edge.v2, quadrics, vertices);
+        queue.push(candidate);
+    }
+}
+
+// Remove degenerate triangles (triangles where any two vertex indices are the same).
+// Remove triangles with duplicate indices OR zero area.
+void removeDegenerateTriangles(std::vector<unsigned int>& indices, const std::vector<float>& vertices) {
+    std::vector<unsigned int> newIndices;
+    for (size_t i = 0; i < indices.size(); i += 3) {
+        unsigned int i0 = indices[i];
+        unsigned int i1 = indices[i + 1];
+        unsigned int i2 = indices[i + 2];
+
+        // Check for duplicate indices (index-based degeneracy)
+        if (i0 == i1 || i1 == i2 || i2 == i0) {
+            continue; // Skip this triangle
+        }
+
+        // Check for geometric degeneracy (zero area)
+        glm::vec3 p0 = getVertexPosition(vertices, i0);
+        glm::vec3 p1 = getVertexPosition(vertices, i1);
+        glm::vec3 p2 = getVertexPosition(vertices, i2);
+        glm::vec3 edge1 = p1 - p0;
+        glm::vec3 edge2 = p2 - p0;
+        float area = glm::length(glm::cross(edge1, edge2));
+
+        if (area < 1e-6f) { // Threshold for "zero" area
+            continue; // Skip this triangle
+        }
+
+        newIndices.push_back(i0);
+        newIndices.push_back(i1);
+        newIndices.push_back(i2);
+    }
+    indices = std::move(newIndices);
+}
+// Simplify the mesh until the number of valid vertices is <= targetCount.
+// vertices: flat array of floats (14 per vertex)
+// indices: list of triangle indices
+void simplifyMesh(std::vector<float>& vertices, std::vector<unsigned int>& indices, int targetCount) {
+    size_t vertexCount = vertices.size() / VERTEX_STRIDE;
+    std::vector<Quadric> quadrics;
+    computeVertexQuadrics(vertices, indices, quadrics);
+
+    // Valid flag for each vertex; initially all true.
+    std::vector<bool> valid(vertexCount, true);
+
+    // Priority queue for edge candidates.
+    std::priority_queue<EdgeCandidate, std::vector<EdgeCandidate>, EdgeCandidateCompare> edgeQueue;
+    buildEdgeCandidates(vertices, indices, quadrics, valid, edgeQueue);
+
+    int validCount = vertexCount;
+    while (validCount > targetCount && !edgeQueue.empty()) {
+        EdgeCandidate candidate = edgeQueue.top();
+        edgeQueue.pop();
+
+        // Check if both vertices are still valid.
+        if (!valid[candidate.v1] || !valid[candidate.v2])
+            continue;
+
+        // Collapse edge: move v1 to the new optimal position; mark v2 as removed.
+        setVertexPosition(vertices, candidate.v1, candidate.newPos);
+        quadrics[candidate.v1] += quadrics[candidate.v2];
+        valid[candidate.v2] = false;
+        validCount--;
+
+        // Update indices: replace occurrences of v2 with v1.
+        for (size_t i = 0; i < indices.size(); ++i) {
+            if (indices[i] == candidate.v2) {
+                indices[i] = candidate.v1;
+            }
+        }
+
+        // Remove degenerate triangles to avoid holes.
+        removeDegenerateTriangles(indices, vertices);
+
+        // Rebuild candidate edge list (for simplicity, we rebuild all candidates here)
+        buildEdgeCandidates(vertices, indices, quadrics, valid, edgeQueue);
+    }
+}
+
+
+void App::loadGLTF(const char* filePath, const char* texDir, const int EntityID) {
+    Assimp::Importer importer;
+    const aiScene* scene = importer.ReadFile(filePath, aiProcess_OptimizeMeshes | aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+        std::cout << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
+        exit(-1);
+    }
+    TransformComponent transform;
+    RenderComponent render;
+    unsigned int obj = EntityID;
+    transform.position = { 0.f, 0.f, 9.f };
+    transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
+    transform.size = { 1.0f, 0.168f, 18.0f };
+    transformComponents[obj] = transform;
+
+
+    for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
+        std::vector<float> vertices;
+        std::vector<unsigned int> indices;
+
+        aiMesh* mesh = scene->mMeshes[i];
+        std::cout << "NUM Vertices : " << mesh->mNumVertices << std::endl;
+
+        // Extract vertices
+        for (unsigned int j = 0; j < mesh->mNumVertices; j++) {
+            // Position
+            vertices.push_back(mesh->mVertices[j].x);
+            vertices.push_back(mesh->mVertices[j].y);
+            vertices.push_back(mesh->mVertices[j].z);
+
+            // Normal
+            vertices.push_back(mesh->mNormals[j].x);
+            vertices.push_back(mesh->mNormals[j].y);
+            vertices.push_back(mesh->mNormals[j].z);
+
+            // Texture coordinates (if available)
+            if (mesh->mTextureCoords[0]) {
+                vertices.push_back(mesh->mTextureCoords[0][j].x);
+                vertices.push_back(mesh->mTextureCoords[0][j].y);
+            }
+            else {
+                vertices.push_back(0.0f);
+                vertices.push_back(0.0f);
+            }
+
+            // Tangent
+            vertices.push_back(mesh->mTangents[j].x);
+            vertices.push_back(mesh->mTangents[j].y);
+            vertices.push_back(mesh->mTangents[j].z);
+
+            // Bitangent
+            vertices.push_back(mesh->mBitangents[j].x);
+            vertices.push_back(mesh->mBitangents[j].y);
+            vertices.push_back(mesh->mBitangents[j].z);
+        }
+
+        // Extract indices
+        for (unsigned int j = 0; j < mesh->mNumFaces; j++) {
+            const aiFace& face = mesh->mFaces[j];
+            for (unsigned int k = 0; k < face.mNumIndices; k++) {
+                indices.push_back(face.mIndices[k]);
+            }
+        }
+
+        std::string diffuseTexturePath = "default_diffuse.jpg";
+        std::string normalTexturePath = "default_normal.jpg";
+        std::string emissiveTexturePath = "default_emissive.jpg";
+        std::string aoTexturePath = "default_ao.jpg";
+        std::string metalnessRoughness = "default_metalness_roughness.jpg";
+
+        aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+
+        aiString path;
+        if (material->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS) {
+            diffuseTexturePath = std::string(texDir) + path.C_Str();
+            std::cout << "Diffuse texture: " << path.C_Str() << std::endl;
+            texturesList[mesh->mName.C_Str()] = make_texture(diffuseTexturePath.c_str(), false);
+        }
+
+        if (material->GetTexture(aiTextureType_NORMALS, 0, &path) == AI_SUCCESS) {
+            normalTexturePath = std::string(texDir) + path.C_Str();
+            std::cout << "Normal texture: " << std::string(texDir) + path.C_Str() << std::endl;
+            normalMapsList[mesh->mName.C_Str()] = make_texture(normalTexturePath.c_str(), false);
+        }
+
+        if (material->GetTexture(aiTextureType_EMISSIVE, 0, &path) == AI_SUCCESS) {
+            emissiveTexturePath = std::string(texDir) + path.C_Str();
+            std::cout << "Emissive texture: " << path.C_Str() << std::endl;
+            emissiveList[mesh->mName.C_Str()] = make_texture(emissiveTexturePath.c_str(), false);
+
+        }
+
+        if (material->GetTexture(aiTextureType_LIGHTMAP, 0, &path) == AI_SUCCESS) {
+            aoTexturePath = std::string(texDir) + path.C_Str();
+            std::cout << "AO texture: " << path.C_Str() << std::endl;
+            aoList[mesh->mName.C_Str()] = make_texture(aoTexturePath.c_str(), false);
+        }
+
+        if (material->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &path) == AI_SUCCESS) {
+            metalnessRoughness = std::string(texDir) + path.C_Str();
+            std::cout << "Roughness texture: " << path.C_Str() << std::endl;
+            metalnessRoughnessList[mesh->mName.C_Str()] = make_texture(metalnessRoughness.c_str(), false);
+        }
+
+        int targetVertexCount = 350;
+        simplifyMesh(vertices, indices, targetVertexCount);
+
+        // Create VAO
+        unsigned int VAO;
+        glGenVertexArrays(1, &VAO);
+        VAOs.push_back(VAO);
+        glBindVertexArray(VAO);
+
+        // Create VBO for vertices
+        unsigned int VBO;
+        glGenBuffers(1, &VBO);
+        VBOs.push_back(VBO);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+
+        // Create EBO for indices
+        unsigned int EBO;
+        glGenBuffers(1, &EBO);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
+
+        // Set vertex attribute pointers
+        // Position attribute
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)0); // 8 * sizeof(float) stride (3 for pos, 3 for normal, 2 for tex)
+
+
+        // Texture coordinate attribute
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(sizeof(float[3]))); // Normal starts after 3 floats for position
+
+
+        // Normal attribute
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(sizeof(float[6]))); // Tex coords start after 6 floats (3 for pos, 3 for normal)
+
+        // Tangent attribute
+        glEnableVertexAttribArray(3);
+        glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(8 * sizeof(float))); // Tangent starts after 8 floats (3 for pos, 3 for normal, 2 for tex)
+
+        // Bitangent attribute
+        glEnableVertexAttribArray(4);
+        glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(11 * sizeof(float))); // Bitangent starts after 11 floats (3 for pos, 3 for normal, 2 for tex, 3 for tangent)
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+
+        // Store VAO and index count
+        renderModels[mesh->mName.C_Str()] = std::make_pair(VAO, indices.size());
+        std::cout << mesh->mName.C_Str() << std::endl;
+       
+
+        render.mesh = renderModels[mesh->mName.C_Str()].first;
+        render.indexCount = renderModels[mesh->mName.C_Str()].second;
+        render.material = texturesList[mesh->mName.C_Str()];
+        render.normalMap = normalMapsList[mesh->mName.C_Str()];
+        render.emissiveMap = emissiveList[mesh->mName.C_Str()];
+        render.aoMap = aoList[mesh->mName.C_Str()];
+        render.metalnessRoughnessMap = metalnessRoughnessList[mesh->mName.C_Str()];
+        renderComponents[obj].push_back(render);
+
+    }
+
 
 }
