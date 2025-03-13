@@ -16,6 +16,8 @@ void ScriptManager::initializeManager() {
     std::random_device rd;
     generator = std::mt19937(rd());
 
+    addMask(0, new EMPTY_MASK);
+    saveMasks(this);
     registerAllStates(this); // Enregistrer tous les états
     initializeStates();
     
@@ -27,7 +29,7 @@ ScriptManager::~ScriptManager(){}
 
 void ScriptManager::initializeStates() {
     for (const auto& factory : stateFactoryMap) {
-        stateList.insert(std::make_pair(factory.first, factory.second(factory.first, 0)));
+        stateList.insert(std::make_pair(factory.first, factory.second(factory.first)));
     }
 }
 
@@ -40,6 +42,14 @@ void ScriptManager::scriptManager_one_frame()
 void ScriptManager::addTime(float time)
 {
 	mainTime += time;
+}
+
+void ScriptManager::addMask(int id, Mask* mask)
+{
+    if (maskList.find(id) == maskList.end())
+        maskList[id] = mask;
+    else
+        throw std::out_of_range("Error addMask : Mask with the given id " + std::to_string(id) + " already exist in maskList.");
 }
 
 void ScriptManager::changeState(int newState)
@@ -194,6 +204,72 @@ bool ScriptManager::getInput_PressOneTime(int input) {
     return inputManager->getInput_PressOneTime(input);
 }
 
+bool ScriptManager::getAction(std::string actionName)
+{
+    int id_mask = stateList[CurrentState]->mask;
+    if(maskList[id_mask]->listActions.find(actionName) == maskList[id_mask]->listActions.end())
+        throw std::out_of_range("Error getAction : Action with the name " + actionName + " doesn't exist.");
+    Action* action = maskList[id_mask]->listActions[actionName];
+    switch (action->inputType) {
+        case InputType::PRESS:
+            for (int input : action->inputList) {
+                if (inputManager->getInput_Press(input))
+                    return true;
+            }
+            return false;
+        case InputType::RELEASE:
+            for (int input : action->inputList) {
+                if (inputManager->getInput_Release(input))
+                    return true;
+            }
+            return false;
+        case InputType::PRESS_ONE_TIME:
+            for (int input : action->inputList) {
+                if (inputManager->getInput_PressOneTime(input))
+                    return true;
+            }
+            return false;
+        default:
+            throw std::out_of_range("Error getAction : InputType with the id " + std::to_string(action->inputType) + " is not define.");
+    }
+}
+
+bool ScriptManager::getActionOnController(std::string actionName, int numController)
+{
+    GLFWgamepadstate state;
+    if (glfwGetGamepadState(numController, &state)) {
+        int id_mask = stateList[CurrentState]->mask;
+        if (maskList[id_mask]->listActions.find(actionName) == maskList[id_mask]->listActions.end())
+            throw std::out_of_range("Error getAction : Action with the name " + actionName + " doesn't exist.");
+        Action* action = maskList[id_mask]->listActions[actionName];
+        switch (action->inputType) {
+        case InputType::PRESS:
+            for (int input : action->inputControllerList) {
+                if (inputManager->getInput_Press_For_Controller(input, numController))
+                    return true;
+            }
+            return false;
+        case InputType::RELEASE:
+            for (int input : action->inputControllerList) {
+                if (inputManager->getInput_Release_For_Controller(input, numController))
+                    return true;
+            }
+            return false;
+        case InputType::PRESS_ONE_TIME:
+            for (int input : action->inputControllerList) {
+                if (inputManager->getInput_PressOneTime_For_Controller(input, numController))
+                    return true;
+            }
+            return false;
+        default:
+            throw std::out_of_range("Error getAction : InputType with the id " + std::to_string(action->inputType) + " is not define.");
+        }
+    }
+    return false;
+}
+
+
+
 // Random
 
 int ScriptManager::drawRandomInt(int min, int max)
@@ -206,4 +282,17 @@ float ScriptManager::drawRandomFloat(float min, float max)
 {
     std::uniform_real_distribution<float> distribution(min, max);
     return distribution(generator);
+}
+
+
+
+
+
+
+void ScriptManager::Mask::addAction(Action* action)
+{
+    if (listActions.find(action->name) == listActions.end())
+        listActions[action->name] = action;
+    else
+        throw std::out_of_range("Error Mask::addAction : Action with the given name " + action->name + " already exist in this mask.");
 }

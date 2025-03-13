@@ -1,7 +1,10 @@
 #include "EnvironmentSetup.h"
+
 #include "InitTurnState.h"
 #include "PreparationState.h"
 #include "Replay1State.h"
+
+#include "GAME_MASK.h"
 
 
 int GlobalVar;
@@ -18,8 +21,13 @@ void update_preparation_position_ball(ScriptManager* scriptManager) {
 }
 
 
+void saveMasks(ScriptManager* scriptManager) {
+	addMask(AllMasks::GAME_MASK, new PREPARATION_MASK);
+}
+
+
 void registerAllStates(ScriptManager* scriptManager) {
-    registerStateFactory<InitTurnState>(AllStates::INIT_TURN, scriptManager);
-    registerStateFactory<PreparationState>(AllStates::PREPARATION, scriptManager);
-    registerStateFactory<Replay1State>(AllStates::REPLAY_1, scriptManager);
+    registerStateFactory<InitTurnState>(AllStates::INIT_TURN, AllMasks::NONE , scriptManager);
+    registerStateFactory<PreparationState>(AllStates::PREPARATION, AllMasks::GAME_MASK ,scriptManager);
+    registerStateFactory<Replay1State>(AllStates::REPLAY_1, AllMasks::GAME_MASK , scriptManager);
 }

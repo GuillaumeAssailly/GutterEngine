@@ -11,7 +11,7 @@ void PreparationState::running() {
 	physx::PxVec3 force = {0.0f, 5.0f, 0.0f};
 	//setForceByName("Ball1", force);
 
-	if (getInput_PressOneTime(GLFW_KEY_RIGHT)) {
+	if (getAction("go_right") || getActionOnController("go_right", GLFW_JOYSTICK_1)) {
 		vec3 position = getPositionByName("Camera");
 		if (position.z - 0.1 >= MIN_POSITION_Z) {
 			position.z -= 0.1;
@@ -19,7 +19,7 @@ void PreparationState::running() {
 			update_preparation_position_ball(scriptManager);
 		}
 	}
-	if (getInput_PressOneTime(GLFW_KEY_LEFT)) {
+	if (getAction("go_left") || getActionOnController("go_left", GLFW_JOYSTICK_1)) {
 		vec3 position = getPositionByName("Camera");
 		if (position.z + 0.1 <= MAX_POSITION_Z) {
 			position.z += 0.1;
@@ -28,7 +28,7 @@ void PreparationState::running() {
 		}
 	}
 
-	if (getInput_PressOneTime(GLFW_KEY_UP)) {
+	if (getAction("turn_left") || getActionOnController("turn_left", GLFW_JOYSTICK_1)) {
 		glm::quat rotation_init = getRotationQuaternionByName("Camera");
 		glm::quat rotation_angle = glm::angleAxis(PADDING_CAMERA_RADIAN, glm::vec3(0.0f, 1.0f, 0.0f));
 		glm::quat new_rotation = rotation_angle * rotation_init;
@@ -37,7 +37,7 @@ void PreparationState::running() {
 			update_preparation_position_ball(scriptManager);
 		}
 	}
-	if (getInput_PressOneTime(GLFW_KEY_DOWN)) {
+	if (getAction("turn_right") || getActionOnController("turn_right", GLFW_JOYSTICK_1)) {
 		glm::quat rotation_init = getRotationQuaternionByName("Camera");
 		glm::quat rotation_angle = glm::angleAxis(-PADDING_CAMERA_RADIAN, glm::vec3(0.0f, 1.0f, 0.0f));
 		glm::quat new_rotation = rotation_angle * rotation_init;
@@ -47,7 +47,7 @@ void PreparationState::running() {
 		}
 	}
 
-	if (getInput_PressOneTime(GLFW_KEY_SPACE)) {
+	if (getAction("launch") || getActionOnController("launch", GLFW_JOYSTICK_1)) {
 		changeState(AllStates::REPLAY_1);
 		setMainCameraByName("Camera2");
 	}

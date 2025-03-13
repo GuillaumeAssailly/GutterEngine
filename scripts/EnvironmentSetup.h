@@ -7,6 +7,9 @@
 
 #include <cmath>
 
+// Déclarations pour les états
+class StateOfGame;
+
 #define HEIGHT_CAMERA 1.25
 #define WIDTH_CAMERA -3.5
 
@@ -22,11 +25,6 @@ extern int GlobalVar;
 
 extern void update_preparation_position_ball(ScriptManager* scriptManager);
 
-// Déclarations pour les états
-class StateOfGame;
-class InitTurnState;
-class PreparationState;
-class Replay1State;
 
 enum AllStates {
     INIT_TURN = 0,
@@ -34,5 +32,13 @@ enum AllStates {
     REPLAY_1 = 2
 };
 
+enum AllMasks {
+    NONE_MASK,
+    GAME_MASK = 1
+};
+
+
+//Enregistrer les masques
+void saveMasks(ScriptManager* scriptManager);
 // Enregistrer les états
 void registerAllStates(ScriptManager* scriptManager);

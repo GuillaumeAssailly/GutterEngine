@@ -7,7 +7,7 @@ void Replay1State::onLoad()
 
 void Replay1State::running()
 {
-	if (wait("replay1", 3.0) || getInput_PressOneTime(GLFW_KEY_SPACE)) {
+	if (wait("replay1", 3.0) || getAction("launch") || getActionOnController("launch", GLFW_JOYSTICK_1)) {
 		releaseTimer("replay1");
 		changeState(AllStates::INIT_TURN);
 		setMainCameraByName("Camera");

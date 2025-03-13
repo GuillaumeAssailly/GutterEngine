@@ -5,17 +5,11 @@
 
 using namespace glm;
 
+#define NONE_MASK NONE = 0
+
 
 class ScriptManager
 {
-
-	// State Engine
-
-	struct Mask {
-
-	};
-
-
 	// API
 
 	struct Timer {
@@ -41,12 +35,33 @@ public:
 		virtual ~StateOfGame() = default;
 	};
 
+	class Action {
+	public:
+		std::string name;
+		std::vector<int> inputList;
+		std::vector<int> inputControllerList;
+		int inputType;
+		Action(std::string name, std::vector<int> inputList, std::vector<int> inputControllerList, int inputType) :
+			name(name),
+			inputList(inputList),
+			inputControllerList(inputControllerList),
+			inputType(inputType) {}
+	};
+
+	class Mask {
+	public:
+		std::unordered_map <std::string, Action*> listActions;
+		Mask() : listActions() {};
+		void addAction(Action* action);
+	};
+
 
 	ScriptManager(InputManager* inputManager);
 	void initializeManager();
 	~ScriptManager();
 	void scriptManager_one_frame();
 	void addTime(float time);
+	void addMask(int id, Mask * mask);
 
 	void changeState(int newState);
 
@@ -81,10 +96,11 @@ public:
 	bool getInput_Press(int input);
 	bool getInput_Release(int input);
 	bool getInput_PressOneTime(int input);
+	bool getAction(std::string actionName);
+	bool getActionOnController(std::string actionName, int numController);
 
 	int drawRandomInt(int min, int max);
 	float drawRandomFloat(float min, float max);
-
 
 private:
 	InputManager* inputManager;
@@ -94,30 +110,49 @@ private:
 
 	int CurrentState;
 	std::unordered_map<int, std::unique_ptr<StateOfGame>> stateList;
+	std::unordered_map<int, Mask*> maskList;
 
 	void initializeStates();
 };
 
-
+// // // States \\ \\ \\
 
 // Typedef pour les fonctions d'usine
-using StateFactory = std::function<std::unique_ptr<ScriptManager::StateOfGame>(int, int)>;
+using StateFactory = std::function<std::unique_ptr<ScriptManager::StateOfGame>(int)>;
 
 // Map globale pour enregistrer les fonctions d'usine
 extern std::unordered_map<int, StateFactory> stateFactoryMap;
 
 // Fonction pour enregistrer une fonction d'usine
 template<typename T>
-void registerStateFactory(int id, ScriptManager* scriptManager) {
-	stateFactoryMap[id] = [scriptManager](int id, int id_Mask) -> std::unique_ptr<ScriptManager::StateOfGame> {
+void registerStateFactory(int id, int id_Mask, ScriptManager* scriptManager) {
+	stateFactoryMap[id] = [scriptManager, id_Mask](int id) -> std::unique_ptr<ScriptManager::StateOfGame> {
 		return std::make_unique<T>(id, id_Mask, scriptManager);
 		};
 }
 
 
+// // // Masks \\ \\ \\
+
+enum InputType {
+	PRESS = 0,
+	RELEASE = 1,
+	PRESS_ONE_TIME = 2
+};
+
+class EMPTY_MASK : public ScriptManager::Mask {
+public:
+	EMPTY_MASK() {};
+};
+
+
+
+// // // API \\ \\ \\
 
 #ifdef API_SCRIPT
 #define GLOBAL_SCRIPT_MANAGER scriptManager
+#define addMask(id, mask) GLOBAL_SCRIPT_MANAGER->addMask(id, mask)
+
 #define wait(key, time) GLOBAL_SCRIPT_MANAGER->wait(key, time)
 #define releaseTimer(key) GLOBAL_SCRIPT_MANAGER->releaseTimer(key)
 
@@ -151,6 +186,8 @@ void registerStateFactory(int id, ScriptManager* scriptManager) {
 #define getInput_Press(input) GLOBAL_SCRIPT_MANAGER->getInput_Press(input)
 #define getInput_Release(input) GLOBAL_SCRIPT_MANAGER->getInput_Release(input)
 #define getInput_PressOneTime(input) GLOBAL_SCRIPT_MANAGER->getInput_PressOneTime(input)
+#define getAction(actionName) GLOBAL_SCRIPT_MANAGER->getAction(actionName)
+#define getActionOnController(actionName, numController) GLOBAL_SCRIPT_MANAGER->getActionOnController(actionName, numController)
 
 #define drawRandomInt(min, max) GLOBAL_SCRIPT_MANAGER->drawRandomInt(min, max)
 #define drawRandomFloat(min, max) GLOBAL_SCRIPT_MANAGER->drawRandomFloat(min, max)

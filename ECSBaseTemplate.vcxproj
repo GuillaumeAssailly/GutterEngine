@@ -172,6 +172,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="scripts\EnvironmentSetup.h" />
+    <ClInclude Include="scripts\GAME_MASK.h" />
     <ClInclude Include="scripts\InitTurnState.h" />
     <ClInclude Include="scripts\PreparationState.h" />
     <ClInclude Include="scripts\Replay1State.h" />
