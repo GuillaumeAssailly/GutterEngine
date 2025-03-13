@@ -1,28 +1,58 @@
 #include "script_manager.h"
-#include "../../scripts/MainLoop.h"
+#include "../../scripts/EnvironmentSetup.h"
+
+
+
+std::unordered_map<int, StateFactory> stateFactoryMap;
 
 ScriptManager::ScriptManager(InputManager* inputManager) : inputManager(inputManager)
 {
-	mainLoop = new MainLoop(this);
-	mainTime = static_cast<float>(glfwGetTime());
+    mainTime = static_cast<float>(glfwGetTime());
+    CurrentState = 0;
+}
+
+void ScriptManager::initializeManager() {
 
     std::random_device rd;
     generator = std::mt19937(rd());
+
+    registerAllStates(this); // Enregistrer tous les états
+    initializeStates();
+    
+    if (stateList.find(CurrentState) != stateList.end())
+        stateList[CurrentState]->onLoad();
 }
 
-ScriptManager::~ScriptManager()
-{
-    delete mainLoop;
+ScriptManager::~ScriptManager(){}
+
+void ScriptManager::initializeStates() {
+    for (const auto& factory : stateFactoryMap) {
+        stateList.insert(std::make_pair(factory.first, factory.second(factory.first, 0)));
+    }
 }
+
 
 void ScriptManager::scriptManager_one_frame()
 {
-	mainLoop->mainLoop_one_frame();
+    stateList[CurrentState]->running();
 }
 
 void ScriptManager::addTime(float time)
 {
 	mainTime += time;
+}
+
+void ScriptManager::changeState(int newState)
+{
+    if (stateList.find(newState) != stateList.end()) {
+        stateList[CurrentState]->onDestruct();
+        CurrentState = newState;
+        stateList[CurrentState]->onLoad();
+    }
+    else {
+        throw std::out_of_range("Error changeState : State with the given id " + std::to_string(newState) + " doesn't exist.");
+    }
+    
 }
 
 bool ScriptManager::wait(std::string key, float time)
@@ -102,6 +132,21 @@ void ScriptManager::setRotationEulerByName(std::string name, glm::vec3 eulers) {
 void ScriptManager::setRotationEulerByID(int id, glm::vec3 eulers) {
     inputManager->entityManager->setRotationEulerByID(id, eulers);
 }
+
+
+
+// Physic
+
+void ScriptManager ::setForceByName(std::string name, physx::PxVec3 force)
+{
+    inputManager->entityManager->setForceByName(name, force);
+}
+
+void ScriptManager::setForceById(int id, physx::PxVec3 force)
+{
+    inputManager->entityManager->setForceById(id, force);
+}
+
 
 
 // Camera

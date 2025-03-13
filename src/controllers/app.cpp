@@ -167,6 +167,9 @@ void App::run() {
 
     //while loop iterating on the renderer pipeline : 
     systemManager->shadowSystem->Initialize(entityManager->lightComponents);
+
+    scriptManager->initializeManager();
+
     while (!glfwWindowShouldClose(window)) {
         // Per-frame time logic
         // -------------------
@@ -197,6 +200,16 @@ void App::run() {
             fpsTimeCounter = 0.0f;
         }
 
+        GLFWgamepadstate state;
+        if (glfwGetGamepadState(GLFW_JOYSTICK_1, &state)) {
+            if (state.buttons[GLFW_GAMEPAD_BUTTON_A] == GLFW_PRESS) {
+                std::cout << "Le bouton 'A' a ete presse !" << std::endl;
+            }
+        }
+        else {
+            std::cout << "Manette non compatible ou non connectee !" << std::endl;
+        }
+
         // ScriptManager and extern gameplay
         if (!game_paused) {
             scriptManager->addTime(deltaTime);
@@ -207,6 +220,7 @@ void App::run() {
             catch (const std::exception& e) {
                 std::cout << e.what() << std::endl;
                 game_paused = true;
+                scriptManager->changeState(0);
             }
         }
         

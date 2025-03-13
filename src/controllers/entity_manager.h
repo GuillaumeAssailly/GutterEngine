@@ -46,6 +46,9 @@ public:
     void setMainCameraByName(std::string name);
     void setMainCameraByID(int id);
 
+    void setForceByName(std::string name, physx::PxVec3 force);
+    void setForceById(int id, physx::PxVec3 force);
+
 private:
     //Components
     std::unordered_map<unsigned int, std::string> entityNames;

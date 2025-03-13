@@ -184,3 +184,24 @@ void EntityManager::setMainCameraByID(int id) {
     else
         throw std::out_of_range("Error setMainCameraByID : Camera with the given ID " + std::to_string(id) + " not found.");
 }
+
+void EntityManager::setForceByName(std::string name, physx::PxVec3 force)
+{
+    for (auto const& entity : entityNames) {
+        if (entity.second == name) {
+            return setForceById(entity.first, force);
+        }
+    }
+    throw std::out_of_range("Error setForceByName : Entity with the given name " + name + " not found.");
+}
+
+void EntityManager::setForceById(int id, physx::PxVec3 force)
+{
+    if (physicsComponents.find(id) != physicsComponents.end()) {
+        physicsComponents[id].rigidBody->addForce(force, physx::PxForceMode::eIMPULSE);
+    }
+    else
+    {
+        throw std::out_of_range("Error setForceById : Entity with the given id " + std::to_string(id) + " not found.");
+    }
+}

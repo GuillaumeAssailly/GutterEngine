@@ -67,7 +67,16 @@
     <ClCompile Include="src\controllers\script_manager.cpp">
       <Filter>src\controllers</Filter>
     </ClCompile>
-    <ClCompile Include="scripts\MainLoop.cpp">
+    <ClCompile Include="scripts\EnvironmentSetup.cpp">
+      <Filter>scripts</Filter>
+    </ClCompile>
+    <ClCompile Include="scripts\InitTurnState.cpp">
+      <Filter>scripts</Filter>
+    </ClCompile>
+    <ClCompile Include="scripts\PreparationState.cpp">
+      <Filter>scripts</Filter>
+    </ClCompile>
+    <ClCompile Include="scripts\Replay1State.cpp">
       <Filter>scripts</Filter>
     </ClCompile>
   </ItemGroup>
@@ -153,7 +162,16 @@
     <ClInclude Include="src\controllers\script_manager.h">
       <Filter>src\controllers</Filter>
     </ClInclude>
-    <ClInclude Include="scripts\MainLoop.h">
+    <ClInclude Include="scripts\EnvironmentSetup.h">
+      <Filter>scripts</Filter>
+    </ClInclude>
+    <ClInclude Include="scripts\InitTurnState.h">
+      <Filter>scripts</Filter>
+    </ClInclude>
+    <ClInclude Include="scripts\PreparationState.h">
+      <Filter>scripts</Filter>
+    </ClInclude>
+    <ClInclude Include="scripts\Replay1State.h">
       <Filter>scripts</Filter>
     </ClInclude>
   </ItemGroup>
