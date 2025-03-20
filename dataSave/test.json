@@ -2,7 +2,7 @@
     "cameras": [
         {
             "component": {
-                "aspectRatio": 1.077654480934143,
+                "aspectRatio": 1.1244980096817017,
                 "farPlane": 100.0,
                 "fov": 45.0,
                 "initialForward": [
@@ -33,7 +33,7 @@
         },
         {
             "id": 3,
-            "name": "SM_Speaker_29"
+            "name": "SM_Speaker_30"
         }
     ],
     "lights": [
@@ -199,37 +199,37 @@
         {
             "component": [
                 {
-                    "aoMap": 57,
+                    "aoMap": 61,
                     "emissiveForce": 8.0,
                     "emissiveMap": 4294967295,
                     "indexCount": 2304,
                     "isPlanarReflectable": false,
-                    "material": 55,
-                    "mesh": 17,
-                    "metalnessRoughnessMap": 58,
-                    "normalMap": 56,
+                    "material": 59,
+                    "mesh": 18,
+                    "metalnessRoughnessMap": 62,
+                    "normalMap": 60,
                     "reflectionDepthBuffer": 3435973836,
                     "reflectionFBO": 3435973836,
                     "reflectionTexture": 3435973836
                 }
             ],
             "id": 3,
-            "name": "SM_Speaker_29"
+            "name": "SM_Speaker_30"
         }
     ],
     "transforms": [
         {
             "component": {
                 "eulers": [
-                    0.999980092048645,
-                    0.006305652670562267,
+                    0.9961764216423035,
+                    0.08736567199230194,
                     0.0,
                     0.0
                 ],
                 "position": [
                     0.0,
-                    0.008132453076541424,
-                    -1.6446324586868286
+                    0.1726161688566208,
+                    -0.9532929062843323
                 ],
                 "size": [
                     -107374176.0,
@@ -304,7 +304,7 @@
                 ]
             },
             "id": 3,
-            "name": "SM_Speaker_29"
+            "name": "SM_Speaker_30"
         }
     ]
 }
