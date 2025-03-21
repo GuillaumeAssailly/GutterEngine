@@ -29,6 +29,8 @@ public:
     std::unordered_map<unsigned int, CameraComponent>& getCameraComponents();
     std::unordered_map<unsigned int, LightComponent>& getLightComponents();
     std::unordered_map<unsigned int, PhysicsComponent>& getPhysicsComponents();
+    int getEntityCount();
+    void addEntityCount();
     void renameEntity(unsigned int, std::string);
     std::string removeEntity(unsigned int);
 

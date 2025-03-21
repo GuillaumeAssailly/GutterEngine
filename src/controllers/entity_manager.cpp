@@ -74,3 +74,10 @@ std::string EntityManager::removeEntity(unsigned int entity)
     }
     return "You can't delete the current camera";
 }
+
+int EntityManager::getEntityCount() {
+    return entity_count; 
+}
+void EntityManager::addEntityCount() {
+    entity_count++;
+}

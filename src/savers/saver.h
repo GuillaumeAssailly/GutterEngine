@@ -3,6 +3,8 @@
 class Saver
 {
 protected:
+	EntityManager* entityManager;
+	Saver(EntityManager* entityManager) : entityManager(entityManager) {}
     virtual void saveTransforms() = 0;
     virtual void saveRenders() = 0;
 	virtual void saveCameras() = 0;

@@ -9,12 +9,15 @@ using json = nlohmann::json;
 
 class LoaderJSON : public Loader {
 	private :
+		std::string fileName;
 		json jsonData;
-		void loadPins(App* app, CameraComponent* camera) const override;
-		void loadBall(App* app, CameraComponent* camera) const override;
-		void loadLights(App* app, CameraComponent* camera) const override;
-		void loadCamera(App* app, CameraComponent* camera) const override;
-		void loadLane(App* app, CameraComponent* camera)const;
+		void loadTransforms() override;
+		virtual void loadRenders() override;
+		virtual void loadCameras() override;
+		virtual void loadLights() override;
+		virtual void loadEntitiesNames() override;
+		virtual void loadPhysics() override;
+		virtual void loadEntities();
 	public :
-		LoaderJSON(std::string fileName);
+		LoaderJSON(std::string fileName, EntityManager *entityManager);
 };

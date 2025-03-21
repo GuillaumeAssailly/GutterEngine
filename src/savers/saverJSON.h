@@ -13,7 +13,6 @@ public:
 
 private:
     std::string fileName;
-	EntityManager *entityManager;
     json jsonData;
 	void saveTransforms() override;
 	void saveRenders() override;

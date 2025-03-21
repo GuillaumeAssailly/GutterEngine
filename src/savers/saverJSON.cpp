@@ -17,7 +17,7 @@ void SaverJSON::saveEntities()
 }
 
 SaverJSON::SaverJSON(std::string fileName, EntityManager *entityManager):
-	fileName(fileName), entityManager(entityManager)
+	fileName(fileName), Saver(entityManager)
 {
     
 }

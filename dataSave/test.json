@@ -32,8 +32,16 @@
             "name": "Second Light"
         },
         {
-            "id": 3,
-            "name": "SM_Speaker_30"
+            "id": 6,
+            "name": "boule"
+        },
+        {
+            "id": 7,
+            "name": "piste"
+        },
+        {
+            "id": 5,
+            "name": "ecran"
         }
     ],
     "lights": [
@@ -199,37 +207,133 @@
         {
             "component": [
                 {
-                    "aoMap": 61,
+                    "aoMap": 53,
                     "emissiveForce": 8.0,
                     "emissiveMap": 4294967295,
                     "indexCount": 2304,
                     "isPlanarReflectable": false,
-                    "material": 59,
-                    "mesh": 18,
-                    "metalnessRoughnessMap": 62,
-                    "normalMap": 60,
+                    "material": 51,
+                    "mesh": 16,
+                    "metalnessRoughnessMap": 54,
+                    "normalMap": 52,
                     "reflectionDepthBuffer": 3435973836,
                     "reflectionFBO": 3435973836,
                     "reflectionTexture": 3435973836
                 }
             ],
-            "id": 3,
-            "name": "SM_Speaker_30"
+            "id": 6,
+            "name": "boule"
+        },
+        {
+            "component": [
+                {
+                    "aoMap": 4294967295,
+                    "emissiveForce": 8.0,
+                    "emissiveMap": 4294967295,
+                    "indexCount": 24,
+                    "isPlanarReflectable": false,
+                    "material": 3,
+                    "mesh": 2,
+                    "metalnessRoughnessMap": 5,
+                    "normalMap": 4,
+                    "reflectionDepthBuffer": 3435973836,
+                    "reflectionFBO": 3435973836,
+                    "reflectionTexture": 3435973836
+                },
+                {
+                    "aoMap": 4294967295,
+                    "emissiveForce": 8.0,
+                    "emissiveMap": 4294967295,
+                    "indexCount": 1656,
+                    "isPlanarReflectable": false,
+                    "material": 6,
+                    "mesh": 3,
+                    "metalnessRoughnessMap": 8,
+                    "normalMap": 7,
+                    "reflectionDepthBuffer": 3435973836,
+                    "reflectionFBO": 3435973836,
+                    "reflectionTexture": 3435973836
+                },
+                {
+                    "aoMap": 4294967295,
+                    "emissiveForce": 8.0,
+                    "emissiveMap": 4294967295,
+                    "indexCount": 3762,
+                    "isPlanarReflectable": false,
+                    "material": 9,
+                    "mesh": 4,
+                    "metalnessRoughnessMap": 11,
+                    "normalMap": 10,
+                    "reflectionDepthBuffer": 3435973836,
+                    "reflectionFBO": 3435973836,
+                    "reflectionTexture": 3435973836
+                },
+                {
+                    "aoMap": 14,
+                    "emissiveForce": 8.0,
+                    "emissiveMap": 4294967295,
+                    "indexCount": 12120,
+                    "isPlanarReflectable": false,
+                    "material": 12,
+                    "mesh": 5,
+                    "metalnessRoughnessMap": 15,
+                    "normalMap": 13,
+                    "reflectionDepthBuffer": 3435973836,
+                    "reflectionFBO": 3435973836,
+                    "reflectionTexture": 3435973836
+                }
+            ],
+            "id": 7,
+            "name": "piste"
+        },
+        {
+            "component": [
+                {
+                    "aoMap": 36,
+                    "emissiveForce": 8.0,
+                    "emissiveMap": 35,
+                    "indexCount": 11982,
+                    "isPlanarReflectable": false,
+                    "material": 33,
+                    "mesh": 11,
+                    "metalnessRoughnessMap": 37,
+                    "normalMap": 34,
+                    "reflectionDepthBuffer": 3435973836,
+                    "reflectionFBO": 3435973836,
+                    "reflectionTexture": 3435973836
+                },
+                {
+                    "aoMap": 40,
+                    "emissiveForce": 8.0,
+                    "emissiveMap": 4294967295,
+                    "indexCount": 10944,
+                    "isPlanarReflectable": false,
+                    "material": 38,
+                    "mesh": 12,
+                    "metalnessRoughnessMap": 41,
+                    "normalMap": 39,
+                    "reflectionDepthBuffer": 3435973836,
+                    "reflectionFBO": 3435973836,
+                    "reflectionTexture": 3435973836
+                }
+            ],
+            "id": 5,
+            "name": "ecran"
         }
     ],
     "transforms": [
         {
             "component": {
                 "eulers": [
-                    0.9961764216423035,
-                    0.08736567199230194,
-                    0.0,
-                    0.0
+                    0.7248450517654419,
+                    0.096939817070961,
+                    -0.6760385036468506,
+                    0.09041253477334976
                 ],
                 "position": [
-                    0.0,
-                    0.1726161688566208,
-                    -0.9532929062843323
+                    3.762828826904297,
+                    1.9279621839523315,
+                    -1.443547010421753
                 ],
                 "size": [
                     -107374176.0,
@@ -294,6 +398,28 @@
                 ],
                 "position": [
                     0.0,
+                    1.0,
+                    -2.0
+                ],
+                "size": [
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0
+                ]
+            },
+            "id": 6,
+            "name": "boule"
+        },
+        {
+            "component": {
+                "eulers": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "position": [
+                    1.0,
                     0.0,
                     0.0
                 ],
@@ -303,8 +429,30 @@
                     -107374176.0
                 ]
             },
-            "id": 3,
-            "name": "SM_Speaker_30"
+            "id": 7,
+            "name": "piste"
+        },
+        {
+            "component": {
+                "eulers": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "position": [
+                    0.0,
+                    2.0,
+                    0.0
+                ],
+                "size": [
+                    -107374176.0,
+                    -107374176.0,
+                    -107374176.0
+                ]
+            },
+            "id": 5,
+            "name": "ecran"
         }
     ]
 }
