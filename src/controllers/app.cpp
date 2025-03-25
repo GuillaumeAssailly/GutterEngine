@@ -865,6 +865,11 @@ void App::loadModelsAndTextures()
     transform_Ball2.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
     transform_Ball2.size = { 1.0f, 0.168f, 18.0f };
     entityManager->transformComponents[Ball2] = transform_Ball2;
+    PhysicsComponent physics2;
+    const physx::PxSphereGeometry sphereGeometry2(0.105f);
+    physics2.rigidBody = systemManager->motionSystem->createDynamic(sphereGeometry2, material, transform_Ball.position, newEntityMass, newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping);
+    physics2.rigidBody->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, true);
+    entityManager->physicsComponents[Ball2] = physics2;
 
 	//Ball3
 	const int Ball3 = entityManager->make_entity("Ball3");

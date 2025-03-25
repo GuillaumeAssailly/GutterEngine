@@ -32,7 +32,7 @@ public:
 		virtual void onLoad() = 0;
 		virtual void running() = 0;
 		virtual void onDestruct() = 0;
-		virtual ~StateOfGame() = default;
+		~StateOfGame() = default;
 	};
 
 	class Action {

@@ -147,7 +147,7 @@ void ScriptManager::setRotationEulerByID(int id, glm::vec3 eulers) {
 
 // Physic
 
-void ScriptManager ::setForceByName(std::string name, physx::PxVec3 force)
+void ScriptManager::setForceByName(std::string name, physx::PxVec3 force)
 {
     inputManager->entityManager->setForceByName(name, force);
 }
