@@ -10,13 +10,12 @@
 #include "GAME_MASK.h"
 
 
-glm::vec3 ball_position_before_replay;
-physx::PxVec3 ball_linear_velocity_before_replay;
-physx::PxVec3 ball_angular_velocity_before_replay;
+std::vector<Save> ball_saves;
+std::vector<std::vector<Save>> pin_saves(10);
 
 int current_turn = 0;
 int current_throw = 0;
-std::vector<int> non_modified_pin = {};
+std::vector<int> non_modified_pin = {1,2,3,4,5,6,7,8,9,10};
 std::vector<std::array<std::array<int, 3>, 10>> score_tab = {
     std::array<std::array<int, 3>, 10>{
         std::array<int, 3>{-1, -1, -1},

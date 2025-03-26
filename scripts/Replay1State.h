@@ -7,4 +7,6 @@ public:
     void onLoad() override;
     void running() override;
     void onDestruct() override;
+
+    size_t replayIndex;
 };

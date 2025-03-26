@@ -20,10 +20,13 @@ class StateOfGame;
 #define VIEW_CAMERA_LIMITS 0.06
 #define PADDING_CAMERA_RADIAN 0.00872665f
 
+struct Save {
+    glm::vec3 position;
+    glm::quat rotation;
+};
 
-extern glm::vec3 ball_position_before_replay;
-extern physx::PxVec3 ball_linear_velocity_before_replay;
-extern physx::PxVec3 ball_angular_velocity_before_replay;
+extern std::vector<Save> ball_saves;
+extern std::vector<std::vector<Save>> pin_saves;
 
 extern int current_throw;
 extern int current_turn;

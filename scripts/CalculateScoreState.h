@@ -9,4 +9,7 @@ public:
     void onLoad() override;
     void running() override;
     void onDestruct() override;
+
+    int bonus_multi = 1;
+    int bonus_duree = 1;
 };
