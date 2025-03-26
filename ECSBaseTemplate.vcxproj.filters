@@ -79,6 +79,10 @@
     <ClCompile Include="scripts\Replay1State.cpp">
       <Filter>scripts</Filter>
     </ClCompile>
+    <ClCompile Include="scripts\RollingState.cpp" />
+    <ClCompile Include="scripts\CalculateScoreState.cpp">
+      <Filter>scripts</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\config.h">
@@ -175,6 +179,10 @@
       <Filter>scripts</Filter>
     </ClInclude>
     <ClInclude Include="scripts\GAME_MASK.h">
+      <Filter>scripts</Filter>
+    </ClInclude>
+    <ClInclude Include="scripts\RollingState.h" />
+    <ClInclude Include="scripts\CalculateScoreState.h">
       <Filter>scripts</Filter>
     </ClInclude>
   </ItemGroup>

@@ -157,6 +157,67 @@ void ScriptManager::setForceById(int id, physx::PxVec3 force)
     inputManager->entityManager->setForceById(id, force);
 }
 
+physx::PxVec3 ScriptManager::getLinearVelocityByName(std::string name)
+{
+    return inputManager->entityManager->getLinearVelocityByName(name);
+}
+
+physx::PxVec3 ScriptManager::getLinearVelocityById(int id)
+{
+    return inputManager->entityManager->getLinearVelocityById(id);
+}
+
+physx::PxVec3 ScriptManager::getAngularVelocityByName(std::string name)
+{
+    return inputManager->entityManager->getAngularVelocityByName(name);
+}
+
+physx::PxVec3 ScriptManager::getAngularVelocityById(int id)
+{
+    return inputManager->entityManager->getAngularVelocityById(id);
+}
+
+void ScriptManager::setLinearVelocityByName(std::string name, physx::PxVec3 velocity)
+{
+    inputManager->entityManager->setLinearVelocityByName(name, velocity);
+}
+
+void ScriptManager::setLinearVelocityById(int id, physx::PxVec3 velocity)
+{
+    inputManager->entityManager->setLinearVelocityById(id, velocity);
+}
+
+void ScriptManager::setAngularVelocityByName(std::string name, physx::PxVec3 velocity)
+{
+    inputManager->entityManager->setAngularVelocityByName(name, velocity);
+}
+
+void ScriptManager::setAngularVelocityById(int id, physx::PxVec3 velocity)
+{
+    inputManager->entityManager->setAngularVelocityById(id, velocity);
+}
+
+
+void ScriptManager::enablePhysicByName(std::string name)
+{
+    inputManager->entityManager->enablePhysicByName(name);
+}
+
+void ScriptManager::enablePhysicById(int id)
+{
+    inputManager->entityManager->enablePhysicById(id);
+}
+
+void ScriptManager::disablePhysicByName(std::string name)
+{
+    inputManager->entityManager->disablePhysicByName(name);
+}
+
+void ScriptManager::disablePhysicById(int id)
+{
+    inputManager->entityManager->disablePhysicById(id);
+}
+
 
 
 // Camera

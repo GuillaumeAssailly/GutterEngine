@@ -21,7 +21,14 @@ class StateOfGame;
 #define PADDING_CAMERA_RADIAN 0.00872665f
 
 
-extern int GlobalVar;
+extern glm::vec3 ball_position_before_replay;
+extern physx::PxVec3 ball_linear_velocity_before_replay;
+extern physx::PxVec3 ball_angular_velocity_before_replay;
+
+extern int current_throw;
+extern int current_turn;
+extern std::vector<std::array<std::array<int, 3>, 10>> score_tab;
+extern std::vector<int> non_modified_pin;
 
 extern void update_preparation_position_ball(ScriptManager* scriptManager);
 
@@ -29,7 +36,9 @@ extern void update_preparation_position_ball(ScriptManager* scriptManager);
 enum AllStates {
     INIT_TURN = 0,
     PREPARATION = 1,
-    REPLAY_1 = 2
+    ROLLING = 2,
+    CALCULATE_SCORE = 3,
+    REPLAY_1 = 4
 };
 
 enum AllMasks {

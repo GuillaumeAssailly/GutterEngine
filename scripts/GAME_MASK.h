@@ -19,6 +19,14 @@ public:
             { GLFW_KEY_UP },
             { GLFW_GAMEPAD_BUTTON_DPAD_UP },
             InputType::PRESS_ONE_TIME));
+        addAction(new ScriptManager::Action("launch_press",
+            { GLFW_KEY_SPACE },
+            { GLFW_GAMEPAD_BUTTON_A },
+            InputType::PRESS));
+        addAction(new ScriptManager::Action("launch_release",
+            { GLFW_KEY_SPACE },
+            { GLFW_GAMEPAD_BUTTON_A },
+            InputType::RELEASE));
         addAction(new ScriptManager::Action("launch",
             { GLFW_KEY_SPACE },
             { GLFW_GAMEPAD_BUTTON_A },

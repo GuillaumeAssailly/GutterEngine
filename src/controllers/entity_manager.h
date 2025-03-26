@@ -48,6 +48,18 @@ public:
 
     void setForceByName(std::string name, physx::PxVec3 force);
     void setForceById(int id, physx::PxVec3 force);
+    physx::PxVec3 getLinearVelocityByName(std::string name);
+    physx::PxVec3 getLinearVelocityById(int id);
+    physx::PxVec3 getAngularVelocityByName(std::string name);
+    physx::PxVec3 getAngularVelocityById(int id);
+    void setLinearVelocityByName(std::string name, physx::PxVec3 velocity);
+    void setLinearVelocityById(int id, physx::PxVec3 velocity);
+    void setAngularVelocityByName(std::string name, physx::PxVec3 velocity);
+    void setAngularVelocityById(int id, physx::PxVec3 velocity);
+    void enablePhysicByName(std::string name);
+    void enablePhysicById(int id);
+    void disablePhysicByName(std::string name);
+    void disablePhysicById(int id);
 
 private:
     //Components

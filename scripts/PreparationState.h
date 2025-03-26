@@ -7,4 +7,8 @@ public:
     void onLoad() override;
     void running() override;
     void onDestruct() override;
+
+    bool init;
+    float forceX;
+    bool isPress;
 };

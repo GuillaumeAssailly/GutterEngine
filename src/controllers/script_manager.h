@@ -84,6 +84,18 @@ public:
 
 	void setForceByName(std::string name, physx::PxVec3 force);
 	void setForceById(int id, physx::PxVec3 force);
+	physx::PxVec3 getLinearVelocityByName(std::string name);
+	physx::PxVec3 getLinearVelocityById(int id);
+	physx::PxVec3 getAngularVelocityByName(std::string name);
+	physx::PxVec3 getAngularVelocityById(int id);
+	void setLinearVelocityByName(std::string name, physx::PxVec3 velocity);
+	void setLinearVelocityById(int id, physx::PxVec3 velocity);
+	void setAngularVelocityByName(std::string name, physx::PxVec3 velocity);
+	void setAngularVelocityById(int id, physx::PxVec3 velocity);
+	void enablePhysicByName(std::string name);
+	void enablePhysicById(int id);
+	void disablePhysicByName(std::string name);
+	void disablePhysicById(int id);
 
 	std::vector<std::string> getAllCamerasNames();
 	std::vector<int> getAllCamerasID();
@@ -174,6 +186,18 @@ public:
 
 #define setForceByName(name, force) GLOBAL_SCRIPT_MANAGER->setForceByName(name, force)
 #define setForceById(id, force) GLOBAL_SCRIPT_MANAGER->setForceById(id, force)
+#define getLinearVelocityByName(name) GLOBAL_SCRIPT_MANAGER->getLinearVelocityByName(name)
+#define getLinearVelocityById(id) GLOBAL_SCRIPT_MANAGER->getLinearVelocityById(id)
+#define getAngularVelocityByName(name) GLOBAL_SCRIPT_MANAGER->getAngularVelocityByName(name)
+#define getAngularVelocityById(id) GLOBAL_SCRIPT_MANAGER->getAngularVelocityById(id)
+#define setLinearVelocityByName(name, velocity) GLOBAL_SCRIPT_MANAGER->setLinearVelocityByName(name, velocity)
+#define setLinearVelocityById(id, velocity) GLOBAL_SCRIPT_MANAGER->setLinearVelocityById(id, velocity)
+#define setAngularVelocityByName(name, velocity) GLOBAL_SCRIPT_MANAGER->setAngularVelocityByName(name, velocity)
+#define setAngularVelocityById(id, velocity) GLOBAL_SCRIPT_MANAGER->setAngularVelocityById(id, velocity)
+#define enablePhysicByName(name) GLOBAL_SCRIPT_MANAGER->enablePhysicByName(name)
+#define enablePhysicById(id) GLOBAL_SCRIPT_MANAGER->enablePhysicById(id)
+#define disablePhysicByName(name) GLOBAL_SCRIPT_MANAGER->disablePhysicByName(name)
+#define disablePhysicById(id) GLOBAL_SCRIPT_MANAGER->disablePhysicById(id)
 
 #define getAllCamerasNames() GLOBAL_SCRIPT_MANAGER->getAllCamerasNames()
 #define getAllCamerasID() GLOBAL_SCRIPT_MANAGER->getAllCamerasID()

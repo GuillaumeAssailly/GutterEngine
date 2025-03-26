@@ -205,3 +205,129 @@ void EntityManager::setForceById(int id, physx::PxVec3 force)
         throw std::out_of_range("Error setForceById : Entity with the given id " + std::to_string(id) + " not found.");
     }
 }
+
+physx::PxVec3 EntityManager::getLinearVelocityByName(std::string name)
+{
+    for (auto const& entity : entityNames) {
+        if (entity.second == name) {
+            return getLinearVelocityById(entity.first);
+        }
+    }
+    throw std::out_of_range("Error getLinearVelocityByName : Entity with the given name " + name + " not found.");
+}
+
+physx::PxVec3 EntityManager::getLinearVelocityById(int id)
+{
+    if (physicsComponents.find(id) != physicsComponents.end()) {
+        return physicsComponents[id].rigidBody->getLinearVelocity();
+    }
+    else
+    {
+        throw std::out_of_range("getLinearVelocityById : Entity with the given id " + std::to_string(id) + " not found.");
+    }
+}
+
+physx::PxVec3 EntityManager::getAngularVelocityByName(std::string name)
+{
+    for (auto const& entity : entityNames) {
+        if (entity.second == name) {
+            return getAngularVelocityById(entity.first);
+        }
+    }
+    throw std::out_of_range("Error getAngularVelocityByName : Entity with the given name " + name + " not found.");
+}
+
+physx::PxVec3 EntityManager::getAngularVelocityById(int id)
+{
+    if (physicsComponents.find(id) != physicsComponents.end()) {
+        return physicsComponents[id].rigidBody->getAngularVelocity();
+    }
+    else
+    {
+        throw std::out_of_range("getAngularVelocityById : Entity with the given id " + std::to_string(id) + " not found.");
+    }
+}
+
+void EntityManager::setLinearVelocityByName(std::string name, physx::PxVec3 velocity)
+{
+    for (auto const& entity : entityNames) {
+        if (entity.second == name) {
+            return setLinearVelocityById(entity.first, velocity);
+        }
+    }
+    throw std::out_of_range("Error setLinearVelocityByName : Entity with the given name " + name + " not found.");
+}
+
+void EntityManager::setLinearVelocityById(int id, physx::PxVec3 velocity)
+{
+    if (physicsComponents.find(id) != physicsComponents.end()) {
+        return physicsComponents[id].rigidBody->setLinearVelocity(velocity);
+    }
+    else
+    {
+        throw std::out_of_range("setLinearVelocityById : Entity with the given id " + std::to_string(id) + " not found.");
+    }
+}
+
+void EntityManager::setAngularVelocityByName(std::string name, physx::PxVec3 velocity)
+{
+    for (auto const& entity : entityNames) {
+        if (entity.second == name) {
+            return setAngularVelocityById(entity.first, velocity);
+        }
+    }
+    throw std::out_of_range("Error setAngularVelocityByName : Entity with the given name " + name + " not found.");
+}
+
+void EntityManager::setAngularVelocityById(int id, physx::PxVec3 velocity)
+{
+    if (physicsComponents.find(id) != physicsComponents.end()) {
+        return physicsComponents[id].rigidBody->setAngularVelocity(velocity);
+    }
+    else
+    {
+        throw std::out_of_range("setAngularVelocityById : Entity with the given id " + std::to_string(id) + " not found.");
+    }
+}
+
+void EntityManager::enablePhysicByName(std::string name)
+{
+    for (auto const& entity : entityNames) {
+        if (entity.second == name) {
+            return enablePhysicById(entity.first);
+        }
+    }
+    throw std::out_of_range("Error enablePhysicByName : Entity with the given name " + name + " not found.");
+}
+
+void EntityManager::enablePhysicById(int id)
+{
+    if (physicsComponents.find(id) != physicsComponents.end()) {
+        physicsComponents[id].rigidBody->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, false);
+    }
+    else
+    {
+        throw std::out_of_range("Error enablePhysicById : Entity with the given id " + std::to_string(id) + " not found.");
+    }
+}
+
+void EntityManager::disablePhysicByName(std::string name)
+{
+    for (auto const& entity : entityNames) {
+        if (entity.second == name) {
+            return disablePhysicById(entity.first);
+        }
+    }
+    throw std::out_of_range("Error disablePhysicByName : Entity with the given name " + name + " not found.");
+}
+
+void EntityManager::disablePhysicById(int id)
+{
+    if (physicsComponents.find(id) != physicsComponents.end()) {
+        physicsComponents[id].rigidBody->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, true);
+    }
+    else
+    {
+        throw std::out_of_range("Error disablePhysicById : Entity with the given id " + std::to_string(id) + " not found.");
+    }
+}

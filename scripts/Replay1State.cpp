@@ -2,7 +2,9 @@
 
 void Replay1State::onLoad()
 {
-
+	setPositionByName("Ball1", ball_position_before_replay);
+	setLinearVelocityByName("Ball1", ball_linear_velocity_before_replay);
+	setAngularVelocityByName("Ball1", ball_angular_velocity_before_replay);
 }
 
 void Replay1State::running()

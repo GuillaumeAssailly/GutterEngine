@@ -2,12 +2,35 @@
 
 #include "InitTurnState.h"
 #include "PreparationState.h"
+#include "RollingState.h"
+#include "CalculateScoreState.h"
 #include "Replay1State.h"
+
 
 #include "GAME_MASK.h"
 
 
-int GlobalVar;
+glm::vec3 ball_position_before_replay;
+physx::PxVec3 ball_linear_velocity_before_replay;
+physx::PxVec3 ball_angular_velocity_before_replay;
+
+int current_turn = 0;
+int current_throw = 0;
+std::vector<int> non_modified_pin = {};
+std::vector<std::array<std::array<int, 3>, 10>> score_tab = {
+    std::array<std::array<int, 3>, 10>{
+        std::array<int, 3>{-1, -1, -1},
+        std::array<int, 3>{-1, -1, -1},
+        std::array<int, 3>{-1, -1, -1},
+        std::array<int, 3>{-1, -1, -1},
+        std::array<int, 3>{-1, -1, -1},
+        std::array<int, 3>{-1, -1, -1},
+        std::array<int, 3>{-1, -1, -1},
+        std::array<int, 3>{-1, -1, -1},
+        std::array<int, 3>{-1, -1, -1},
+        std::array<int, 3>{-1, -1, -1}
+    }
+};
 
 void update_preparation_position_ball(ScriptManager* scriptManager) {
 	glm::vec3 look = getForwardMainCamera();
@@ -29,5 +52,7 @@ void saveMasks(ScriptManager* scriptManager) {
 void registerAllStates(ScriptManager* scriptManager) {
     registerStateFactory<InitTurnState>(AllStates::INIT_TURN, AllMasks::NONE , scriptManager);
     registerStateFactory<PreparationState>(AllStates::PREPARATION, AllMasks::GAME_MASK ,scriptManager);
+	registerStateFactory<RollingState>(AllStates::ROLLING, AllMasks::GAME_MASK, scriptManager);
+	registerStateFactory<CalculateScoreState>(AllStates::CALCULATE_SCORE, AllMasks::NONE, scriptManager);
     registerStateFactory<Replay1State>(AllStates::REPLAY_1, AllMasks::GAME_MASK , scriptManager);
 }

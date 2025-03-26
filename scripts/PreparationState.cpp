@@ -3,13 +3,17 @@
 
 void PreparationState::onLoad()
 {
-
+	init = true;
+	isPress = false;
+	forceX = -4.0f;
 }
 
 void PreparationState::running() {
+	if(init && wait("init", 0.001)) {
+		update_preparation_position_ball(scriptManager);
+		init = false;
+	}
 
-	physx::PxVec3 force = {0.0f, 5.0f, 0.0f};
-	//setForceByName("Ball1", force);
 
 	if (getAction("go_right") || getActionOnController("go_right", GLFW_JOYSTICK_1)) {
 		vec3 position = getPositionByName("Camera");
@@ -47,9 +51,21 @@ void PreparationState::running() {
 		}
 	}
 
-	if (getAction("launch") || getActionOnController("launch", GLFW_JOYSTICK_1)) {
-		changeState(AllStates::REPLAY_1);
-		setMainCameraByName("Camera2");
+	if (getAction("launch_press") || getActionOnController("launch", GLFW_JOYSTICK_1)) {
+		isPress = true;
+		if (wait("launch", 0.5)) {
+			forceX -= 1.0f;
+		}
+	}
+
+	if (forceX <= -7.0f || (isPress && getAction("launch_release")) || (isPress && getActionOnController("launch_release", GLFW_JOYSTICK_1)) ) {
+		releaseTimer("launch");
+		changeState(AllStates::ROLLING);
+
+		enablePhysicByName("Ball1");
+		glm::vec3 look = getForwardMainCamera();
+		physx::PxVec3 force = { forceX, 0.4f, 0.0f + ((look.z < 0) ? look.z + 0.02f : look.z) * 3.0f * (-forceX / 4) };
+		setForceByName("Ball1", force);
 	}
 }
 

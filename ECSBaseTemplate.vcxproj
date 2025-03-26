@@ -135,10 +135,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="scripts\CalculateScoreState.cpp" />
     <ClCompile Include="scripts\EnvironmentSetup.cpp" />
     <ClCompile Include="scripts\InitTurnState.cpp" />
     <ClCompile Include="scripts\PreparationState.cpp" />
     <ClCompile Include="scripts\Replay1State.cpp" />
+    <ClCompile Include="scripts\RollingState.cpp" />
     <ClCompile Include="src\config.cpp" />
     <ClCompile Include="src\controllers\app.cpp" />
     <ClCompile Include="src\controllers\entity_manager.cpp" />
@@ -171,11 +173,13 @@
     <ClCompile Include="src\view\shader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="scripts\CalculateScoreState.h" />
     <ClInclude Include="scripts\EnvironmentSetup.h" />
     <ClInclude Include="scripts\GAME_MASK.h" />
     <ClInclude Include="scripts\InitTurnState.h" />
     <ClInclude Include="scripts\PreparationState.h" />
     <ClInclude Include="scripts\Replay1State.h" />
+    <ClInclude Include="scripts\RollingState.h" />
     <ClInclude Include="src\components\camera_component.h" />
     <ClInclude Include="src\components\light_component.h">
       <DeploymentContent>false</DeploymentContent>

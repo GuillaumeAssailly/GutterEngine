@@ -102,7 +102,6 @@ bool InputManager::getInput_PressOneTime_For_Controller(int input, int controlle
     {
         if (input_controller_not_release_yet.find(controller) != input_controller_not_release_yet.end())
             delete(&(input_controller_not_release_yet[controller]));
-
         return false;
     }
 

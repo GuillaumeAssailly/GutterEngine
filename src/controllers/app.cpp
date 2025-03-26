@@ -131,14 +131,14 @@ static int geometry = 0;
 static physx::PxVec3 boxSize = { 0, 0, 0 };
 static float sphereRadius = 0.0f;
 static std::string selectedModelName = "";
-static float newEntityStaticFriction = 0.5f;
-static float newEntityDynamicFriction = 0.5f;
-static float newEntityRestitution = 0.5f;
-static float newEntityMass = 1.f;
+static float newEntityStaticFriction = 0.1f;
+static float newEntityDynamicFriction = 0.1f;
+static float newEntityRestitution = 0.4f;
+static float newEntityMass = 0.5f;
 static int newEntitySolverPosition = 4;
 static int newEntitySolverVelocity = 4;
-static float newEntityLinearDamping = 0.5f;
-static float newEntityAngularDamping = 0.5f;
+static float newEntityLinearDamping = 0.1f;
+static float newEntityAngularDamping = 0.1f;
 static float newEntitySleepT = 0.1f;
 
 static std::string selectedRModelName = "";
@@ -200,15 +200,6 @@ void App::run() {
             fpsTimeCounter = 0.0f;
         }
 
-        GLFWgamepadstate state;
-        if (glfwGetGamepadState(GLFW_JOYSTICK_1, &state)) {
-            if (state.buttons[GLFW_GAMEPAD_BUTTON_A] == GLFW_PRESS) {
-                std::cout << "Le bouton 'A' a ete presse !" << std::endl;
-            }
-        }
-        else {
-            std::cout << "Manette non compatible ou non connectee !" << std::endl;
-        }
 
         // ScriptManager and extern gameplay
         if (!game_paused) {
@@ -796,8 +787,6 @@ void App::loadModelsAndTextures()
     transform_lane.size = { 1.0f, 0.168f, 18.0f };
     entityManager->transformComponents[lane] = transform_lane;
     glm::vec3 material = { newEntityStaticFriction, newEntityDynamicFriction, newEntityRestitution };
-    
-    
 
     // Lane 2
 	const int lane2 = entityManager->make_entity("Lane2");
@@ -852,7 +841,7 @@ void App::loadModelsAndTextures()
     transform_Ball.size = { 1.0f, 0.168f, 18.0f };
     entityManager->transformComponents[Ball1] = transform_Ball;
     PhysicsComponent physics;
-    const physx::PxSphereGeometry sphereGeometry(0.105f);
+    const physx::PxSphereGeometry sphereGeometry(0.109f);
     physics.rigidBody = systemManager->motionSystem->createDynamic(sphereGeometry, material, transform_Ball.position, newEntityMass, newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping);
     physics.rigidBody->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, true);
     entityManager->physicsComponents[Ball1] = physics;
@@ -865,11 +854,6 @@ void App::loadModelsAndTextures()
     transform_Ball2.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
     transform_Ball2.size = { 1.0f, 0.168f, 18.0f };
     entityManager->transformComponents[Ball2] = transform_Ball2;
-    PhysicsComponent physics2;
-    const physx::PxSphereGeometry sphereGeometry2(0.105f);
-    physics2.rigidBody = systemManager->motionSystem->createDynamic(sphereGeometry2, material, transform_Ball.position, newEntityMass, newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping);
-    physics2.rigidBody->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, true);
-    entityManager->physicsComponents[Ball2] = physics2;
 
 	//Ball3
 	const int Ball3 = entityManager->make_entity("Ball3");
@@ -881,16 +865,50 @@ void App::loadModelsAndTextures()
     entityManager->transformComponents[Ball3] = transform_Ball3;
 
 
+    glm::vec3 first_pin = { -22.0f, 0.01f, 6.0f };
+    
+    glm::vec3 offsets[10] = {
+        { -0.0f, 0.0f, 0.0f },
+        { -0.2635f, 0.0f, 0.1419f },
+        { -0.2635f, 0.0f, -0.1419f },
+        { -0.527f, 0.0f, -0.2838f },
+        { -0.527f, 0.0f, 0.0f },
+        { -0.527f, 0.0f, 0.2838f },
+        { -0.7905f, 0.0f, 0.1419f },
+        { -0.7905f, 0.0f, -0.1419f },
+        { -0.7905f, 0.0f, 0.4257f },
+        { -0.7905f, 0.0f, -0.4257f }
+    };
+
+    //systemManager->motionSystem->concaveToConvex("obj/nashville/Pin.gltf", "obj/nashville/convexMesh/", "pin");
+    std::vector<physx::PxConvexMesh*> convexMeshes;
+    systemManager->motionSystem->loadObjToPhysX("obj/nashville/convexMesh/pin.obj", convexMeshes);
+    for (int i = 0; i < 10; i++) {
+        
+        const int pinEntity = entityManager->make_entity("Pin" + std::to_string(i + 1));
+        meshManager->loadGLTF("obj/nashville/Pin.gltf", "obj/nashville/", pinEntity);
+
+        
+        TransformComponent transformPin;
+        transformPin.position = first_pin + offsets[i];
+        transformPin.eulers = { 1.0f, 0.0f, 0.0f, 0.f };
+        transformPin.size = { 1.0f, 0.168f, 18.0f };
+        entityManager->transformComponents[pinEntity] = transformPin;
+
+        PhysicsComponent physicsPin;
+        physicsPin.rigidBody = systemManager->motionSystem->createDynamic(
+            convexMeshes, material, transformPin.position, newEntityMass,
+            newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping,
+            4, 4, transformPin.eulers
+        );
+        entityManager->physicsComponents[pinEntity] = physicsPin;
+    }
+
     // Ball
     std::pair<unsigned int, unsigned int> ballModel = meshManager->make_model("obj/servoskull/boule.obj");
     renderModels["Ball"] = ballModel;
     texturesList["Ball"] = meshManager->make_texture("obj/bowling/textures/Bowling_Pack_Diffuse.png", false);
     normalMapsList["Ball"] = meshManager->make_texture("obj/bowling/textures/Bowling_Pack_Normal.png", false);
-
-    // Pin
-    //motionSystem->concaveToConvex("obj/servoskull/quille.obj", "obj/convexMesh/", "quille");
-    std::vector<physx::PxConvexMesh*> convexMeshes;
-    systemManager->motionSystem->loadObjToPhysX("obj/convexMesh/quille.obj", convexMeshes);
 
     std::pair<unsigned int, unsigned int> pinModel = meshManager->make_model("obj/servoskull/quille.obj");
     physicsModels["Pin"] = convexMeshes;
@@ -1059,6 +1077,22 @@ void App::loadEntities()
     render.material = texturesList["Light"];
     entityManager->renderComponents[lightEntity2].push_back(render);
 
+    //Third light: 
+    unsigned int lightEntity3 = entityManager->make_entity("Third Light");
+    transform.position = { -22.25f, 1.5f, 6.0f };
+    transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
+    entityManager->transformComponents[lightEntity3] = transform;
+
+    light.color = { 1.0f, 1.0f, 1.0f };
+    light.intensity = 1.0f;
+    light.isDirectional = false;
+    light.direction = { 0.0f, -1.0f, 0.0f };
+    entityManager->lightComponents[lightEntity3] = light;
+
+    render.mesh = renderModels["Light"].first;
+    render.indexCount = renderModels["Light"].second;
+    render.material = texturesList["Light"];
+    entityManager->renderComponents[lightEntity3].push_back(render);
 }
 
 MotionSystem* App::getMotionSystem()
