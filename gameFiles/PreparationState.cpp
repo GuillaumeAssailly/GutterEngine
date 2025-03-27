@@ -51,7 +51,7 @@ void PreparationState::running() {
 		}
 	}
 
-	if (getAction("launch_press") || getActionOnController("launch", GLFW_JOYSTICK_1)) {
+	if (getAction("launch_press") || getActionOnController("launch_press", GLFW_JOYSTICK_1)) {
 		isPress = true;
 		if (wait("launch", 0.5)) {
 			forceX -= 1.0f;
