@@ -236,143 +236,191 @@ void App::run() {
         systemManager->lightSystem->update(entityManager->lightComponents, entityManager->transformComponents, entityManager->cameraID);
         systemManager->reflectionSystem->RenderReflection(entityManager->transformComponents, entityManager->renderComponents, systemManager->cameraSystem->GetViewMatrix(), systemManager->cameraSystem->GetProjectionMatrix(), screenWidth, screenHeight, entityManager->cameraID);
         systemManager->renderSystem->update(entityManager->transformComponents, entityManager->renderComponents, entityManager->lightComponents);
-        systemManager->shadowSystem->GenerateShadowMap(entityManager->lightComponents, entityManager->transformComponents, entityManager->renderComponents, screenWidth, screenHeight, entityManager->cameraID);
+        systemManager->shadowSystem->GenerateShadowMap(entityManager->lightComponents, entityManager->transformComponents, entityManager->renderComponents, screenWidth, screenHeight, entityManager->cameraID, game_paused);
 
         //Draw Lines
         //Add here more lines to draw...
-        systemManager->lineSystem->render_lines_ref_frame_grid(type_reference_frame, grid_display, entityManager->transformComponents[entityManager->cameraID].position, shader);
-
-
-        // Start //ImGui window for debugging
-        ImGui::Begin("Debug");
-
-        // Display FPS
-        ImGui::Text("FPS: %f", 1.0f / deltaTime);
-
-        ImGui::End();
-
-        // --- Entity Tree Window ---
-        ImGui::Begin("Entity Tree");
-
-        // Loop through all entities to create a tree view
-        for (int entityID = 0; entityID < entityManager->entity_count; entityID++) {
-            std::string entityLabel = entityManager->entityNames.at(entityID);
-
-            // Display each entity as selectable
-            if (ImGui::Selectable(entityLabel.c_str(), selectedEntityID == entityID)) {
-                selectedEntityID = entityID; // Set the selected entity when clicked
-
-            }
+        if (game_paused) {
+            systemManager->lineSystem->render_lines_ref_frame_grid(type_reference_frame, grid_display, entityManager->transformComponents[entityManager->cameraID].position, shader);
         }
 
-        ImGui::End(); // End of Entity Tree window
+		if (inputManager->getInput_PressOneTime(GLFW_KEY_F1))
+			game_paused = !game_paused;
 
-        // If an entity is selected, show its components
-        if (selectedEntityID < entityManager->entity_count && selectedEntityID != -1) {
-            // --- Inspector Window ---
-            ImGui::Begin("Inspector");
+    
 
 
-            // Display TransformComponent if present
-            if (entityManager->transformComponents.find(selectedEntityID) != entityManager->transformComponents.end()) {
-                ImGui::Text("Transform Component");
-                TransformComponent& transform = entityManager->transformComponents[selectedEntityID];
-                ImGui::DragFloat3("Position", &transform.position[0]);
-                ImGui::DragFloat3("Rotation", &transform.eulers[0]);
+        if (game_paused) {
+            // Start //ImGui window for debugging
+            ImGui::Begin("Debug");
+
+            // Display FPS
+            ImGui::Text("FPS: %f", 1.0f / deltaTime);
+
+            ImGui::End();
+
+            // --- Entity Tree Window ---
+            ImGui::Begin("Entity Tree");
+
+            // Loop through all entities to create a tree view
+            for (int entityID = 0; entityID < entityManager->entity_count; entityID++) {
+                std::string entityLabel = entityManager->entityNames.at(entityID);
+
+                // Display each entity as selectable
+                if (ImGui::Selectable(entityLabel.c_str(), selectedEntityID == entityID)) {
+                    selectedEntityID = entityID; // Set the selected entity when clicked
+
+                }
             }
 
-            // Display PhysicsComponent if present
-            if (entityManager->physicsComponents.find(selectedEntityID) != entityManager->physicsComponents.end()) {
-                ImGui::Text("Physics Component");
-                PhysicsComponent& physics = entityManager->physicsComponents[selectedEntityID];
-                targetMass = physics.rigidBody->getMass();
-                physx::PxU32 minPositionIters, minVelocityIters;
-                physics.rigidBody->getSolverIterationCounts(minPositionIters, minVelocityIters);
-                targetSolverIteration = { minPositionIters, minVelocityIters };
-                targetDamping = { physics.rigidBody->getLinearDamping(), physics.rigidBody->getAngularDamping() };
-                targetSleepT = physics.rigidBody->getSleepThreshold();
-                targetCMass = physics.rigidBody->getCMassLocalPose().p;
+            ImGui::End(); // End of Entity Tree window
 
-                if (ImGui::DragFloat("Mass", &targetMass))
-                    physx::PxRigidBodyExt::setMassAndUpdateInertia(*physics.rigidBody, targetMass);
-                if (ImGui::DragFloat3("CMass", &targetCMass.x))
-                    physics.rigidBody->setCMassLocalPose(physx::PxTransform(targetCMass));
-                if (ImGui::DragFloat2("Damping", &targetDamping.x)) {
-                    physics.rigidBody->setLinearDamping(targetDamping.x);
-                    physics.rigidBody->setAngularDamping(targetDamping.y);
-                }
-                if (ImGui::DragFloat("Sleep Threshold", &targetSleepT))
-                    physics.rigidBody->setSleepThreshold(targetSleepT);
-                if (ImGui::DragFloat2("Solver Iters", &targetSolverIteration.x)) {
-                    physics.rigidBody->setSolverIterationCounts(targetSolverIteration.x, targetSolverIteration.x);
+
+            // If an entity is selected, show its components
+            if (selectedEntityID < entityManager->entity_count && selectedEntityID != -1) {
+                // --- Inspector Window ---
+                ImGui::Begin("Inspector");
+
+
+                // Display TransformComponent if present
+                if (entityManager->transformComponents.find(selectedEntityID) != entityManager->transformComponents.end()) {
+                    ImGui::Text("Transform Component");
+                    TransformComponent& transform = entityManager->transformComponents[selectedEntityID];
+                    ImGui::DragFloat3("Position", &transform.position[0]);
+                    ImGui::DragFloat3("Rotation", &transform.eulers[0]);
                 }
 
-                ImGui::DragFloat3("Force", &force.x);
-                if (hasPhysics && ImGui::Button("Apply Force")) {
-                    auto it = entityManager->physicsComponents.find(selectedEntityID);
-                    if (it != entityManager->physicsComponents.end()) {
-                        PhysicsComponent& physicsComponent = it->second;
-                        physicsComponent.rigidBody->addForce(force, physx::PxForceMode::eIMPULSE);
+                // Display PhysicsComponent if present
+                if (entityManager->physicsComponents.find(selectedEntityID) != entityManager->physicsComponents.end()) {
+                    ImGui::Text("Physics Component");
+                    PhysicsComponent& physics = entityManager->physicsComponents[selectedEntityID];
+                    targetMass = physics.rigidBody->getMass();
+                    physx::PxU32 minPositionIters, minVelocityIters;
+                    physics.rigidBody->getSolverIterationCounts(minPositionIters, minVelocityIters);
+                    targetSolverIteration = { minPositionIters, minVelocityIters };
+                    targetDamping = { physics.rigidBody->getLinearDamping(), physics.rigidBody->getAngularDamping() };
+                    targetSleepT = physics.rigidBody->getSleepThreshold();
+                    targetCMass = physics.rigidBody->getCMassLocalPose().p;
+
+                    if (ImGui::DragFloat("Mass", &targetMass))
+                        physx::PxRigidBodyExt::setMassAndUpdateInertia(*physics.rigidBody, targetMass);
+                    if (ImGui::DragFloat3("CMass", &targetCMass.x))
+                        physics.rigidBody->setCMassLocalPose(physx::PxTransform(targetCMass));
+                    if (ImGui::DragFloat2("Damping", &targetDamping.x)) {
+                        physics.rigidBody->setLinearDamping(targetDamping.x);
+                        physics.rigidBody->setAngularDamping(targetDamping.y);
+                    }
+                    if (ImGui::DragFloat("Sleep Threshold", &targetSleepT))
+                        physics.rigidBody->setSleepThreshold(targetSleepT);
+                    if (ImGui::DragFloat2("Solver Iters", &targetSolverIteration.x)) {
+                        physics.rigidBody->setSolverIterationCounts(targetSolverIteration.x, targetSolverIteration.x);
+                    }
+
+                    ImGui::DragFloat3("Force", &force.x);
+                    if (hasPhysics && ImGui::Button("Apply Force")) {
+                        auto it = entityManager->physicsComponents.find(selectedEntityID);
+                        if (it != entityManager->physicsComponents.end()) {
+                            PhysicsComponent& physicsComponent = it->second;
+                            physicsComponent.rigidBody->addForce(force, physx::PxForceMode::eIMPULSE);
+                        }
                     }
                 }
-            }
 
-            // Display LightComponent if present
-            if (entityManager->lightComponents.find(selectedEntityID) != entityManager->lightComponents.end()) {
-                ImGui::Text("Light Component");
-                LightComponent& light = entityManager->lightComponents[selectedEntityID];
-                ImGui::ColorEdit3("Light Color", &light.color[0]);
-                ImGui::SliderFloat("Intensity", &light.intensity, 0.0f, 10.0f);
-                const char* lightTypeNames[] = { "Point", "Directional", "Spot" };
-				ImGui::Combo("Light Type", (int*)&light.type, lightTypeNames, IM_ARRAYSIZE(lightTypeNames));
-                if (light.type == DIRECTIONAL || light.type == SPOT) {
-                    ImGui::DragFloat3("Light Direction", &light.direction[0], 0.1);
+                // Display LightComponent if present
+                if (entityManager->lightComponents.find(selectedEntityID) != entityManager->lightComponents.end()) {
+                    ImGui::Text("Light Component");
+                    LightComponent& light = entityManager->lightComponents[selectedEntityID];
+                    ImGui::ColorEdit3("Light Color", &light.color[0]);
+                    ImGui::SliderFloat("Intensity", &light.intensity, 0.0f, 10.0f);
+                    const char* lightTypeNames[] = { "Point", "Directional", "Spot" };
+                    ImGui::Combo("Light Type", (int*)&light.type, lightTypeNames, IM_ARRAYSIZE(lightTypeNames));
+                    if (light.type == DIRECTIONAL || light.type == SPOT) {
+                        ImGui::DragFloat3("Light Direction", &light.direction[0], 0.1);
+                    }
+
                 }
 
+                // Display RenderComponent if present
+                if (entityManager->renderComponents.find(selectedEntityID) != entityManager->renderComponents.end()) {
+                    ImGui::Text("Render Component");
+                    //RenderComponent& render = renderComponents[selectedEntityID];
+                   // ImGui::InputInt("Mesh ID", (int*)&render.mesh);
+                }
+                if (ImGui::Button("Close")) {
+                    selectedEntityID = -1;
+                }
+                ImGui::End();    // End of Inspector window
             }
 
-            // Display RenderComponent if present
-            if (entityManager->renderComponents.find(selectedEntityID) != entityManager->renderComponents.end()) {
-                ImGui::Text("Render Component");
-                //RenderComponent& render = renderComponents[selectedEntityID];
-               // ImGui::InputInt("Mesh ID", (int*)&render.mesh);
+            ImGui::Begin("Object Creator");
+
+            ImGui::InputText("Object Name", newEntityName, IM_ARRAYSIZE(newEntityName));
+
+            ImGui::Text("Transform Component");
+            ImGui::DragFloat3("Position", &newPosition.x);
+            ImGui::DragFloat4("Rotation", &newEulers.x);
+            ImGui::Checkbox("Physics Component", &addPhysics);
+            if (addPhysics) {
+                ImGui::Text("Select a physics mode");
+                ImGui::RadioButton("Static", &isStatic, 1);
+                ImGui::SameLine();
+                ImGui::RadioButton("Dynamic", &isStatic, 0);
+
+                ImGui::Text("Select a geometry");
+                ImGui::RadioButton("Custom", &geometry, 0);
+                ImGui::SameLine();
+                ImGui::RadioButton("Box", &geometry, 1);
+                ImGui::SameLine();
+                ImGui::RadioButton("Sphere", &geometry, 2);
+
+                switch (geometry) {
+                case 0:
+                    if (ImGui::BeginCombo("Select Physical Mesh", selectedModelName.c_str())) {
+                        for (const auto& pair : physicsModels) {
+                            const std::string& modelName = pair.first;
+                            const auto& meshes = pair.second;
+                            bool isSelected = (modelName == selectedModelName);
+                            if (ImGui::Selectable(modelName.c_str(), isSelected)) {
+                                selectedModelName = modelName;
+                            }
+
+                            if (isSelected)
+                                ImGui::SetItemDefaultFocus();
+                        }
+                        ImGui::EndCombo();
+                    }
+                    break;
+                case 1:
+                    ImGui::DragFloat3("Size", &boxSize.x);
+                    break;
+                case 2:
+                    ImGui::DragFloat("Radius", &sphereRadius);
+                }
+
+                ImGui::Text("Settings");
+                ImGui::DragFloat("Static Friction", &newEntityStaticFriction);
+                ImGui::DragFloat("Dynamic Friction", &newEntityDynamicFriction);
+                ImGui::DragFloat("Restitution", &newEntityRestitution);
+
+                ImGui::DragFloat("Mass", &newEntityMass);
+                ImGui::DragFloat("Sleep Threshold", &newEntitySleepT);
+
+                ImGui::DragFloat("Linear Damping", &newEntityLinearDamping);
+                ImGui::DragFloat("Angular Damping", &newEntityAngularDamping);
+
+                ImGui::DragInt("Position Solver", &newEntitySolverPosition);
+                ImGui::DragInt("Velocity Solver", &newEntitySolverVelocity);
             }
-            if (ImGui::Button("Close")) {
-                selectedEntityID = -1;
-            }
-            ImGui::End();    // End of Inspector window
-        }
 
-        ImGui::Begin("Object Creator");
-
-        ImGui::InputText("Object Name", newEntityName, IM_ARRAYSIZE(newEntityName));
-
-        ImGui::Text("Transform Component");
-        ImGui::DragFloat3("Position", &newPosition.x);
-        ImGui::DragFloat4("Rotation", &newEulers.x);
-        ImGui::Checkbox("Physics Component", &addPhysics);
-        if (addPhysics) {
-            ImGui::Text("Select a physics mode");
-            ImGui::RadioButton("Static", &isStatic, 1);
-            ImGui::SameLine();
-            ImGui::RadioButton("Dynamic", &isStatic, 0);
-
-            ImGui::Text("Select a geometry");
-            ImGui::RadioButton("Custom", &geometry, 0);
-            ImGui::SameLine();
-            ImGui::RadioButton("Box", &geometry, 1);
-            ImGui::SameLine();
-            ImGui::RadioButton("Sphere", &geometry, 2);
-
-            switch (geometry) {
-            case 0:
-                if (ImGui::BeginCombo("Select Physical Mesh", selectedModelName.c_str())) {
-                    for (const auto& pair : physicsModels) {
+            ImGui::Checkbox("Render Component", &addRender);
+            if (addRender) {
+                if (ImGui::BeginCombo("Select Rendering Mesh", selectedRModelName.c_str())) {
+                    for (const auto& pair : renderModels) {
                         const std::string& modelName = pair.first;
                         const auto& meshes = pair.second;
-                        bool isSelected = (modelName == selectedModelName);
+                        bool isSelected = (modelName == selectedRModelName);
                         if (ImGui::Selectable(modelName.c_str(), isSelected)) {
-                            selectedModelName = modelName;
+                            selectedRModelName = modelName;
                         }
 
                         if (isSelected)
@@ -380,300 +428,273 @@ void App::run() {
                     }
                     ImGui::EndCombo();
                 }
-                break;
-            case 1:
-                ImGui::DragFloat3("Size", &boxSize.x);
-                break;
-            case 2:
-                ImGui::DragFloat("Radius", &sphereRadius);
+                if (ImGui::BeginCombo("Select Texture", selectedTexturesName.c_str())) {
+                    for (const auto& pair : texturesList) {
+                        const std::string& modelName = pair.first;
+                        const auto& meshes = pair.second;
+                        bool isSelected = (modelName == selectedTexturesName);
+                        if (ImGui::Selectable(modelName.c_str(), isSelected)) {
+                            selectedTexturesName = modelName;
+                        }
+
+                        if (isSelected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                }
+            }
+            ImGui::Checkbox("Light Component", &addLight);
+            if (addLight) {
+                ImGui::ColorEdit3("Light Color", &newEntityColor.x);
+                ImGui::SliderFloat("Intensity", &newEntityIntensity, 0.0f, 10.0f);
             }
 
-            ImGui::Text("Settings");
-            ImGui::DragFloat("Static Friction", &newEntityStaticFriction);
-            ImGui::DragFloat("Dynamic Friction", &newEntityDynamicFriction);
-            ImGui::DragFloat("Restitution", &newEntityRestitution);
+            if (ImGui::Button("Create Object")) {
+                if (!((selectedModelName == "" && addPhysics && geometry == 0) || ((selectedRModelName == "" || selectedTexturesName == "") && addRender))) {
+                    unsigned int id = entityManager->make_entity(newEntityName);
+                    TransformComponent transform;
+                    transform.position = newPosition;
+                    transform.eulers = newEulers;
+                    entityManager->transformComponents[id] = transform;
 
-            ImGui::DragFloat("Mass", &newEntityMass);
-            ImGui::DragFloat("Sleep Threshold", &newEntitySleepT);
+                    if (addPhysics) {
+                        PhysicsComponent physics;
+                        glm::vec3 material = { newEntityStaticFriction, newEntityDynamicFriction, newEntityRestitution };
+                        const physx::PxBoxGeometry boxGeometry(physx::PxVec3(boxSize.x / 2.f, boxSize.y / 2.f, boxSize.z / 2.f));
+                        const physx::PxSphereGeometry sphereGeometry(sphereRadius);
 
-            ImGui::DragFloat("Linear Damping", &newEntityLinearDamping);
-            ImGui::DragFloat("Angular Damping", &newEntityAngularDamping);
 
-            ImGui::DragInt("Position Solver", &newEntitySolverPosition);
-            ImGui::DragInt("Velocity Solver", &newEntitySolverVelocity);
-        }
-
-        ImGui::Checkbox("Render Component", &addRender);
-        if (addRender) {
-            if (ImGui::BeginCombo("Select Rendering Mesh", selectedRModelName.c_str())) {
-                for (const auto& pair : renderModels) {
-                    const std::string& modelName = pair.first;
-                    const auto& meshes = pair.second;
-                    bool isSelected = (modelName == selectedRModelName);
-                    if (ImGui::Selectable(modelName.c_str(), isSelected)) {
-                        selectedRModelName = modelName;
+                        switch (geometry) {
+                        case 0:
+                            if (!isStatic)
+                                physics.rigidBody = systemManager->motionSystem->createDynamic(physicsModels[selectedModelName], material, newPosition, newEntityMass, newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping);
+                            else
+                                //systemManager->motionSystem->createStatic(physicsModels[selectedModelName], material, newPosition);
+                                break;
+                        case 1:
+                            if (!isStatic)
+                                physics.rigidBody = systemManager->motionSystem->createDynamic(boxGeometry, material, newPosition, newEntityMass, newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping);
+                            else
+                                systemManager->motionSystem->createStatic(boxGeometry, material, newPosition);
+                            break;
+                        case 2:
+                            if (!isStatic)
+                                physics.rigidBody = systemManager->motionSystem->createDynamic(sphereGeometry, material, newPosition, newEntityMass, newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping);
+                            else
+                                systemManager->motionSystem->createStatic(sphereGeometry, material, newPosition);
+                            break;
+                        }
+                        if (!isStatic)
+                            entityManager->physicsComponents[id] = physics;
                     }
-
-                    if (isSelected)
-                        ImGui::SetItemDefaultFocus();
+                    if (addRender) {
+                        RenderComponent render;
+                        render.mesh = renderModels[selectedRModelName].first;
+                        render.indexCount = renderModels[selectedRModelName].second;
+                        render.material = texturesList[selectedTexturesName];
+                        //renderComponents[id] = render;
+                    }
+                    if (addLight) {
+                        LightComponent light;
+                        light.color = newEntityColor;
+                        light.intensity = newEntityIntensity;
+                        entityManager->lightComponents[id] = light;
+                    }
+                    error_msg = "";
                 }
-                ImGui::EndCombo();
+                else {
+                    error_msg = "Please fill all the fields";
+                }
+
+
+
+                /*strcpy_s(newEntityName, sizeof(newEntityName), "NewObject");
+                addTransform = false;
+                addPhysics = false;
+                addRender = false;
+                addLight = false;
+
+                // Transform
+                glm::vec3 newPosition = { 0,0,0 };
+                glm::quat newEulers = { 0,0,0,0 };
+
+                // Physics
+                isStatic = 1;
+                geometry = 0;
+                boxSize = { 0, 0, 0 };
+                sphereRadius = 0.0f;
+                selectedModelIndex = 0;
+                newEntityStaticFriction = 0.5f;
+                newEntityDynamicFriction = 0.5f;
+                newEntityRestitution = 0.5f;
+                newEntityMass = 1.f;
+                newEntitySolverPosition = 4;
+                newEntitySolverVelocity = 4;
+                newEntityLinearDamping = 0.5f;
+                newEntityAngularDamping = 0.5f;
+                newEntitySleepT = 0.1f;
+
+                selectedRModelIndex = 0;
+                selectedTexturesIndex = 0;
+
+                // Light
+                newEntityColor = { 0,0,0 };
+                newEntityIntensity = 0.f;
+
+                // Réinitialiser les champs
+                addTransform = false;
+                addPhysics = false;
+                addRender = false;*/
+
+
+
             }
-            if (ImGui::BeginCombo("Select Texture", selectedTexturesName.c_str())) {
-                for (const auto& pair : texturesList) {
-                    const std::string& modelName = pair.first;
-                    const auto& meshes = pair.second;
-                    bool isSelected = (modelName == selectedTexturesName);
-                    if (ImGui::Selectable(modelName.c_str(), isSelected)) {
-                        selectedTexturesName = modelName;
-                    }
+            ImGui::Text(error_msg.c_str());
 
-                    if (isSelected)
-                        ImGui::SetItemDefaultFocus();
-                }
-                ImGui::EndCombo();
-            }
-        }
-        ImGui::Checkbox("Light Component", &addLight);
-        if (addLight) {
-            ImGui::ColorEdit3("Light Color", &newEntityColor.x);
-            ImGui::SliderFloat("Intensity", &newEntityIntensity, 0.0f, 10.0f);
-        }
-
-        if (ImGui::Button("Create Object")) {
-            if (!((selectedModelName == "" && addPhysics && geometry == 0) || ((selectedRModelName == "" || selectedTexturesName == "") && addRender))) {
-                unsigned int id = entityManager->make_entity(newEntityName);
-                TransformComponent transform;
-                transform.position = newPosition;
-                transform.eulers = newEulers;
-                entityManager->transformComponents[id] = transform;
-
-                if (addPhysics) {
-                    PhysicsComponent physics;
-                    glm::vec3 material = { newEntityStaticFriction, newEntityDynamicFriction, newEntityRestitution };
-                    const physx::PxBoxGeometry boxGeometry(physx::PxVec3(boxSize.x / 2.f, boxSize.y / 2.f, boxSize.z / 2.f));
-                    const physx::PxSphereGeometry sphereGeometry(sphereRadius);
+            ImGui::End();
 
 
-                    switch (geometry) {
-                    case 0:
-                        if (!isStatic)
-                            physics.rigidBody = systemManager->motionSystem->createDynamic(physicsModels[selectedModelName], material, newPosition, newEntityMass, newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping);
-                        else
-                            //systemManager->motionSystem->createStatic(physicsModels[selectedModelName], material, newPosition);
-                        break;
-                    case 1:
-                        if (!isStatic)
-                            physics.rigidBody = systemManager->motionSystem->createDynamic(boxGeometry, material, newPosition, newEntityMass, newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping);
-                        else
-                            systemManager->motionSystem->createStatic(boxGeometry, material, newPosition);
-                        break;
-                    case 2:
-                        if (!isStatic)
-                            physics.rigidBody = systemManager->motionSystem->createDynamic(sphereGeometry, material, newPosition, newEntityMass, newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping);
-                        else
-                            systemManager->motionSystem->createStatic(sphereGeometry, material, newPosition);
-                        break;
-                    }
-                    if (!isStatic)
-                        entityManager->physicsComponents[id] = physics;
-                }
-                if (addRender) {
-                    RenderComponent render;
-                    render.mesh = renderModels[selectedRModelName].first;
-                    render.indexCount = renderModels[selectedRModelName].second;
-                    render.material = texturesList[selectedTexturesName];
-                    //renderComponents[id] = render;
-                }
-                if (addLight) {
-                    LightComponent light;
-                    light.color = newEntityColor;
-                    light.intensity = newEntityIntensity;
-                    entityManager->lightComponents[id] = light;
-                }
-                error_msg = "";
+            // --- Physics Window
+            ImGui::Begin("Physics Window");
+
+            if (hasPhysics) {
+                ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.43f, 0.7f, 0.75f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.43f, 0.9f, 0.9f));
+                if (ImGui::Button(" Physics Activated ", ImVec2(-1.0f, 0.0f)))
+                    hasPhysics = false;
+                ImGui::PopStyleColor(2);
             }
             else {
-                error_msg = "Please fill all the fields";
+                ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.0f, 0.7f, 0.75f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.0f, 0.9f, 0.9f));
+                if (ImGui::Button(" Physics Desactivated ", ImVec2(-1.0f, 0.0f)))
+                    hasPhysics = true;
+                ImGui::PopStyleColor(2);
             }
 
+            ImGui::End(); // End of Physics window
 
 
-            /*strcpy_s(newEntityName, sizeof(newEntityName), "NewObject");
-            addTransform = false;
-            addPhysics = false;
-            addRender = false;
-            addLight = false;
+            // --- Camera Window
+            ImGui::Begin("Current Camera");
 
-            // Transform
-            glm::vec3 newPosition = { 0,0,0 };
-            glm::quat newEulers = { 0,0,0,0 };
-
-            // Physics
-            isStatic = 1;
-            geometry = 0;
-            boxSize = { 0, 0, 0 };
-            sphereRadius = 0.0f;
-            selectedModelIndex = 0;
-            newEntityStaticFriction = 0.5f;
-            newEntityDynamicFriction = 0.5f;
-            newEntityRestitution = 0.5f;
-            newEntityMass = 1.f;
-            newEntitySolverPosition = 4;
-            newEntitySolverVelocity = 4;
-            newEntityLinearDamping = 0.5f;
-            newEntityAngularDamping = 0.5f;
-            newEntitySleepT = 0.1f;
-
-            selectedRModelIndex = 0;
-            selectedTexturesIndex = 0;
-
-            // Light
-            newEntityColor = { 0,0,0 };
-            newEntityIntensity = 0.f;
-
-            // Réinitialiser les champs
-            addTransform = false;
-            addPhysics = false;
-            addRender = false;*/
-
-
-
-        }
-        ImGui::Text(error_msg.c_str());
-
-        ImGui::End();
-
-        // --- Physics Window
-        ImGui::Begin("Physics Window");
-
-        if (hasPhysics) {
-            ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.43f, 0.7f, 0.75f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.43f, 0.9f, 0.9f));
-            if (ImGui::Button(" Physics Activated ", ImVec2(-1.0f, 0.0f)))
-                hasPhysics = false;
-            ImGui::PopStyleColor(2);
-        }
-        else {
-            ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.0f, 0.7f, 0.75f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.0f, 0.9f, 0.9f));
-            if (ImGui::Button(" Physics Desactivated ", ImVec2(-1.0f, 0.0f)))
-                hasPhysics = true;
-            ImGui::PopStyleColor(2);
-        }
-
-        ImGui::End(); // End of Physics window
-
-
-        // --- Camera Window
-        ImGui::Begin("Current Camera");
-
-        for (auto const& camera : entityManager->cameraComponents) {
-            std::string entityLabel = entityManager->entityNames.at(camera.first);
-            if (ImGui::Selectable(entityLabel.c_str(), entityManager->cameraID == camera.first)) {
-                entityManager->cameraID = camera.first;
+            for (auto const& camera : entityManager->cameraComponents) {
+                std::string entityLabel = entityManager->entityNames.at(camera.first);
+                if (ImGui::Selectable(entityLabel.c_str(), entityManager->cameraID == camera.first)) {
+                    entityManager->cameraID = camera.first;
+                }
             }
-        }
 
-        ImGui::End(); // End of Camera window
+            ImGui::End(); // End of Camera window
 
 
-        // --- Settings Window ---
-        ImGui::Begin("Settings");
-        ImGui::Text("Reference Frame");
-        switch (type_reference_frame) {
-        case 2:
-            ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.43f, 0.7f, 0.75f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.43f, 0.9f, 0.9f));
-            if (ImGui::Button(" Full Reference Frame ", ImVec2(-1.0f, 0.0f)))
-                type_reference_frame = 0;
-            ImGui::PopStyleColor(2);
-            break;
-        case 1:
-            ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.43f, 0.5f, 0.55f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.43f, 0.7f, 0.7f));
-            if (ImGui::Button(" Partial Reference Frame ", ImVec2(-1.0f, 0.0f)))
-            {
-                type_reference_frame = 2;
-                systemManager->lineSystem->reset_reference_frame();
-            }
-            ImGui::PopStyleColor(2);
-            break;
-        default:
-            if (ImGui::Button(" Hidden Reference Frame ", ImVec2(-1.0f, 0.0f)))
-                type_reference_frame = (grid_display) ? 1 : 2;
-            break;
-        }
 
-        ImGui::Text("Grid");
-        if (grid_display)
-        {
-            ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.43f, 0.7f, 0.75f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.43f, 1.0f, 1.0f));
-            if (ImGui::Button(" Displayed Grid ", ImVec2(-1.0f, 0.0f)))
-            {
-                grid_display = false;
-                if (type_reference_frame == 1)
+            // --- Settings Window ---
+            ImGui::Begin("Settings");
+            ImGui::Text("Reference Frame");
+            switch (type_reference_frame) {
+            case 2:
+                ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.43f, 0.7f, 0.75f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.43f, 0.9f, 0.9f));
+                if (ImGui::Button(" Full Reference Frame ", ImVec2(-1.0f, 0.0f)))
+                    type_reference_frame = 0;
+                ImGui::PopStyleColor(2);
+                break;
+            case 1:
+                ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.43f, 0.5f, 0.55f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.43f, 0.7f, 0.7f));
+                if (ImGui::Button(" Partial Reference Frame ", ImVec2(-1.0f, 0.0f)))
                 {
                     type_reference_frame = 2;
                     systemManager->lineSystem->reset_reference_frame();
                 }
+                ImGui::PopStyleColor(2);
+                break;
+            default:
+                if (ImGui::Button(" Hidden Reference Frame ", ImVec2(-1.0f, 0.0f)))
+                    type_reference_frame = (grid_display) ? 1 : 2;
+                break;
             }
-            ImGui::PopStyleColor(2);
+
+            ImGui::Text("Grid");
+            if (grid_display)
+            {
+                ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.43f, 0.7f, 0.75f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.43f, 1.0f, 1.0f));
+                if (ImGui::Button(" Displayed Grid ", ImVec2(-1.0f, 0.0f)))
+                {
+                    grid_display = false;
+                    if (type_reference_frame == 1)
+                    {
+                        type_reference_frame = 2;
+                        systemManager->lineSystem->reset_reference_frame();
+                    }
+                }
+                ImGui::PopStyleColor(2);
+            }
+            else
+            {
+                if (ImGui::Button(" Hidden Grid ", ImVec2(-1.0f, 0.0f)))
+                    grid_display = true;
+            }
+
+
+            ImGui::Text("Game Engine");
+            if (!game_paused)
+            {
+                ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.43f, 0.7f, 0.75f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.43f, 1.0f, 1.0f));
+                if (ImGui::Button(" Game Running... ", ImVec2(-1.0f, 0.0f)))
+                {
+                    game_paused = true;
+                }
+                ImGui::PopStyleColor(2);
+            }
+            else
+            {
+                if (ImGui::Button(" Relauch Game ", ImVec2(-1.0f, 0.0f)))
+                    game_paused = false;
+            }
+
+
+
+            // TODO: Make scale work
+            ImGui::Text("Gizmo Settings");
+            switch (gizmo_type) {
+            case ImGuizmo::OPERATION::SCALE:
+                if (ImGui::Button(" Scaling #LOCK ", ImVec2(-1.0f, 0.0f)))
+                    gizmo_type = -1;
+                break;
+            case ImGuizmo::OPERATION::ROTATE:
+                if (ImGui::Button(" Rotation ", ImVec2(-1.0f, 0.0f)))
+                    gizmo_type = ImGuizmo::OPERATION::SCALE;
+                break;
+            case ImGuizmo::OPERATION::TRANSLATE:
+                if (ImGui::Button(" Translation ", ImVec2(-1.0f, 0.0f)))
+                {
+                    gizmo_type = ImGuizmo::OPERATION::ROTATE;
+                }
+                break;
+            default:
+                if (ImGui::Button(" None ", ImVec2(-1.0f, 0.0f)))
+                    gizmo_type = ImGuizmo::OPERATION::TRANSLATE;
+                break;
+            }
+
+            if (ImGui::Button((gizmo_world) ? " Gizmo World " : " Gizmo Local ", ImVec2(-1.0f, 0.0f)))
+                gizmo_world = !gizmo_world;
+
+            ImGui::End(); // End of Settings window
         }
-        else
-        {
-            if (ImGui::Button(" Hidden Grid ", ImVec2(-1.0f, 0.0f)))
-                grid_display = true;
-        }
+       
 
         
-        ImGui::Text("Game Engine");
-        if (!game_paused)
-        {
-            ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.43f, 0.7f, 0.75f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.43f, 1.0f, 1.0f));
-            if (ImGui::Button(" Game Running... ", ImVec2(-1.0f, 0.0f)))
-            {
-                game_paused = true;
-            }
-            ImGui::PopStyleColor(2);
-        }
-        else
-        {
-            if (ImGui::Button(" Relauch Game ", ImVec2(-1.0f, 0.0f)))
-                game_paused = false;
-        }
+
+
         
 
 
-        // TODO: Make scale work
-        ImGui::Text("Gizmo Settings");
-        switch (gizmo_type) {
-        case ImGuizmo::OPERATION::SCALE:
-            if (ImGui::Button(" Scaling #LOCK ", ImVec2(-1.0f, 0.0f)))
-                gizmo_type = -1;
-            break;
-        case ImGuizmo::OPERATION::ROTATE:
-            if (ImGui::Button(" Rotation ", ImVec2(-1.0f, 0.0f)))
-                gizmo_type = ImGuizmo::OPERATION::SCALE;
-            break;
-        case ImGuizmo::OPERATION::TRANSLATE:
-            if (ImGui::Button(" Translation ", ImVec2(-1.0f, 0.0f)))
-            {
-                gizmo_type = ImGuizmo::OPERATION::ROTATE;
-            }
-            break;
-        default:
-            if (ImGui::Button(" None ", ImVec2(-1.0f, 0.0f)))
-                gizmo_type = ImGuizmo::OPERATION::TRANSLATE;
-            break;
-        }
 
-        if (ImGui::Button((gizmo_world) ? " Gizmo World " : " Gizmo Local ", ImVec2(-1.0f, 0.0f)))
-            gizmo_world = !gizmo_world;
-
-        ImGui::End(); // End of Settings window
 
 
         // ImGuizmo
@@ -1251,7 +1272,7 @@ void App::loadEntities()
 	light3.type = POINT;
     entityManager->lightComponents[lightEntity3] = light3;
 
-
+    
    
 
 }

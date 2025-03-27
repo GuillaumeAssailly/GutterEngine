@@ -126,7 +126,7 @@ void ShadowSystem::RenderDepthMap(unsigned int depthMapArray, int screenWidth, i
 void ShadowSystem::GenerateShadowMap(std::unordered_map<unsigned int, LightComponent>& lightComponents,
     std::unordered_map<unsigned int, TransformComponent>& transformComponents,
     std::unordered_map<unsigned int, std::list<RenderComponent>>& renderComponents, int screenWidth, int screenHeight,
-   int cameraID
+   int cameraID, bool game_paused
 )
 {
     glUseProgram(shadowShader);
@@ -187,7 +187,7 @@ void ShadowSystem::GenerateShadowMap(std::unordered_map<unsigned int, LightCompo
         glUniformMatrix4fv(glGetUniformLocation(shadowShader, "lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));
 
 
-
+       
         //Render each object to the shadow map : 
         for (auto& renderEntity : renderComponents) {
             unsigned int renderEntityID = renderEntity.first;
@@ -223,7 +223,9 @@ void ShadowSystem::GenerateShadowMap(std::unordered_map<unsigned int, LightCompo
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // Render the depth map to the screen
-    RenderDepthMap(shadowMapArray, screenWidth, screenHeight);
+    if (game_paused) {
+        RenderDepthMap(shadowMapArray, screenWidth, screenHeight);
+    }
 
     glViewport(0, 0, screenWidth, screenHeight);
     //Give back control to the main shader :
