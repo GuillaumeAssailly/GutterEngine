@@ -33,6 +33,7 @@ public:
     std::unordered_map<std::string, std::vector<physx::PxConvexMesh*>> getPhysicsModels() const;
     int getEntityByName(std::string name) const;
 
+
 private:
     void set_up_glfw();
     EntityManager* entityManager;

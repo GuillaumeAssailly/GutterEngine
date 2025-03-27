@@ -282,6 +282,19 @@ void MeshManager::loadGLTF(const char* filePath, const char* texDir, const int E
     }
 }
 
+void MeshManager::dupplicateRenderModel(int entityOld, int newentityID)
+{
+	for (auto& render : entityManager->renderComponents[entityOld])
+	{
+		RenderComponent newRender = render;
+		entityManager->renderComponents[newentityID].push_back(newRender);
+	}
+
+    
+
+
+}
+
 MeshManager::MeshManager(EntityManager* em) : entityManager(em)
 {
 }

@@ -30,4 +30,6 @@ public:
     std::pair<unsigned int, unsigned int>  make_model(const char*);
     unsigned int make_texture(const char* filename, const bool);
     void loadGLTF(const char* filePath, const char* texDir, const int);
+
+    void dupplicateRenderModel(int entityOld, int newentityID);
 };

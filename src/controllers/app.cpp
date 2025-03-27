@@ -798,6 +798,9 @@ void App::loadModelsAndTextures()
     it->isPlanarReflectable = true;
     std::advance(it, 1);
     it->isPlanarReflectable = true;
+	std::advance(it, 1);
+	it->isPlanarReflectable = true;
+    
 
     // Lane 2
 	const int lane2 = entityManager->make_entity("Lane2");
@@ -810,6 +813,10 @@ void App::loadModelsAndTextures()
     std::advance(it2, 1);
     it2->isPlanarReflectable = true;
     std::advance(it2, 1);
+	it2->isPlanarReflectable = true;
+	std::advance(it2, 1);
+	it2->isPlanarReflectable = true;
+
 
     // Lane 3
     const int lane3 = entityManager->make_entity("Lane3");
@@ -823,6 +830,30 @@ void App::loadModelsAndTextures()
     std::advance(it3, 1);
     it3->isPlanarReflectable = true;
     std::advance(it3, 1);
+	it3->isPlanarReflectable = true;
+	std::advance(it3, 1);
+	it3->isPlanarReflectable = true;
+
+	const int lane4 = entityManager->make_entity("Lane4"); 
+	meshManager->dupplicateRenderModel(lane, lane4);
+
+	TransformComponent transform_lane4;
+	transform_lane4.position = { 0.f, 0.f, 1.f };
+	transform_lane4.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
+	transform_lane4.size = { 1.0f, 0.168f, 18.0f };
+	entityManager->transformComponents[lane4] = transform_lane4;
+
+	const int lane0 = entityManager->make_entity("Lane0");
+	meshManager->dupplicateRenderModel(lane, lane0);
+	TransformComponent transform_lane0;
+	transform_lane0.position = { 0.f, 0.f, 17.f };
+	transform_lane0.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
+	transform_lane0.size = { 1.0f, 0.168f, 18.0f };
+	entityManager->transformComponents[lane0] = transform_lane0;
+
+
+
+
    
     //Ball Return
 	const int ballreturn = entityManager->make_entity("BallReturn");
@@ -833,14 +864,118 @@ void App::loadModelsAndTextures()
     transform_ballreturn.size = { 1.0f, 0.168f, 18.0f };
     entityManager->transformComponents[ballreturn] = transform_ballreturn;
 
+	const int ballreturn2 = entityManager->make_entity("BallReturn2");
+	meshManager->dupplicateRenderModel(ballreturn, ballreturn2);
+    TransformComponent transform_ballreturn2;
+    transform_ballreturn2.position = { -4.f, 0.f, 11.f };
+    transform_ballreturn2.eulers = { 0.0f, 0.0f, -1.0f, 0.f };
+    transform_ballreturn2.size = { 1.0f, 0.168f, 18.0f };
+    entityManager->transformComponents[ballreturn2] = transform_ballreturn2;
+
+    const int ballreturn3 = entityManager->make_entity("BallReturn3");
+    meshManager->dupplicateRenderModel(ballreturn, ballreturn3);
+    TransformComponent transform_ballreturn3;
+    transform_ballreturn3.position = { -4.f, 0.f, 3 };
+    transform_ballreturn3.eulers = { 0.0f, 0.0f, -1.0f, 0.f };
+    transform_ballreturn3.size = { 1.0f, 0.168f, 18.0f };
+    entityManager->transformComponents[ballreturn3] = transform_ballreturn3;
+
     //TV
     const int TV = entityManager->make_entity("TV");
     meshManager->loadGLTF("obj/nashville/TV.gltf", "obj/nashville/", TV);
     TransformComponent transform_TV;
-    transform_TV.position = { -7.f, 4.f, 7.f };
+    transform_TV.position = { -5.f, 4.f, 7.f };
     transform_TV.eulers = { 0.7f, 0.f, 0.7f, 0.f };
     transform_TV.size = { 1.0f, 0.168f, 18.0f };
     entityManager->transformComponents[TV] = transform_TV;
+
+	const int TV2 = entityManager->make_entity("TV2");
+	meshManager->dupplicateRenderModel(TV, TV2);
+    TransformComponent transform_TV2;
+    transform_TV2.position = { -5.f, 4.f, 11.f };
+    transform_TV2.eulers = { 0.7f, 0.f, 0.7f, 0.f };
+    transform_TV2.size = { 1.0f, 0.168f, 18.0f };
+    entityManager->transformComponents[TV2] = transform_TV2;
+
+    const int TV3 = entityManager->make_entity("TV3");
+    meshManager->dupplicateRenderModel(TV, TV3);
+    TransformComponent transform_TV3;
+    transform_TV3.position = { -5.f, 4.f, 3.f };
+    transform_TV3.eulers = { 0.7f, 0.f, 0.7f, 0.f };
+    transform_TV3.size = { 1.0f, 0.168f, 18.0f };
+    entityManager->transformComponents[TV3] = transform_TV3;
+
+    //Neon 
+
+	const int Neon = entityManager->make_entity("Neon");
+	meshManager->loadGLTF("obj/nashville/Neon1.gltf", "obj/nashville/", Neon);
+	TransformComponent transform_Neon;
+	transform_Neon.position = { -23.898, 3.354f, 12.f };
+	transform_Neon.eulers = { 0.0f, 0.f, 0.0f, 0.f };
+	transform_Neon.size = { 1.0f, 0.168f, 18.0f };
+	entityManager->transformComponents[Neon] = transform_Neon;
+
+	LightComponent neonLight;
+	neonLight.color = { 0.79f, 0.0f, 1.0f };
+	neonLight.intensity = 1.0f;
+	neonLight.type = POINT;
+	entityManager->lightComponents[Neon] = neonLight;
+
+	const int Neon2 = entityManager->make_entity("Neon2");
+	meshManager->dupplicateRenderModel(Neon, Neon2);
+
+	TransformComponent transform_Neon2;
+	transform_Neon2.position = { -23.898, 3.354f, 2.f };
+    transform_Neon2.eulers = { 0.0f, 0.f, 0.0f, 0.f };
+    transform_Neon2.size = { 1.0f, 0.168f, 18.0f };
+    entityManager->transformComponents[Neon2] = transform_Neon2;
+    entityManager->lightComponents[Neon2] = neonLight;
+
+
+    //RainbowWall
+	const int RainbowWall = entityManager->make_entity("RainbowWall");
+	meshManager->loadGLTF("obj/nashville/RainbowWall.gltf", "obj/nashville/", RainbowWall);
+	TransformComponent transform_RainbowWall;
+	transform_RainbowWall.position = { -23.898, 1.663f, 5.f };
+	transform_RainbowWall.eulers = { 0.0f, 0.f, 0.0f, 0.f };
+	transform_RainbowWall.size = { 1.0f, 0.168f, 18.0f };
+	entityManager->transformComponents[RainbowWall] = transform_RainbowWall;
+
+	const int RainbowWall2 = entityManager->make_entity("RainbowWall2");
+	meshManager->dupplicateRenderModel(RainbowWall, RainbowWall2);
+    TransformComponent transform_RainbowWall2;
+    transform_RainbowWall2.position = { -23.898, 1.663f, 9.f };
+    transform_RainbowWall2.eulers = { 0.0f, 0.f, 0.0f, 0.f };
+    transform_RainbowWall2.size = { 1.0f, 0.168f, 18.0f };
+    entityManager->transformComponents[RainbowWall2] = transform_RainbowWall2;
+
+	const int RainbowWall3 = entityManager->make_entity("RainbowWall3");
+	meshManager->dupplicateRenderModel(RainbowWall, RainbowWall3);
+	TransformComponent transform_RainbowWall3;
+	transform_RainbowWall3.position = { -23.898, 1.663f, 13.f };
+	transform_RainbowWall3.eulers = { 0.0f, 0.f, 0.0f, 0.f };
+	transform_RainbowWall3.size = { 1.0f, 0.168f, 18.0f };
+	entityManager->transformComponents[RainbowWall3] = transform_RainbowWall3;
+
+	const int RainbowWall4 = entityManager->make_entity("RainbowWall4");
+	meshManager->dupplicateRenderModel(RainbowWall, RainbowWall4);
+	TransformComponent transform_RainbowWall4;
+	transform_RainbowWall4.position = { -23.898, 1.663f, 1.f };
+	transform_RainbowWall4.eulers = { 0.0f, 0.f, 0.0f, 0.f };
+	transform_RainbowWall4.size = { 1.0f, 0.168f, 18.0f };
+
+	entityManager->transformComponents[RainbowWall4] = transform_RainbowWall4;
+
+	const int RainbowWall0 = entityManager->make_entity("RainbowWall0");
+	meshManager->dupplicateRenderModel(RainbowWall, RainbowWall0);
+	TransformComponent transform_RainbowWall0;
+	transform_RainbowWall0.position = { -23.898, 1.663f, 17.f };
+    transform_RainbowWall0.eulers = { 0.0f, 0.f, 0.0f, 0.f };
+    transform_RainbowWall0.size = { 1.0f, 0.168f, 18.0f };
+
+	entityManager->transformComponents[RainbowWall0] = transform_RainbowWall0;
+
+
 
     //Pin Statue
     const int PinStatue = entityManager->make_entity("PinStatue");
@@ -1066,12 +1201,12 @@ void App::loadEntities()
 
     //First light
     unsigned int lightEntity1 = entityManager->make_entity("First Light");
-    transform.position = { -1.964f, 4.687f, 8.845f };
+    transform.position = { -3.967f, 9.301f, 6.0f };
     transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
     entityManager->transformComponents[lightEntity1] = transform;
 
-    light.color = { 0.0f, 1.0f, 1.0f };
-    light.intensity = 2.0f;
+    light.color = { 1.0f, 1.0f, 1.0f };
+    light.intensity = 3.0f;
     light.type = SPOT;
     light.direction = glm::normalize(glm::vec3(0.0f, -1.0f, 0.0f));
     light.cutoff = glm::cos(glm::radians(15.0f));
@@ -1086,13 +1221,13 @@ void App::loadEntities()
     LightComponent light2;
     //Second light: 
     unsigned int lightEntity2 = entityManager->make_entity("Second Light");
-    transform.position = { -2.396, 0.762, 9.091};
+    transform.position = { -22.368, 1.718f, 6.0f};
     transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
     entityManager->transformComponents[lightEntity2] = transform;
 
     light2.color = { 1.0f, 1.0f, 1.0f };
-    light2.intensity = 1.0f;
-    light2.type = POINT;
+    light2.intensity = 2.8f;
+    light2.type = SPOT;
     //light2.direction = { 1.0f, -6.0f, 4.0f };
     light2.direction = glm::normalize(glm::vec3(0.0f, -1.0f, 0.0f));
 	light2.cutoff = glm::cos(glm::radians(15.0f));
@@ -1103,6 +1238,19 @@ void App::loadEntities()
     render.indexCount = renderModels["Light"].second;
     render.material = texturesList["Light"];
     entityManager->renderComponents[lightEntity2].push_back(render);
+
+	//Third light:
+	LightComponent light3;
+	unsigned int lightEntity3 = entityManager->make_entity("Light3");
+	transform.position = { -21.356, 1.719f, 7.0f };
+	transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
+	entityManager->transformComponents[lightEntity3] = transform;
+
+	light3.color = { 0.07f, 0.62f, 0.81f };
+	light3.intensity = 0.714f;
+	light3.type = POINT;
+    entityManager->lightComponents[lightEntity3] = light3;
+
 
    
 
