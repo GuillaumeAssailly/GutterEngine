@@ -168,8 +168,8 @@ void LoaderJSON::loadLights(App* app, CameraComponent* camera) const
             lightData["color"]["b"].get<float>()
         );
         light.intensity = lightData["intensity"].get<float>();
-        light.isDirectional = lightData["isDirectional"];
-        if (light.isDirectional) {
+        light.type = lightData["isDirectional"];
+        if (light.type == DIRECTIONAL) {
             light.direction = {
                 lightData["direction"]["x"].get<float>(),
                 lightData["direction"]["y"].get<float>(),

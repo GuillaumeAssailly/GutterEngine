@@ -183,6 +183,8 @@ void MeshManager::loadGLTF(const char* filePath, const char* texDir, const int E
         std::string diffuseTexturePath = "default_diffuse.jpg";
         std::string normalTexturePath = "default_normal.jpg";
         std::string emissiveTexturePath = "default_emissive.jpg";
+        std::string aoTexturePath = "default_emissive.jpg";
+        std::string metalnessRoughness = "default_emissive.jpg";
 
         aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
@@ -197,6 +199,25 @@ void MeshManager::loadGLTF(const char* filePath, const char* texDir, const int E
             normalTexturePath = std::string(texDir) + path.C_Str();
             std::cout << "Normal texture: " << std::string(texDir) + path.C_Str() << std::endl;
             normalMapsList[mesh->mName.C_Str()] = make_texture(normalTexturePath.c_str(), false);
+        }
+
+        if (material->GetTexture(aiTextureType_EMISSIVE, 0, &path) == AI_SUCCESS) {
+            emissiveTexturePath = std::string(texDir) + path.C_Str();
+            std::cout << "Emissive texture: " << path.C_Str() << std::endl;
+            emissiveList[mesh->mName.C_Str()] = make_texture(emissiveTexturePath.c_str(), false);
+
+        }
+
+        if (material->GetTexture(aiTextureType_LIGHTMAP, 0, &path) == AI_SUCCESS) {
+            aoTexturePath = std::string(texDir) + path.C_Str();
+            std::cout << "AO texture: " << path.C_Str() << std::endl;
+            aoList[mesh->mName.C_Str()] = make_texture(aoTexturePath.c_str(), false);
+        }
+
+        if (material->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &path) == AI_SUCCESS) {
+            metalnessRoughness = std::string(texDir) + path.C_Str();
+            std::cout << "Roughness texture: " << path.C_Str() << std::endl;
+            metalnessRoughnessList[mesh->mName.C_Str()] = make_texture(metalnessRoughness.c_str(), false);
         }
 
 
@@ -254,6 +275,9 @@ void MeshManager::loadGLTF(const char* filePath, const char* texDir, const int E
         render.indexCount = renderModels[mesh->mName.C_Str()].second;
         render.material = texturesList[mesh->mName.C_Str()];
         render.normalMap = normalMapsList[mesh->mName.C_Str()];
+        render.emissiveMap = emissiveList[mesh->mName.C_Str()];
+        render.aoMap = aoList[mesh->mName.C_Str()];
+        render.metalnessRoughnessMap = metalnessRoughnessList[mesh->mName.C_Str()];
         entityManager->renderComponents[obj].push_back(render);
     }
 }

@@ -7,6 +7,7 @@
 #include "../systems/line_system.h"
 #include "../systems/light_system.h"
 #include "../systems/shadow_system.h"
+#include "../systems/reflection_system.h"
 
 class App;
 class InputManager;
@@ -21,9 +22,10 @@ private:
     LightSystem* lightSystem;
     LineSystem* lineSystem;
     ShadowSystem* shadowSystem;
+    ReflectionSystem* reflectionSystem;
 
 public:
-    SystemManager(GLFWwindow* window, unsigned int shader, unsigned int shadowShader, unsigned int depthMapDebugShader);
+    SystemManager(GLFWwindow* window, unsigned int shader, unsigned int shadowShader, unsigned int depthMapDebugShader, unsigned int reflectionShader);
     ~SystemManager();
 
     friend class App;

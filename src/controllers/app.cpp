@@ -8,7 +8,7 @@ App::App() {
     set_up_glfw();
     set_up_opengl();
     entityManager = new EntityManager();
-    systemManager = new SystemManager(window, shader, shadowShader, depthMapDebugShader);
+    systemManager = new SystemManager(window, shader, shadowShader, depthMapDebugShader, reflectionShader);
     meshManager = new MeshManager(entityManager);
     inputManager = new InputManager(systemManager, entityManager);
     gameManager = new GameManager(inputManager);
@@ -19,6 +19,9 @@ App::~App() {
     glDeleteVertexArrays(VAOs.size(), VAOs.data());
     glDeleteTextures(textures.size(), textures.data());
     glDeleteProgram(shader);
+    glDeleteProgram(shadowShader);
+	glDeleteProgram(depthMapDebugShader);
+	glDeleteProgram(reflectionShader);
 
     delete systemManager;
     delete entityManager;
@@ -167,6 +170,9 @@ void App::run() {
 
     //while loop iterating on the renderer pipeline : 
     systemManager->shadowSystem->Initialize(entityManager->lightComponents);
+    systemManager->reflectionSystem->Initialize(entityManager->renderComponents,1024,1024);
+    //We will initialize after every other system : 
+    systemManager->renderSystem->Initialize(systemManager->shadowSystem->getShadowMapArray());
 
     gameManager->initializeManager();
 
@@ -216,18 +222,19 @@ void App::run() {
         }
         
 
-        bool should_close = false; //inputManager->getInput(window, hasPhysics);
-        if (should_close) {
-            break;
-        }
-
         // Update systems
         if (accumulatedTime >= 0.00833) {
             systemManager->motionSystem->update(entityManager->transformComponents, entityManager->physicsComponents, accumulatedTime);
             accumulatedTime = 0.;
         }
+
         systemManager->cameraSystem->update(entityManager->transformComponents, entityManager->cameraComponents, entityManager->cameraID, deltaTime);
+        bool should_close = false;
+        if (should_close) {
+            break;
+        }
         systemManager->lightSystem->update(entityManager->lightComponents, entityManager->transformComponents, entityManager->cameraID);
+        systemManager->reflectionSystem->RenderReflection(entityManager->transformComponents, entityManager->renderComponents, systemManager->cameraSystem->GetViewMatrix(), systemManager->cameraSystem->GetProjectionMatrix(), screenWidth, screenHeight, entityManager->cameraID);
         systemManager->renderSystem->update(entityManager->transformComponents, entityManager->renderComponents, entityManager->lightComponents);
         systemManager->shadowSystem->GenerateShadowMap(entityManager->lightComponents, entityManager->transformComponents, entityManager->renderComponents, screenWidth, screenHeight, entityManager->cameraID);
 
@@ -316,8 +323,9 @@ void App::run() {
                 LightComponent& light = entityManager->lightComponents[selectedEntityID];
                 ImGui::ColorEdit3("Light Color", &light.color[0]);
                 ImGui::SliderFloat("Intensity", &light.intensity, 0.0f, 10.0f);
-                ImGui::Checkbox("Is Directional", &light.isDirectional);
-                if (light.isDirectional == true) {
+                const char* lightTypeNames[] = { "Point", "Directional", "Spot" };
+				ImGui::Combo("Light Type", (int*)&light.type, lightTypeNames, IM_ARRAYSIZE(lightTypeNames));
+                if (light.type == DIRECTIONAL || light.type == SPOT) {
                     ImGui::DragFloat3("Light Direction", &light.direction[0], 0.1);
                 }
 
@@ -738,7 +746,7 @@ void App::run() {
 /// </summary>
 void App::set_up_opengl() {
 
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     //Set the rendering region to the actual screen size
     int w, h;
     glfwGetFramebufferSize(window, &w, &h);
@@ -757,9 +765,6 @@ void App::set_up_opengl() {
     shader = make_shader(
         "shaders/shader.vert",
         "shaders/shader.frag");
-    shader = make_shader(
-        "shaders/shader.vert",
-        "shaders/shader.frag");
 
     shadowShader = make_shader(
         "shaders/shadowShader.vert",
@@ -768,7 +773,9 @@ void App::set_up_opengl() {
 	depthMapDebugShader = make_shader(
 		"shaders/depthMap.vert",
 		"shaders/depthMap.frag");
-
+	reflectionShader = make_shader(
+		"shaders/reflection.vert",
+		"shaders/reflection.frag");
 
 
     glUseProgram(shader);
@@ -787,6 +794,10 @@ void App::loadModelsAndTextures()
     transform_lane.size = { 1.0f, 0.168f, 18.0f };
     entityManager->transformComponents[lane] = transform_lane;
     glm::vec3 material = { newEntityStaticFriction, newEntityDynamicFriction, newEntityRestitution };
+    auto it = entityManager->renderComponents[lane].begin();
+    it->isPlanarReflectable = true;
+    std::advance(it, 1);
+    it->isPlanarReflectable = true;
 
     // Lane 2
 	const int lane2 = entityManager->make_entity("Lane2");
@@ -795,6 +806,10 @@ void App::loadModelsAndTextures()
     std::vector<physx::PxTriangleMesh*> meshes;
     systemManager->motionSystem->loadStaticObjToPhysX("obj/nashville/Piste2.gltf", meshes);
     systemManager->motionSystem->createStatic(meshes, material, position_lane2);
+    auto it2 = entityManager->renderComponents[lane2].begin();
+    std::advance(it2, 1);
+    it2->isPlanarReflectable = true;
+    std::advance(it2, 1);
 
     // Lane 3
     const int lane3 = entityManager->make_entity("Lane3");
@@ -804,6 +819,10 @@ void App::loadModelsAndTextures()
     transform_lane3.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
     transform_lane3.size = { 1.0f, 0.168f, 18.0f };
     entityManager->transformComponents[lane3] = transform_lane3;
+    auto it3 = entityManager->renderComponents[lane3].begin();
+    std::advance(it3, 1);
+    it3->isPlanarReflectable = true;
+    std::advance(it3, 1);
    
     //Ball Return
 	const int ballreturn = entityManager->make_entity("BallReturn");
@@ -1047,12 +1066,16 @@ void App::loadEntities()
 
     //First light
     unsigned int lightEntity1 = entityManager->make_entity("First Light");
-    transform.position = { 0.0f, 0.0f, 0.0f };
+    transform.position = { -1.964f, 4.687f, 8.845f };
     transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
     entityManager->transformComponents[lightEntity1] = transform;
 
     light.color = { 0.0f, 1.0f, 1.0f };
-    light.intensity = 1.0f;
+    light.intensity = 2.0f;
+    light.type = SPOT;
+    light.direction = glm::normalize(glm::vec3(0.0f, -1.0f, 0.0f));
+    light.cutoff = glm::cos(glm::radians(15.0f));
+    light.outerCutoff = glm::cos(glm::radians(25.0f));
     entityManager->lightComponents[lightEntity1] = light;
 
     render.mesh = renderModels["Light"].first;
@@ -1060,39 +1083,29 @@ void App::loadEntities()
     render.material = texturesList["Light"];
     entityManager->renderComponents[lightEntity1].push_back(render);
 
+    LightComponent light2;
     //Second light: 
     unsigned int lightEntity2 = entityManager->make_entity("Second Light");
-    transform.position = { 0.0f, 4.0f, 4.0f };
+    transform.position = { -2.396, 0.762, 9.091};
     transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
     entityManager->transformComponents[lightEntity2] = transform;
 
-    light.color = { 1.0f, 1.0f, 1.0f };
-    light.intensity = 1.0f;
-    light.isDirectional = true;
-    light.direction = { 1.0f, -6.0f, 4.0f };
-    entityManager->lightComponents[lightEntity2] = light;
+    light2.color = { 1.0f, 1.0f, 1.0f };
+    light2.intensity = 1.0f;
+    light2.type = POINT;
+    //light2.direction = { 1.0f, -6.0f, 4.0f };
+    light2.direction = glm::normalize(glm::vec3(0.0f, -1.0f, 0.0f));
+	light2.cutoff = glm::cos(glm::radians(15.0f));
+	light2.outerCutoff = glm::cos(glm::radians(25.0f));
+    entityManager->lightComponents[lightEntity2] = light2;
 
     render.mesh = renderModels["Light"].first;
     render.indexCount = renderModels["Light"].second;
     render.material = texturesList["Light"];
     entityManager->renderComponents[lightEntity2].push_back(render);
 
-    //Third light: 
-    unsigned int lightEntity3 = entityManager->make_entity("Third Light");
-    transform.position = { -22.25f, 1.5f, 6.0f };
-    transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
-    entityManager->transformComponents[lightEntity3] = transform;
+   
 
-    light.color = { 1.0f, 1.0f, 1.0f };
-    light.intensity = 1.0f;
-    light.isDirectional = false;
-    light.direction = { 0.0f, -1.0f, 0.0f };
-    entityManager->lightComponents[lightEntity3] = light;
-
-    render.mesh = renderModels["Light"].first;
-    render.indexCount = renderModels["Light"].second;
-    render.material = texturesList["Light"];
-    entityManager->renderComponents[lightEntity3].push_back(render);
 }
 
 MotionSystem* App::getMotionSystem()

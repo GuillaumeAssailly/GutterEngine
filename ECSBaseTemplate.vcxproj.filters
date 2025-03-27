@@ -85,6 +85,9 @@
     <ClCompile Include="gameFiles\RollingState.cpp">
       <Filter>gameFiles</Filter>
     </ClCompile>
+    <ClCompile Include="src\systems\reflection_system.cpp">
+      <Filter>src\systems</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\config.h">
@@ -189,6 +192,9 @@
     <ClInclude Include="gameFiles\RollingState.h">
       <Filter>gameFiles</Filter>
     </ClInclude>
+    <ClInclude Include="src\systems\reflection_system.h">
+      <Filter>src\systems</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\shader.frag">
@@ -207,6 +213,12 @@
       <Filter>shaders</Filter>
     </None>
     <None Include="shaders\depthMap.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\reflection.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\reflection.frag">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>

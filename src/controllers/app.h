@@ -8,6 +8,10 @@
 #include "game_manager.h"
 
 #include "../view/shader.h"
+#include "../components/light_component.h"
+#include "../systems/light_system.h"
+#include "../systems/shadow_system.h"
+#include "../systems/reflection_system.h"
 
 
 //Callbacks
@@ -46,6 +50,9 @@ private:
     std::unordered_map<std::string, std::pair<unsigned int, unsigned int>> renderModels;
     std::unordered_map<std::string, unsigned int> texturesList;
 	std::unordered_map<std::string, unsigned int> normalMapsList;
+	std::unordered_map<std::string, unsigned int> emissiveList;
+    std::unordered_map<std::string, unsigned int> aoList;
+	std::unordered_map<std::string, unsigned int> metalnessRoughnessList;
 
     std::vector<unsigned int> VAOs;
     std::vector<unsigned int> VBOs;
@@ -54,6 +61,7 @@ private:
     unsigned int shader;
     unsigned int shadowShader;
     unsigned int depthMapDebugShader;
+    unsigned int reflectionShader;
 
 	float deltaTime = 0.0f;
 	float lastFrame = 0.0f;

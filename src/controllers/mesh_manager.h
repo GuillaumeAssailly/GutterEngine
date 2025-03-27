@@ -10,6 +10,9 @@ private:
     std::unordered_map<std::string, std::vector<physx::PxBase*>> physicsModels;
     std::unordered_map<std::string, std::pair<unsigned int, unsigned int>> renderModels;
     std::unordered_map<std::string, unsigned int> texturesList;
+    std::unordered_map<std::string, unsigned int> emissiveList;
+    std::unordered_map<std::string, unsigned int> aoList;
+    std::unordered_map<std::string, unsigned int> metalnessRoughnessList;
     std::unordered_map<std::string, unsigned int> normalMapsList;
 
     std::vector<unsigned int> VAOs;

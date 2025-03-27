@@ -7,8 +7,8 @@
 #include "../components/camera_component.h"
 
 
-#define SHADOW_WIDTH 4096*2
-#define SHADOW_HEIGHT 4096*2
+#define SHADOW_WIDTH 4096
+#define SHADOW_HEIGHT 4096
 
 
 
@@ -29,11 +29,17 @@ public:
 		float& left, float& right, float& bottom, float& top,
 		float& near_plane, float& far_plane);
 
-	void RenderDepthMap(unsigned int depthMap, int, int);
+	void RenderDepthMap(unsigned int depthMapArray, int screenWidth, int screenHeight);
+
+	unsigned int getShadowMapArray() const { return shadowMapArray; }
 private:
 	unsigned int shader;
 	unsigned int shadowShader;
 	unsigned int depthMapShader;
+
+
+	unsigned int shadowMapArray;
+	unsigned int shadowFBO;
 
 	unsigned int quadVAO, quadVBO;
 
