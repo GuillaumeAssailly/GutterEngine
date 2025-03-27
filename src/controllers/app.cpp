@@ -1272,6 +1272,20 @@ void App::loadEntities()
 	light3.type = POINT;
     entityManager->lightComponents[lightEntity3] = light3;
 
+	//Fourth light:
+	LightComponent light4;
+	unsigned int lightEntity4 = entityManager->make_entity("Light4");
+	transform.position = { -14.356, 1.719f, 7.0f };
+	transform.eulers = { 0.0f, 0.0f, 0.0f, 0.f };
+
+	entityManager->transformComponents[lightEntity4] = transform;
+
+	light4.color = { 0.79f, 0.0f, 1.0f };
+	light4.intensity = 0.714f;
+    light4.type = POINT;
+    entityManager->lightComponents[lightEntity4] = light4;
+
+
     
    
 
