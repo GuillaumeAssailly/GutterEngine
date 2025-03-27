@@ -142,7 +142,7 @@ static int newEntitySolverPosition = 4;
 static int newEntitySolverVelocity = 4;
 static float newEntityLinearDamping = 0.1f;
 static float newEntityAngularDamping = 0.1f;
-static float newEntitySleepT = 0.1f;
+static float newEntitySleepT = 0.05f;
 
 static std::string selectedRModelName = "";
 static std::string selectedTexturesName = "";
@@ -1017,7 +1017,7 @@ void App::loadModelsAndTextures()
     entityManager->transformComponents[Ball1] = transform_Ball;
     PhysicsComponent physics;
     const physx::PxSphereGeometry sphereGeometry(0.109f);
-    physics.rigidBody = systemManager->motionSystem->createDynamic(sphereGeometry, material, transform_Ball.position, newEntityMass, newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping);
+    physics.rigidBody = systemManager->motionSystem->createDynamic(sphereGeometry, material, transform_Ball.position, 6.8f, newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping, 10, 10);
     physics.rigidBody->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, true);
     entityManager->physicsComponents[Ball1] = physics;
 
@@ -1072,9 +1072,7 @@ void App::loadModelsAndTextures()
 
         PhysicsComponent physicsPin;
         physicsPin.rigidBody = systemManager->motionSystem->createDynamic(
-            convexMeshes, material, transformPin.position, newEntityMass,
-            newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping,
-            4, 4, transformPin.eulers
+            convexMeshes, material, transformPin.position, 2.5f, 0.001f, 0.2f, 0.3f, 8, 8, transformPin.eulers
         );
         entityManager->physicsComponents[pinEntity] = physicsPin;
     }
