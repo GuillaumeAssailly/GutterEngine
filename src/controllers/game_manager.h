@@ -8,7 +8,7 @@ using namespace glm;
 #define NONE_MASK NONE = 0
 
 
-class ScriptManager
+class GameManager
 {
 	// API
 
@@ -25,10 +25,10 @@ public:
 	public:
 		int id;
 		int mask;
-		ScriptManager* scriptManager;
+		GameManager* gameManager;
 
-		StateOfGame(int id, int id_Mask, ScriptManager* sm)
-			: id(id), mask(id_Mask), scriptManager(sm) { }
+		StateOfGame(int id, int id_Mask, GameManager* sm)
+			: id(id), mask(id_Mask), gameManager(sm) { }
 		virtual void onLoad() = 0;
 		virtual void running() = 0;
 		virtual void onDestruct() = 0;
@@ -56,9 +56,9 @@ public:
 	};
 
 
-	ScriptManager(InputManager* inputManager);
+	GameManager(InputManager* inputManager);
 	void initializeManager();
-	~ScriptManager();
+	~GameManager();
 	void scriptManager_one_frame();
 	void addTime(float time);
 	void addMask(int id, Mask * mask);
@@ -130,16 +130,16 @@ private:
 // // // States \\ \\ \\
 
 // Typedef pour les fonctions d'usine
-using StateFactory = std::function<std::unique_ptr<ScriptManager::StateOfGame>(int)>;
+using StateFactory = std::function<std::unique_ptr<GameManager::StateOfGame>(int)>;
 
 // Map globale pour enregistrer les fonctions d'usine
 extern std::unordered_map<int, StateFactory> stateFactoryMap;
 
 // Fonction pour enregistrer une fonction d'usine
 template<typename T>
-void registerStateFactory(int id, int id_Mask, ScriptManager* scriptManager) {
-	stateFactoryMap[id] = [scriptManager, id_Mask](int id) -> std::unique_ptr<ScriptManager::StateOfGame> {
-		return std::make_unique<T>(id, id_Mask, scriptManager);
+void registerStateFactory(int id, int id_Mask, GameManager* gameManager) {
+	stateFactoryMap[id] = [gameManager, id_Mask](int id) -> std::unique_ptr<GameManager::StateOfGame> {
+		return std::make_unique<T>(id, id_Mask, gameManager);
 		};
 }
 
@@ -152,7 +152,7 @@ enum InputType {
 	PRESS_ONE_TIME = 2
 };
 
-class EMPTY_MASK : public ScriptManager::Mask {
+class EMPTY_MASK : public GameManager::Mask {
 public:
 	EMPTY_MASK() {};
 };
@@ -162,7 +162,7 @@ public:
 // // // API \\ \\ \\
 
 #ifdef API_SCRIPT
-#define GLOBAL_SCRIPT_MANAGER scriptManager
+#define GLOBAL_SCRIPT_MANAGER gameManager
 #define addMask(id, mask) GLOBAL_SCRIPT_MANAGER->addMask(id, mask)
 
 #define wait(key, time) GLOBAL_SCRIPT_MANAGER->wait(key, time)

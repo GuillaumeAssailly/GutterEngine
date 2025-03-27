@@ -1,17 +1,17 @@
-#include "script_manager.h"
-#include "../../scripts/EnvironmentSetup.h"
+#include "game_manager.h"
+#include "../../gameFiles/EnvironmentSetup.h"
 
 
 
 std::unordered_map<int, StateFactory> stateFactoryMap;
 
-ScriptManager::ScriptManager(InputManager* inputManager) : inputManager(inputManager)
+GameManager::GameManager(InputManager* inputManager) : inputManager(inputManager)
 {
     mainTime = static_cast<float>(glfwGetTime());
     CurrentState = 0;
 }
 
-void ScriptManager::initializeManager() {
+void GameManager::initializeManager() {
 
     std::random_device rd;
     generator = std::mt19937(rd());
@@ -25,26 +25,26 @@ void ScriptManager::initializeManager() {
         stateList[CurrentState]->onLoad();
 }
 
-ScriptManager::~ScriptManager(){}
+GameManager::~GameManager(){}
 
-void ScriptManager::initializeStates() {
+void GameManager::initializeStates() {
     for (const auto& factory : stateFactoryMap) {
         stateList.insert(std::make_pair(factory.first, factory.second(factory.first)));
     }
 }
 
 
-void ScriptManager::scriptManager_one_frame()
+void GameManager::scriptManager_one_frame()
 {
     stateList[CurrentState]->running();
 }
 
-void ScriptManager::addTime(float time)
+void GameManager::addTime(float time)
 {
 	mainTime += time;
 }
 
-void ScriptManager::addMask(int id, Mask* mask)
+void GameManager::addMask(int id, Mask* mask)
 {
     if (maskList.find(id) == maskList.end())
         maskList[id] = mask;
@@ -52,7 +52,7 @@ void ScriptManager::addMask(int id, Mask* mask)
         throw std::out_of_range("Error addMask : Mask with the given id " + std::to_string(id) + " already exist in maskList.");
 }
 
-void ScriptManager::changeState(int newState)
+void GameManager::changeState(int newState)
 {
     if (stateList.find(newState) != stateList.end()) {
         stateList[CurrentState]->onDestruct();
@@ -65,7 +65,7 @@ void ScriptManager::changeState(int newState)
     
 }
 
-bool ScriptManager::wait(std::string key, float time)
+bool GameManager::wait(std::string key, float time)
 {
     auto it = mapTimers.find(key);
 
@@ -86,60 +86,60 @@ bool ScriptManager::wait(std::string key, float time)
     }
 }
 
-void ScriptManager::releaseTimer(std::string key) {
+void GameManager::releaseTimer(std::string key) {
     auto it = mapTimers.find(key);
     if (it != mapTimers.end()) mapTimers.erase(it);
 }
 
 // Position
 
-glm::vec3 ScriptManager::getPositionByName(std::string name) {
+glm::vec3 GameManager::getPositionByName(std::string name) {
     return inputManager->entityManager->getPositionByName(name);
 }
 
-glm::vec3 ScriptManager::getPositionByID(int id) {
+glm::vec3 GameManager::getPositionByID(int id) {
     return inputManager->entityManager->getPositionByID(id);
 }
 
-void ScriptManager::setPositionByName(std::string name, glm::vec3 position) {
+void GameManager::setPositionByName(std::string name, glm::vec3 position) {
     inputManager->entityManager->setPositionByName(name, position);
 }
 
-void ScriptManager::setPositionByID(int id, glm::vec3 position) {
+void GameManager::setPositionByID(int id, glm::vec3 position) {
     inputManager->entityManager->setPositionByID(id, position);
 }
 
 // Rotation
 
-glm::quat ScriptManager::getRotationQuaternionByName(std::string name) {
+glm::quat GameManager::getRotationQuaternionByName(std::string name) {
     return inputManager->entityManager->getRotationQuaternionByName(name);
 }
 
-glm::quat ScriptManager::getRotationQuaternionByID(int id) {
+glm::quat GameManager::getRotationQuaternionByID(int id) {
     return inputManager->entityManager->getRotationQuaternionByID(id);
 }
 
-void ScriptManager::setRotationQuaternionByName(std::string name, glm::quat rotation) {
+void GameManager::setRotationQuaternionByName(std::string name, glm::quat rotation) {
     inputManager->entityManager->setRotationQuaternionByName(name, rotation);
 }
 
-void ScriptManager::setRotationQuaternionByID(int id, glm::quat rotation) {
+void GameManager::setRotationQuaternionByID(int id, glm::quat rotation) {
     inputManager->entityManager->setRotationQuaternionByID(id, rotation);
 }
 
-glm::vec3 ScriptManager::getRotationEulerByName(std::string name) {
+glm::vec3 GameManager::getRotationEulerByName(std::string name) {
     return inputManager->entityManager->getRotationEulerByName(name);
 }
 
-glm::vec3 ScriptManager::getRotationEulerByID(int id) {
+glm::vec3 GameManager::getRotationEulerByID(int id) {
     return inputManager->entityManager->getRotationEulerByID(id);
 }
 
-void ScriptManager::setRotationEulerByName(std::string name, glm::vec3 eulers) {
+void GameManager::setRotationEulerByName(std::string name, glm::vec3 eulers) {
     inputManager->entityManager->setRotationEulerByName(name, eulers);
 }
 
-void ScriptManager::setRotationEulerByID(int id, glm::vec3 eulers) {
+void GameManager::setRotationEulerByID(int id, glm::vec3 eulers) {
     inputManager->entityManager->setRotationEulerByID(id, eulers);
 }
 
@@ -147,73 +147,73 @@ void ScriptManager::setRotationEulerByID(int id, glm::vec3 eulers) {
 
 // Physic
 
-void ScriptManager::setForceByName(std::string name, physx::PxVec3 force)
+void GameManager::setForceByName(std::string name, physx::PxVec3 force)
 {
     inputManager->entityManager->setForceByName(name, force);
 }
 
-void ScriptManager::setForceById(int id, physx::PxVec3 force)
+void GameManager::setForceById(int id, physx::PxVec3 force)
 {
     inputManager->entityManager->setForceById(id, force);
 }
 
-physx::PxVec3 ScriptManager::getLinearVelocityByName(std::string name)
+physx::PxVec3 GameManager::getLinearVelocityByName(std::string name)
 {
     return inputManager->entityManager->getLinearVelocityByName(name);
 }
 
-physx::PxVec3 ScriptManager::getLinearVelocityById(int id)
+physx::PxVec3 GameManager::getLinearVelocityById(int id)
 {
     return inputManager->entityManager->getLinearVelocityById(id);
 }
 
-physx::PxVec3 ScriptManager::getAngularVelocityByName(std::string name)
+physx::PxVec3 GameManager::getAngularVelocityByName(std::string name)
 {
     return inputManager->entityManager->getAngularVelocityByName(name);
 }
 
-physx::PxVec3 ScriptManager::getAngularVelocityById(int id)
+physx::PxVec3 GameManager::getAngularVelocityById(int id)
 {
     return inputManager->entityManager->getAngularVelocityById(id);
 }
 
-void ScriptManager::setLinearVelocityByName(std::string name, physx::PxVec3 velocity)
+void GameManager::setLinearVelocityByName(std::string name, physx::PxVec3 velocity)
 {
     inputManager->entityManager->setLinearVelocityByName(name, velocity);
 }
 
-void ScriptManager::setLinearVelocityById(int id, physx::PxVec3 velocity)
+void GameManager::setLinearVelocityById(int id, physx::PxVec3 velocity)
 {
     inputManager->entityManager->setLinearVelocityById(id, velocity);
 }
 
-void ScriptManager::setAngularVelocityByName(std::string name, physx::PxVec3 velocity)
+void GameManager::setAngularVelocityByName(std::string name, physx::PxVec3 velocity)
 {
     inputManager->entityManager->setAngularVelocityByName(name, velocity);
 }
 
-void ScriptManager::setAngularVelocityById(int id, physx::PxVec3 velocity)
+void GameManager::setAngularVelocityById(int id, physx::PxVec3 velocity)
 {
     inputManager->entityManager->setAngularVelocityById(id, velocity);
 }
 
 
-void ScriptManager::enablePhysicByName(std::string name)
+void GameManager::enablePhysicByName(std::string name)
 {
     inputManager->entityManager->enablePhysicByName(name);
 }
 
-void ScriptManager::enablePhysicById(int id)
+void GameManager::enablePhysicById(int id)
 {
     inputManager->entityManager->enablePhysicById(id);
 }
 
-void ScriptManager::disablePhysicByName(std::string name)
+void GameManager::disablePhysicByName(std::string name)
 {
     inputManager->entityManager->disablePhysicByName(name);
 }
 
-void ScriptManager::disablePhysicById(int id)
+void GameManager::disablePhysicById(int id)
 {
     inputManager->entityManager->disablePhysicById(id);
 }
@@ -222,50 +222,50 @@ void ScriptManager::disablePhysicById(int id)
 
 // Camera
 
-std::vector<std::string> ScriptManager::getAllCamerasNames() {
+std::vector<std::string> GameManager::getAllCamerasNames() {
     return inputManager->entityManager->getAllCamerasNames();
 }
 
-std::vector<int> ScriptManager::getAllCamerasID() {
+std::vector<int> GameManager::getAllCamerasID() {
     return inputManager->entityManager->getAllCamerasID();
 }
 
-std::string ScriptManager::getMainCameraName() {
+std::string GameManager::getMainCameraName() {
     return inputManager->entityManager->getMainCameraName();
 }
 
-int ScriptManager::getMainCameraID() {
+int GameManager::getMainCameraID() {
     return inputManager->entityManager->getMainCameraID();
 }
 
-void ScriptManager::setMainCameraByName(std::string name) {
+void GameManager::setMainCameraByName(std::string name) {
     return inputManager->entityManager->setMainCameraByName(name);
 }
 
-void ScriptManager::setMainCameraByID(int id) {
+void GameManager::setMainCameraByID(int id) {
     return inputManager->entityManager->setMainCameraByID(id);
 }
 
-glm::vec3 ScriptManager::getForwardMainCamera()
+glm::vec3 GameManager::getForwardMainCamera()
 {
     return inputManager->systemManager->cameraSystem->getForward();
 }
 
 // Input
 
-bool ScriptManager::getInput_Press(int input) {
+bool GameManager::getInput_Press(int input) {
     return inputManager->getInput_Press(input);
 }
 
-bool ScriptManager::getInput_Release(int input) {
+bool GameManager::getInput_Release(int input) {
     return inputManager->getInput_Release(input);
 }
 
-bool ScriptManager::getInput_PressOneTime(int input) {
+bool GameManager::getInput_PressOneTime(int input) {
     return inputManager->getInput_PressOneTime(input);
 }
 
-bool ScriptManager::getAction(std::string actionName)
+bool GameManager::getAction(std::string actionName)
 {
     int id_mask = stateList[CurrentState]->mask;
     if(maskList[id_mask]->listActions.find(actionName) == maskList[id_mask]->listActions.end())
@@ -295,7 +295,7 @@ bool ScriptManager::getAction(std::string actionName)
     }
 }
 
-bool ScriptManager::getActionOnController(std::string actionName, int numController)
+bool GameManager::getActionOnController(std::string actionName, int numController)
 {
     GLFWgamepadstate state;
     if (glfwGetGamepadState(numController, &state)) {
@@ -333,13 +333,13 @@ bool ScriptManager::getActionOnController(std::string actionName, int numControl
 
 // Random
 
-int ScriptManager::drawRandomInt(int min, int max)
+int GameManager::drawRandomInt(int min, int max)
 {
     std::uniform_int_distribution<int> distribution(min, max);
     return distribution(generator);
 }
 
-float ScriptManager::drawRandomFloat(float min, float max)
+float GameManager::drawRandomFloat(float min, float max)
 {
     std::uniform_real_distribution<float> distribution(min, max);
     return distribution(generator);
@@ -350,7 +350,7 @@ float ScriptManager::drawRandomFloat(float min, float max)
 
 
 
-void ScriptManager::Mask::addAction(Action* action)
+void GameManager::Mask::addAction(Action* action)
 {
     if (listActions.find(action->name) == listActions.end())
         listActions[action->name] = action;

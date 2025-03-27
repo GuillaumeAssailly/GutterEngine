@@ -64,24 +64,26 @@
     <ClCompile Include="src\controllers\input_manager.cpp">
       <Filter>src\controllers</Filter>
     </ClCompile>
-    <ClCompile Include="src\controllers\script_manager.cpp">
+    <ClCompile Include="src\controllers\game_manager.cpp">
       <Filter>src\controllers</Filter>
     </ClCompile>
-    <ClCompile Include="scripts\EnvironmentSetup.cpp">
-      <Filter>scripts</Filter>
+    <ClCompile Include="gameFiles\CalculateScoreState.cpp">
+      <Filter>gameFiles</Filter>
     </ClCompile>
-    <ClCompile Include="scripts\InitTurnState.cpp">
-      <Filter>scripts</Filter>
+    <ClCompile Include="gameFiles\EnvironmentSetup.cpp">
+      <Filter>gameFiles</Filter>
     </ClCompile>
-    <ClCompile Include="scripts\PreparationState.cpp">
-      <Filter>scripts</Filter>
+    <ClCompile Include="gameFiles\InitTurnState.cpp">
+      <Filter>gameFiles</Filter>
     </ClCompile>
-    <ClCompile Include="scripts\Replay1State.cpp">
-      <Filter>scripts</Filter>
+    <ClCompile Include="gameFiles\PreparationState.cpp">
+      <Filter>gameFiles</Filter>
     </ClCompile>
-    <ClCompile Include="scripts\RollingState.cpp" />
-    <ClCompile Include="scripts\CalculateScoreState.cpp">
-      <Filter>scripts</Filter>
+    <ClCompile Include="gameFiles\Replay1State.cpp">
+      <Filter>gameFiles</Filter>
+    </ClCompile>
+    <ClCompile Include="gameFiles\RollingState.cpp">
+      <Filter>gameFiles</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -163,27 +165,29 @@
     <ClInclude Include="src\controllers\entity_manager.h">
       <Filter>src\controllers</Filter>
     </ClInclude>
-    <ClInclude Include="src\controllers\script_manager.h">
+    <ClInclude Include="src\controllers\game_manager.h">
       <Filter>src\controllers</Filter>
     </ClInclude>
-    <ClInclude Include="scripts\EnvironmentSetup.h">
-      <Filter>scripts</Filter>
+    <ClInclude Include="gameFiles\CalculateScoreState.h">
+      <Filter>gameFiles</Filter>
     </ClInclude>
-    <ClInclude Include="scripts\InitTurnState.h">
-      <Filter>scripts</Filter>
+    <ClInclude Include="gameFiles\EnvironmentSetup.h">
+      <Filter>gameFiles</Filter>
     </ClInclude>
-    <ClInclude Include="scripts\PreparationState.h">
-      <Filter>scripts</Filter>
+    <ClInclude Include="gameFiles\GAME_MASK.h">
+      <Filter>gameFiles</Filter>
     </ClInclude>
-    <ClInclude Include="scripts\Replay1State.h">
-      <Filter>scripts</Filter>
+    <ClInclude Include="gameFiles\InitTurnState.h">
+      <Filter>gameFiles</Filter>
     </ClInclude>
-    <ClInclude Include="scripts\GAME_MASK.h">
-      <Filter>scripts</Filter>
+    <ClInclude Include="gameFiles\PreparationState.h">
+      <Filter>gameFiles</Filter>
     </ClInclude>
-    <ClInclude Include="scripts\RollingState.h" />
-    <ClInclude Include="scripts\CalculateScoreState.h">
-      <Filter>scripts</Filter>
+    <ClInclude Include="gameFiles\Replay1State.h">
+      <Filter>gameFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="gameFiles\RollingState.h">
+      <Filter>gameFiles</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -234,7 +238,7 @@
     <Filter Include="src\savers">
       <UniqueIdentifier>{98832339-f8d8-4bb2-a269-937133e16015}</UniqueIdentifier>
     </Filter>
-    <Filter Include="scripts">
+    <Filter Include="gameFiles">
       <UniqueIdentifier>{60624901-4f7c-4a0e-b6ce-25f8429033a4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>

@@ -2,18 +2,29 @@
 
 void InitTurnState::onLoad() {
 
-	if (current_throw == 1 && score_tab.at(0)[current_turn][0] == 10) {
-		current_throw = 0;
-		current_turn++;
-		non_modified_pin = { 1,2,3,4,5,6,7,8,9,10 };
+	if (current_throw >= 1 && score_tab.at(0)[current_turn][current_throw-1] == 10) {
+		if (current_turn == 9) {
+			non_modified_pin = { 1,2,3,4,5,6,7,8,9,10 };
+		}
+		else {
+			current_throw = 0;
+			current_turn++;
+			non_modified_pin = { 1,2,3,4,5,6,7,8,9,10 };
+		}
 	}
 
-	if (current_turn != 10 && current_throw == 2) {
+	if (current_turn != 9 && current_throw == 2) {
 		current_throw = 0;
 		current_turn++;
 		non_modified_pin = { 1,2,3,4,5,6,7,8,9,10 };
 	}
-	else if (current_turn == 10 && current_throw == 3) {
+	else if (current_turn == 9 && score_tab.at(0)[current_turn][1] && score_tab.at(0)[current_turn][0] == 10) {
+		non_modified_pin = { 1,2,3,4,5,6,7,8,9,10 };
+	}
+	else if (current_turn == 9 && score_tab.at(0)[current_turn][1] == 10) {
+		non_modified_pin = { 1,2,3,4,5,6,7,8,9,10 };
+	}
+	else if (current_turn == 9 && current_throw == 3) {
 		std::cout << "\n\nFin du jeu !\n\n" << std::endl;
 		current_throw = 0;
 		current_turn = 0;

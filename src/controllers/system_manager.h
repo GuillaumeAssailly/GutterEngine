@@ -27,6 +27,6 @@ public:
     ~SystemManager();
 
     friend class App;
-    friend class ScriptManager;
+    friend class GameManager;
     friend class InputManager;
 };

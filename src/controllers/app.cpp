@@ -11,7 +11,7 @@ App::App() {
     systemManager = new SystemManager(window, shader, shadowShader, depthMapDebugShader);
     meshManager = new MeshManager(entityManager);
     inputManager = new InputManager(systemManager, entityManager);
-    scriptManager = new ScriptManager(inputManager);
+    gameManager = new GameManager(inputManager);
 }
 
 App::~App() {
@@ -23,7 +23,7 @@ App::~App() {
     delete systemManager;
     delete entityManager;
     delete meshManager;
-    delete scriptManager;
+    delete gameManager;
 
     glfwTerminate();
 }
@@ -168,7 +168,7 @@ void App::run() {
     //while loop iterating on the renderer pipeline : 
     systemManager->shadowSystem->Initialize(entityManager->lightComponents);
 
-    scriptManager->initializeManager();
+    gameManager->initializeManager();
 
     while (!glfwWindowShouldClose(window)) {
         // Per-frame time logic
@@ -201,17 +201,17 @@ void App::run() {
         }
 
 
-        // ScriptManager and extern gameplay
+        // GameManager and extern gameplay
         if (!game_paused) {
-            scriptManager->addTime(deltaTime);
+            gameManager->addTime(deltaTime);
             try {
-                scriptManager->scriptManager_one_frame();
+                gameManager->scriptManager_one_frame();
 
             }
             catch (const std::exception& e) {
                 std::cout << e.what() << std::endl;
                 game_paused = true;
-                scriptManager->changeState(0);
+                gameManager->changeState(0);
             }
         }
         

@@ -5,7 +5,7 @@
 #include "system_manager.h"
 #include "mesh_manager.h"
 #include "input_manager.h"
-#include "script_manager.h"
+#include "game_manager.h"
 
 #include "../view/shader.h"
 
@@ -35,7 +35,7 @@ private:
     SystemManager* systemManager;
     MeshManager* meshManager;
     InputManager* inputManager;
-    ScriptManager* scriptManager;
+    GameManager* gameManager;
 
     // TODO: Place this function in a specific ImGui file
     bool DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale);

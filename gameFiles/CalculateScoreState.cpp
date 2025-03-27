@@ -87,7 +87,14 @@ void CalculateScoreState::onLoad() {
 		}
 	}
 
-	score_tab.at(0)[current_turn][current_throw] = 10 - non_modified_pin.size();
+    if(current_throw == 0)
+	    score_tab.at(0)[current_turn][current_throw] = 10 - non_modified_pin.size();
+    else {
+        if(current_throw == 2 && (score_tab.at(0)[current_turn][1] == 10 || score_tab.at(0)[current_turn][0]+score_tab.at(0)[current_turn][1] == 10))
+            score_tab.at(0)[current_turn][current_throw] = 10 - non_modified_pin.size();
+        else
+            score_tab.at(0)[current_turn][current_throw] = 10 - score_tab.at(0)[current_turn][current_throw - 1] - non_modified_pin.size();
+    }
 
 	current_throw++;
 

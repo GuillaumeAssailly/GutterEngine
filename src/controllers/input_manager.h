@@ -15,7 +15,7 @@ public:
     InputManager(SystemManager* systemManager, EntityManager* entityManager);
     ~InputManager();
 
-    friend class ScriptManager;
+    friend class GameManager;
 
     //bool getInput(GLFWwindow* window, int hasPhysics);
 

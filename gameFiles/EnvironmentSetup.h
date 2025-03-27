@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include <functional>
 #include <memory>
-#include "../src/controllers/script_manager.h"
+#include "../src/controllers/game_manager.h"
 
 #include <cmath>
 
@@ -33,7 +33,7 @@ extern int current_turn;
 extern std::vector<std::array<std::array<int, 3>, 10>> score_tab;
 extern std::vector<int> non_modified_pin;
 
-extern void update_preparation_position_ball(ScriptManager* scriptManager);
+extern void update_preparation_position_ball(GameManager* gameManager);
 
 
 enum AllStates {
@@ -51,6 +51,6 @@ enum AllMasks {
 
 
 //Enregistrer les masques
-void saveMasks(ScriptManager* scriptManager);
+void saveMasks(GameManager* gameManager);
 // Enregistrer les états
-void registerAllStates(ScriptManager* scriptManager);
+void registerAllStates(GameManager* gameManager);

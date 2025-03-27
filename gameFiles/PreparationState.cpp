@@ -10,7 +10,7 @@ void PreparationState::onLoad()
 
 void PreparationState::running() {
 	if(init && wait("init", 0.001)) {
-		update_preparation_position_ball(scriptManager);
+		update_preparation_position_ball(gameManager);
 		init = false;
 	}
 
@@ -20,7 +20,7 @@ void PreparationState::running() {
 		if (position.z - 0.1 >= MIN_POSITION_Z) {
 			position.z -= 0.1;
 			setPositionByName("Camera", position);
-			update_preparation_position_ball(scriptManager);
+			update_preparation_position_ball(gameManager);
 		}
 	}
 	if (getAction("go_left") || getActionOnController("go_left", GLFW_JOYSTICK_1)) {
@@ -28,7 +28,7 @@ void PreparationState::running() {
 		if (position.z + 0.1 <= MAX_POSITION_Z) {
 			position.z += 0.1;
 			setPositionByName("Camera", position);
-			update_preparation_position_ball(scriptManager);
+			update_preparation_position_ball(gameManager);
 		}
 	}
 
@@ -38,7 +38,7 @@ void PreparationState::running() {
 		glm::quat new_rotation = rotation_angle * rotation_init;
 		if (new_rotation.w >= -VIEW_CAMERA_CENTER_Y - VIEW_CAMERA_LIMITS && new_rotation.y >= VIEW_CAMERA_CENTER_Y - VIEW_CAMERA_LIMITS) {
 			setRotationQuaternionByName("Camera", new_rotation);
-			update_preparation_position_ball(scriptManager);
+			update_preparation_position_ball(gameManager);
 		}
 	}
 	if (getAction("turn_right") || getActionOnController("turn_right", GLFW_JOYSTICK_1)) {
@@ -47,7 +47,7 @@ void PreparationState::running() {
 		glm::quat new_rotation = rotation_angle * rotation_init;
 		if (new_rotation.w <= -VIEW_CAMERA_CENTER_Y + VIEW_CAMERA_LIMITS && new_rotation.y <= VIEW_CAMERA_CENTER_Y + VIEW_CAMERA_LIMITS) {
 			setRotationQuaternionByName("Camera", new_rotation);
-			update_preparation_position_ball(scriptManager);
+			update_preparation_position_ball(gameManager);
 		}
 	}
 
