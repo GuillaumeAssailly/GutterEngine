@@ -213,13 +213,15 @@ void main()
             spec = pow(max(dot(viewDir, reflectDir), 0.0), mix(2.0, shininess, 1.0 - adjustedRoughness));
         }
 
+    
         // Fresnel effect (Schlick approximation)
+        vec3 F0 = mix(vec3(0.04), texColor.rgb, metalness);
         float fresnelFactor = pow(1.0 - max(dot(viewDir, norm), 0.0), 5.0);
-        fresnelFactor = mix(fresnelFactor, 0.1, metalness); // Boost Fresnel for metals
+        vec3 F = F0 + (1.0 - F0) * fresnelFactor; 
 
         // Apply specular and Fresnel terms
-        specular += (1.0 - shadow) * specularStrength * spec * baseReflectivity * lightColor[i] * intensity[i] * attenuation;
-        specular += fresnelFactor * baseReflectivity * lightColor[i] * intensity[i] * attenuation; // Boost Fresnel contribution
+      specular += (1.0 - shadow) * specularStrength * spec * F * lightColor[i] * intensity[i] * attenuation;
+
     }
 
     // Ambient occlusion
@@ -245,7 +247,7 @@ void main()
         vec2 reflectionUV = ClipSpacePos.xy / ClipSpacePos.w * 0.5 + 0.5;
         reflectionUV.y = 1.0 - reflectionUV.y;
         vec3 reflectionColor = blurReflection(reflectionTexture, reflectionUV);
-        FragColor = mix(texColor, vec4(reflectionColor, 1.0), 0.5) * vec4(phong + emissive, 1.0);
+        FragColor = mix(texColor, vec4(reflectionColor, 1.0), 0.7) * vec4(phong + emissive, 1.0);
     } else {
         FragColor = texColor * vec4(phong + emissive, 1.0);
     }
