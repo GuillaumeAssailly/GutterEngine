@@ -3,13 +3,9 @@
 
 class CalculateScoreState : public GameManager::StateOfGame {
 public:
-    void displayScore(int nb_players);
 
     CalculateScoreState(int id, int id_Mask, GameManager* sm) : StateOfGame(id, id_Mask, sm) {};
     void onLoad() override;
     void running() override;
     void onDestruct() override;
-
-    int bonus_multi = 1;
-    int bonus_duree = 1;
 };

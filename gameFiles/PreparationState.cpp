@@ -5,7 +5,7 @@ void PreparationState::onLoad()
 {
 	init = true;
 	isPress = false;
-	forceX = -50.0f;
+	forceX = -15.0f;
 }
 
 void PreparationState::running() {
@@ -54,11 +54,11 @@ void PreparationState::running() {
 	if (getAction("launch_press") || getActionOnController("launch_press", GLFW_JOYSTICK_1)) {
 		isPress = true;
 		if (wait("launch", 0.5)) {
-			forceX -= 10.0f;
+			forceX -= 5.0f;
 		}
 	}
 
-	if (forceX <= -80.0f || (isPress && getAction("launch_release")) || (isPress && getActionOnController("launch_release", GLFW_JOYSTICK_1)) ) {
+	if (forceX <= -30.0f || (isPress && getAction("launch_release")) || (isPress && getActionOnController("launch_release", GLFW_JOYSTICK_1)) ) {
 		releaseTimer("launch");
 		changeState(AllStates::ROLLING);
 

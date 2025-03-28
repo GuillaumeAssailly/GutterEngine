@@ -21,6 +21,22 @@ class GameManager
 
 public:
 
+	std::vector<std::array<std::array<int, 3>, 10>> score_tab = {
+	std::array<std::array<int, 3>, 10>{
+		std::array<int, 3>{-1, -1, -1},
+		std::array<int, 3>{-1, -1, -1},
+		std::array<int, 3>{-1, -1, -1},
+		std::array<int, 3>{-1, -1, -1},
+		std::array<int, 3>{-1, -1, -1},
+		std::array<int, 3>{-1, -1, -1},
+		std::array<int, 3>{-1, -1, -1},
+		std::array<int, 3>{-1, -1, -1},
+		std::array<int, 3>{-1, -1, -1},
+		std::array<int, 3>{-1, -1, -1}
+	}
+	};
+	int nb_players = 1;
+
 	class StateOfGame {
 	public:
 		int id;

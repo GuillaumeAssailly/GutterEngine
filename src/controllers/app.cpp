@@ -137,12 +137,12 @@ static std::string selectedModelName = "";
 static float newEntityStaticFriction = 0.1f;
 static float newEntityDynamicFriction = 0.1f;
 static float newEntityRestitution = 0.4f;
-static float newEntityMass = 0.5f;
+static float newEntityMass = 2.0f;
 static int newEntitySolverPosition = 4;
 static int newEntitySolverVelocity = 4;
 static float newEntityLinearDamping = 0.1f;
 static float newEntityAngularDamping = 0.1f;
-static float newEntitySleepT = 0.05f;
+static float newEntitySleepT = 0.1f;
 
 static std::string selectedRModelName = "";
 static std::string selectedTexturesName = "";
@@ -246,8 +246,6 @@ void App::run() {
 
 		if (inputManager->getInput_PressOneTime(GLFW_KEY_F1))
 			game_paused = !game_paused;
-
-    
 
 
         if (game_paused) {
@@ -686,6 +684,95 @@ void App::run() {
 
             ImGui::End(); // End of Settings window
         }
+        else
+        {
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+            // Start //ImGui window for debugging
+
+            // Créer un flux pour accumuler les données à afficher
+            std::ostringstream oss;
+
+            // En-tête du tableau
+            oss << "---------------------------------------------------------------\n";
+            oss << "|  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |   10  | Score\n";
+
+            for (int p = 0; p < gameManager->nb_players; p++) {
+                int total_score = 0; // Score total du joueur
+                oss << "---------------------------------------------------------------------\n";
+
+                for (int i = 0; i < 10; i++) {
+                    oss << "| ";
+                    int frame_score = 0;
+
+                    // Gestion des lancers dans la frame (2 pour les frames 1-9, jusqu'à 3 pour la frame 10)
+                    int throws_in_frame = (i == 9) ? 3 : 2;
+
+                    for (int j = 0; j < throws_in_frame; j++) {
+                        int current_value = gameManager->score_tab.at(p)[i][j];
+
+                        // Affichage des valeurs selon les règles
+                        if (current_value == -1) {
+                            oss << "  "; // Non joué
+                        }
+                        else if (current_value == 0) {
+                            oss << "_ "; // Gouttière
+                        }
+                        else if (current_value == 10) {
+                            if (j == 0) {
+                                oss << "X "; // Strike
+                            }
+                            else {
+                                oss << "\\ "; // Spare
+                            }
+                        }
+                        else {
+                            if (j == 1 && current_value + gameManager->score_tab.at(p)[i][0] == 10) {
+                                oss << "\\ "; // Spare
+                            }
+                            else {
+                                oss << current_value << " "; // Lancer classique
+                            }
+                        }
+
+                        // Calcul des scores
+                        if (current_value != -1) {
+                            frame_score += current_value;
+
+                            // Ajouter les bonus (gestion des frames précédentes)
+                            if (i > 0 && j < 2) {
+                                // Vérifie si la frame précédente est un Strike ou un Spare
+                                if (gameManager->score_tab.at(p)[i - 1][0] == 10) { // Strike précédent
+                                    total_score += current_value;
+                                }
+                                else if (gameManager->score_tab.at(p)[i - 1][0] + gameManager->score_tab.at(p)[i - 1][1] == 10 && j == 0) { // Spare précédent
+                                    total_score += current_value;
+                                }
+                            }
+
+                            if (i > 1 && j == 0 && gameManager->score_tab.at(p)[i - 2][0] == 10 && gameManager->score_tab.at(p)[i - 1][0] == 10) {
+                                // Bonus double Strike en cascade
+                                total_score += current_value;
+                            }
+                        }
+                    }
+
+                    // Mise à jour du score total pour la frame
+                    total_score += frame_score;
+                }
+
+                // Affichage du score total du joueur
+                oss << "| " << total_score << "\n";
+            }
+
+            oss << "---------------------------------------------------------------------\n";
+
+            // Affichage dans ImGui avec le flux accumulé
+            ImGui::SetNextWindowSize(ImVec2(600, 100), ImGuiCond_Always);
+            ImGui::Begin("Tableau des Scores", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize);
+            ImGui::Text("%s", oss.str().c_str());
+            ImGui::End();
+            ImGui::PopStyleVar();
+        }
        
 
         
@@ -1017,7 +1104,7 @@ void App::loadModelsAndTextures()
     entityManager->transformComponents[Ball1] = transform_Ball;
     PhysicsComponent physics;
     const physx::PxSphereGeometry sphereGeometry(0.109f);
-    physics.rigidBody = systemManager->motionSystem->createDynamic(sphereGeometry, material, transform_Ball.position, 6.8f, newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping, 10, 10);
+    physics.rigidBody = systemManager->motionSystem->createDynamic(sphereGeometry, material, transform_Ball.position, newEntityMass, newEntitySleepT, newEntityLinearDamping, newEntityAngularDamping);
     physics.rigidBody->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, true);
     entityManager->physicsComponents[Ball1] = physics;
 
@@ -1072,7 +1159,7 @@ void App::loadModelsAndTextures()
 
         PhysicsComponent physicsPin;
         physicsPin.rigidBody = systemManager->motionSystem->createDynamic(
-            convexMeshes, material, transformPin.position, 2.5f, 0.001f, 0.2f, 0.3f, 8, 8, transformPin.eulers
+            convexMeshes, material, transformPin.position, 0.8f, 0.001f, 0.2f, 0.3f, 8, 8, transformPin.eulers
         );
         entityManager->physicsComponents[pinEntity] = physicsPin;
     }
