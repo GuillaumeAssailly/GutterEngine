@@ -8,7 +8,7 @@ void RollingState::running() {
 
 	glm::vec3 pos = getPositionByName("Ball1");
 
-	if (wait("rolling", 10) || pos.z < 4.7f || pos.z > 7.3f) {
+	if (wait("rolling", 10)) {
 		releaseTimer("rolling");
 		releaseTimer("finish");
 		releaseTimer("save");
@@ -21,36 +21,38 @@ void RollingState::running() {
 			setMainCameraByName("Camera");
 		}
 	}
-	
-	if (pos.x < -14.5f && !saved) {
-		saved = true;
-	}
+	else {
 
-	if (saved && wait("save", 0.000001)) {
-
-		Save currentState = {
-			pos,
-			getRotationQuaternionByName("Ball1")
-		};
-		ball_saves.push_back(currentState);
-
-		for (int i = 0; i < 10; ++i) {
-			std::string pinName = "Pin" + std::to_string(i + 1);
-			glm::vec3 pin_pos = getPositionByName(pinName);
-			Save pinState = {
-				pin_pos,
-				getRotationQuaternionByName(pinName)
-			};
-			pin_saves[i].push_back(pinState);
+		if (pos.x < -14.5f && !saved) {
+			saved = true;
 		}
-	}
 
-	if (saved && wait("finish", 4)) {
-		releaseTimer("rolling");
-		releaseTimer("finish");
-		releaseTimer("save");
+		if (saved && wait("save", 0.000001)) {
 
-		changeState(AllStates::CALCULATE_SCORE);
+			Save currentState = {
+				pos,
+				getRotationQuaternionByName("Ball1")
+			};
+			ball_saves.push_back(currentState);
+
+			for (int i = 0; i < 10; ++i) {
+				std::string pinName = "Pin" + std::to_string(i + 1);
+				glm::vec3 pin_pos = getPositionByName(pinName);
+				Save pinState = {
+					pin_pos,
+					getRotationQuaternionByName(pinName)
+				};
+				pin_saves[i].push_back(pinState);
+			}
+		}
+
+		if (saved && wait("finish", 4.0)) {
+			releaseTimer("rolling");
+			releaseTimer("finish");
+			releaseTimer("save");
+
+			changeState(AllStates::CALCULATE_SCORE);
+		}
 	}
 	
 }

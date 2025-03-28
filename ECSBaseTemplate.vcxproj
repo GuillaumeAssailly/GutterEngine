@@ -153,6 +153,7 @@
       <DeploymentContent>false</DeploymentContent>
     </ClCompile>
     <ClCompile Include="gameFiles\RollingState.cpp" />
+    <ClCompile Include="gameFiles\TravelingState.cpp" />
     <ClCompile Include="src\config.cpp" />
     <ClCompile Include="src\controllers\app.cpp" />
     <ClCompile Include="src\controllers\entity_manager.cpp" />
@@ -207,6 +208,7 @@
       <DeploymentContent>false</DeploymentContent>
     </ClInclude>
     <ClInclude Include="gameFiles\RollingState.h" />
+    <ClInclude Include="gameFiles\TravelingState.h" />
     <ClInclude Include="src\components\camera_component.h" />
     <ClInclude Include="src\components\light_component.h">
       <DeploymentContent>false</DeploymentContent>

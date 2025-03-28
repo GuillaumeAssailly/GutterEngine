@@ -5,6 +5,23 @@
 
 std::unordered_map<int, StateFactory> stateFactoryMap;
 
+void GameManager::init_score() {
+    score_tab = {};
+    score_tab.resize(nb_players, std::array<std::array<int, 3>, 10> {
+        std::array<int, 3>{-1, -1, -1},
+            std::array<int, 3>{-1, -1, -1},
+            std::array<int, 3>{-1, -1, -1},
+            std::array<int, 3>{-1, -1, -1},
+            std::array<int, 3>{-1, -1, -1},
+            std::array<int, 3>{-1, -1, -1},
+            std::array<int, 3>{-1, -1, -1},
+            std::array<int, 3>{-1, -1, -1},
+            std::array<int, 3>{-1, -1, -1},
+            std::array<int, 3>{-1, -1, -1}
+    });
+}
+
+
 GameManager::GameManager(InputManager* inputManager) : inputManager(inputManager)
 {
     mainTime = static_cast<float>(glfwGetTime());

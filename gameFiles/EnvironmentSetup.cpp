@@ -5,6 +5,7 @@
 #include "RollingState.h"
 #include "CalculateScoreState.h"
 #include "Replay1State.h"
+#include "TravelingState.h"
 
 
 #include "GAME_MASK.h"
@@ -16,20 +17,8 @@ std::vector<std::vector<Save>> pin_saves(10);
 int current_turn = 0;
 int current_throw = 0;
 std::vector<int> non_modified_pin = {1,2,3,4,5,6,7,8,9,10};
-std::vector<std::array<std::array<int, 3>, 10>> score_tab = {
-    std::array<std::array<int, 3>, 10>{
-        std::array<int, 3>{-1, -1, -1},
-        std::array<int, 3>{-1, -1, -1},
-        std::array<int, 3>{-1, -1, -1},
-        std::array<int, 3>{-1, -1, -1},
-        std::array<int, 3>{-1, -1, -1},
-        std::array<int, 3>{-1, -1, -1},
-        std::array<int, 3>{-1, -1, -1},
-        std::array<int, 3>{-1, -1, -1},
-        std::array<int, 3>{-1, -1, -1},
-        std::array<int, 3>{-1, -1, -1}
-    }
-};
+std::vector<std::array<std::array<int, 3>, 10>> score_tab;
+
 
 void update_preparation_position_ball(GameManager* gameManager) {
 	glm::vec3 look = getForwardMainCamera();
@@ -54,4 +43,5 @@ void registerAllStates(GameManager* gameManager) {
 	registerStateFactory<RollingState>(AllStates::ROLLING, AllMasks::GAME_MASK, gameManager);
 	registerStateFactory<CalculateScoreState>(AllStates::CALCULATE_SCORE, AllMasks::NONE, gameManager);
     registerStateFactory<Replay1State>(AllStates::REPLAY_1, AllMasks::GAME_MASK , gameManager);
+    registerStateFactory<TravelingState>(AllStates::TRAVELING, AllMasks::GAME_MASK, gameManager);
 }

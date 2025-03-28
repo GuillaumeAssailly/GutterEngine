@@ -116,6 +116,11 @@ glm::vec2 targetDamping;
 float targetSleepT = 0.f;
 physx::PxVec3 targetCMass;
 
+
+int nb_players = 0; // Nombre global
+std::vector<std::string> players_names; // Vecteur global pour les noms
+
+
 // Imgui Create Entity Variables
     //Global
 char newEntityName[128] = "NewObject";
@@ -158,7 +163,7 @@ short type_reference_frame = 2;
 bool grid_display = true;
 
 // Game variables
-bool game_paused = false;
+bool game_paused = true;
 
 ///<summary>
 /// run methods launching the renderer pipeline :
@@ -683,6 +688,55 @@ void App::run() {
                 gizmo_world = !gizmo_world;
 
             ImGui::End(); // End of Settings window
+
+
+
+            static int input_number = 0; // Nombre temporaire pour la saisie
+            static std::vector<std::string> names; // Noms temporaires
+
+            // Encadré principal
+            ImGui::Begin("Menu du jeu");
+
+            // Saisie du nombre
+            ImGui::InputInt("Entrez le nombre de joueurs", &input_number);
+
+            // Vérifie que le nombre est positif
+            if (input_number < 0) input_number = 0;
+
+            // Met à jour le vecteur temporaire en fonction du nombre
+            if (names.size() != input_number) {
+                names.resize(input_number, ""); // Assure que les chaînes sont initialisées
+            }
+
+            // Affiche les zones de texte pour les noms
+            for (int i = 0; i < input_number; ++i) {
+                char buffer[128]; // Tampon temporaire pour le nom
+                snprintf(buffer, sizeof(buffer), "%s", names[i].c_str()); // Copier la valeur actuelle du nom dans le tampon
+
+                // Saisie du nom
+                if (ImGui::InputText(("Joueur " + std::to_string(i + 1)).c_str(), buffer, sizeof(buffer))) {
+                    names[i] = buffer; // Mettre à jour le vecteur `names` avec la nouvelle valeur
+                }
+            }
+
+            if (input_number <= 0) {
+                ImGui::BeginDisabled(); // Désactive les éléments imbriqués
+            }
+            // Bouton pour sauvegarder
+            if (ImGui::Button("Lancer la partie")) {
+                game_paused = false;
+                nb_players = input_number; // Sauvegarde du nombre
+                std::cout << names[0] << std::endl; // Debug : Afficher le nom du premier joueur
+                players_names = names; // Sauvegarde des noms dans le vecteur global
+
+                gameManager->nb_players = nb_players;
+                gameManager->init_score();
+            }
+            if (input_number <= 0) {
+                ImGui::EndDisabled(); // Réactive les éléments
+            }
+
+            ImGui::End(); // Fin de l'encadré
         }
         else
         {
@@ -693,12 +747,22 @@ void App::run() {
             std::ostringstream oss;
 
             // En-tête du tableau
-            oss << "---------------------------------------------------------------\n";
-            oss << "|  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |   10  | Score\n";
+            oss << "---------------------------------------------------------------------------\n";
+            oss << "| Nom       |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |   10  | Score\n";
 
             for (int p = 0; p < gameManager->nb_players; p++) {
                 int total_score = 0; // Score total du joueur
-                oss << "---------------------------------------------------------------------\n";
+                oss << "----------------------------------------------------------------------------------\n";
+
+                // Ajouter le nom du joueur
+                if(p == gameManager->current_player) oss << "->" << players_names[p] << " ";
+                else oss << "| " << players_names[p] << " ";
+
+                // Ajuster l'espace pour aligner correctement
+                std::cout << players_names[p] << std::endl;
+                if (players_names[p].size() < 9) {
+                    oss << std::string(9 - players_names[p].size(), ' '); // Remplir avec des espaces si le nom est court
+                }
 
                 for (int i = 0; i < 10; i++) {
                     oss << "| ";
@@ -764,24 +828,16 @@ void App::run() {
                 oss << "| " << total_score << "\n";
             }
 
-            oss << "---------------------------------------------------------------------\n";
+            oss << "----------------------------------------------------------------------------------\n";
 
             // Affichage dans ImGui avec le flux accumulé
-            ImGui::SetNextWindowSize(ImVec2(600, 100), ImGuiCond_Always);
-            ImGui::Begin("Tableau des Scores", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize);
+            ImGui::SetNextWindowSize(ImVec2(600, 40+60*nb_players), ImGuiCond_Always);
+            ImGui::Begin("Tableau des Scores", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar |
+                ImGuiWindowFlags_NoBackground);
             ImGui::Text("%s", oss.str().c_str());
             ImGui::End();
             ImGui::PopStyleVar();
         }
-       
-
-        
-
-
-        
-
-
-
 
 
         // ImGuizmo
@@ -837,7 +893,6 @@ void App::run() {
                 entityManager->transformComponents[selectedEntityID].size = scale;
             }
         }
-
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
@@ -1159,7 +1214,7 @@ void App::loadModelsAndTextures()
 
         PhysicsComponent physicsPin;
         physicsPin.rigidBody = systemManager->motionSystem->createDynamic(
-            convexMeshes, material, transformPin.position, 0.8f, 0.001f, 0.2f, 0.3f, 8, 8, transformPin.eulers
+            convexMeshes, material, transformPin.position, 0.8f, 0.005f, 0.2f, 0.3f, 8, 8, transformPin.eulers
         );
         entityManager->physicsComponents[pinEntity] = physicsPin;
     }
@@ -1304,6 +1359,20 @@ void App::loadEntities()
     camera.sensitivity = 0.5f;
     camera.initialForward = { 0,0,1,0 };
     entityManager->cameraComponents[cameraEntity2] = camera;
+
+    //   // Camera 3
+    unsigned int cameraEntity3 = entityManager->make_entity("Camera3");
+    transform.position = { -0.37f, 0.82f, 7.64f };
+    transform.eulers = { 0.606061f, 0.0141105f, -0.795078f, 0.0185116f };
+    entityManager->transformComponents[cameraEntity3] = transform;
+
+    camera.fov = 45.0f;
+    camera.aspectRatio = 16.0f / 9.0f;
+    camera.nearPlane = 0.1f;
+    camera.farPlane = 100.0f;
+    camera.sensitivity = 0.5f;
+    camera.initialForward = { 0,0,1,0 };
+    entityManager->cameraComponents[cameraEntity3] = camera;
 
     //First light
     unsigned int lightEntity1 = entityManager->make_entity("First Light");

@@ -35,13 +35,13 @@ extern std::vector<int> non_modified_pin;
 
 extern void update_preparation_position_ball(GameManager* gameManager);
 
-
 enum AllStates {
     INIT_TURN = 0,
     PREPARATION = 1,
     ROLLING = 2,
     CALCULATE_SCORE = 3,
-    REPLAY_1 = 4
+    REPLAY_1 = 4,
+    TRAVELING = 5
 };
 
 enum AllMasks {

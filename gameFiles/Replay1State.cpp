@@ -43,11 +43,11 @@ void Replay1State::running()
     }
 
 
-	if (wait("replay1", 4.0) || getAction("launch") || getActionOnController("launch", GLFW_JOYSTICK_1)) {
+	if (wait("replay1", 4.0) || getAction("launch") || getActionOnController("launch", gameManager->current_player)) {
 		releaseTimer("replay1");
         releaseTimer("load");
-		changeState(AllStates::INIT_TURN);
-		setMainCameraByName("Camera");
+		changeState(AllStates::TRAVELING);
+		setMainCameraByName("Camera3");
 	}
 }
 

@@ -2,48 +2,42 @@
 
 void InitTurnState::onLoad() {
 
-	if (current_throw >= 1 && score_tab.at(0)[current_turn][current_throw-1] == 10) {
+	if (current_throw >= 1 && score_tab.at(gameManager->current_player)[current_turn][current_throw-1] == 10) {
 		if (current_turn == 9) {
 			non_modified_pin = { 1,2,3,4,5,6,7,8,9,10 };
 		}
 		else {
 			current_throw = 0;
-			current_turn++;
+			if ((gameManager->current_player + 1) % gameManager->nb_players == 0) current_turn++;
+			gameManager->current_player = (gameManager->current_player + 1) % gameManager->nb_players;
 			non_modified_pin = { 1,2,3,4,5,6,7,8,9,10 };
 		}
 	}
 
 	if (current_turn != 9 && current_throw == 2) {
 		current_throw = 0;
-		current_turn++;
+		if((gameManager->current_player + 1) % gameManager->nb_players == 0) current_turn++;
+		gameManager->current_player = (gameManager->current_player+1) % gameManager->nb_players;
 		non_modified_pin = { 1,2,3,4,5,6,7,8,9,10 };
 	}
-	else if (current_turn == 9 && score_tab.at(0)[current_turn][1] && score_tab.at(0)[current_turn][0] == 10) {
+	else if (current_turn == 9 && score_tab.at(gameManager->current_player)[current_turn][1] + score_tab.at(gameManager->current_player)[current_turn][0] == 10) {
 		non_modified_pin = { 1,2,3,4,5,6,7,8,9,10 };
 	}
-	else if (current_turn == 9 && score_tab.at(0)[current_turn][1] == 10) {
+	else if (current_turn == 9 && score_tab.at(gameManager->current_player)[current_turn][1] == 10) {
 		non_modified_pin = { 1,2,3,4,5,6,7,8,9,10 };
 	}
 	else if (current_turn == 9 && current_throw == 3) {
 		std::cout << "\n\nFin du jeu !\n\n" << std::endl;
 		current_throw = 0;
-		current_turn = 0;
+		if ((gameManager->current_player + 1) % gameManager->nb_players == 0) {
+			current_turn++;
+			gameManager->current_player = 0;
+			gameManager->init_score();
+		}
+		else 
+		gameManager->current_player = (gameManager->current_player + 1) % gameManager->nb_players;
+		
 		non_modified_pin = { 1,2,3,4,5,6,7,8,9,10 };
-
-		score_tab = {
-			std::array<std::array<int, 3>, 10>{
-				std::array<int, 3>{-1, -1, -1},
-				std::array<int, 3>{-1, -1, -1},
-				std::array<int, 3>{-1, -1, -1},
-				std::array<int, 3>{-1, -1, -1},
-				std::array<int, 3>{-1, -1, -1},
-				std::array<int, 3>{-1, -1, -1},
-				std::array<int, 3>{-1, -1, -1},
-				std::array<int, 3>{-1, -1, -1},
-				std::array<int, 3>{-1, -1, -1},
-				std::array<int, 3>{-1, -1, -1}
-			}
-		};
 	}
 
 

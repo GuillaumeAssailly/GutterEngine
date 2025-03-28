@@ -10,5 +10,6 @@ public:
 
     bool init;
     float forceX;
-    bool isPress;
+    bool isPressKeyboard;
+    bool isPressController;
 };

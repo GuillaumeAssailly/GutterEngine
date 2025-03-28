@@ -4,8 +4,9 @@
 void PreparationState::onLoad()
 {
 	init = true;
-	isPress = false;
 	forceX = -15.0f;
+	isPressKeyboard = false;
+	isPressController = false;
 }
 
 void PreparationState::running() {
@@ -15,7 +16,7 @@ void PreparationState::running() {
 	}
 
 
-	if (getAction("go_right") || getActionOnController("go_right", GLFW_JOYSTICK_1)) {
+	if (getAction("go_right") || getActionOnController("go_right", gameManager->current_player)) {
 		vec3 position = getPositionByName("Camera");
 		if (position.z - 0.1 >= MIN_POSITION_Z) {
 			position.z -= 0.1;
@@ -23,7 +24,7 @@ void PreparationState::running() {
 			update_preparation_position_ball(gameManager);
 		}
 	}
-	if (getAction("go_left") || getActionOnController("go_left", GLFW_JOYSTICK_1)) {
+	if (getAction("go_left") || getActionOnController("go_left", gameManager->current_player)) {
 		vec3 position = getPositionByName("Camera");
 		if (position.z + 0.1 <= MAX_POSITION_Z) {
 			position.z += 0.1;
@@ -32,7 +33,7 @@ void PreparationState::running() {
 		}
 	}
 
-	if (getAction("turn_left") || getActionOnController("turn_left", GLFW_JOYSTICK_1)) {
+	if (getAction("turn_left") || getActionOnController("turn_left", gameManager->current_player)) {
 		glm::quat rotation_init = getRotationQuaternionByName("Camera");
 		glm::quat rotation_angle = glm::angleAxis(PADDING_CAMERA_RADIAN, glm::vec3(0.0f, 1.0f, 0.0f));
 		glm::quat new_rotation = rotation_angle * rotation_init;
@@ -41,7 +42,7 @@ void PreparationState::running() {
 			update_preparation_position_ball(gameManager);
 		}
 	}
-	if (getAction("turn_right") || getActionOnController("turn_right", GLFW_JOYSTICK_1)) {
+	if (getAction("turn_right") || getActionOnController("turn_right", gameManager->current_player)) {
 		glm::quat rotation_init = getRotationQuaternionByName("Camera");
 		glm::quat rotation_angle = glm::angleAxis(-PADDING_CAMERA_RADIAN, glm::vec3(0.0f, 1.0f, 0.0f));
 		glm::quat new_rotation = rotation_angle * rotation_init;
@@ -51,14 +52,15 @@ void PreparationState::running() {
 		}
 	}
 
-	if (getAction("launch_press") || getActionOnController("launch_press", GLFW_JOYSTICK_1)) {
-		isPress = true;
+	if (getAction("launch_press") || getActionOnController("launch_press", gameManager->current_player)) {
+		if (getAction("launch_press")) isPressKeyboard = true;
+		if (getActionOnController("launch_press", gameManager->current_player)) isPressController = true;
 		if (wait("launch", 0.5)) {
 			forceX -= 5.0f;
 		}
 	}
 
-	if (forceX <= -30.0f || (isPress && getAction("launch_release")) || (isPress && getActionOnController("launch_release", GLFW_JOYSTICK_1)) ) {
+	if (forceX <= -30.0f || (isPressKeyboard && getAction("launch_release")) || (isPressController && getActionOnController("launch_release", gameManager->current_player)) ) {
 		releaseTimer("launch");
 		changeState(AllStates::ROLLING);
 
