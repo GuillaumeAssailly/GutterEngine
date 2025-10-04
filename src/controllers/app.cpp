@@ -726,7 +726,6 @@ void App::run() {
             if (ImGui::Button("Lancer la partie")) {
                 game_paused = false;
                 nb_players = input_number; // Sauvegarde du nombre
-                std::cout << names[0] << std::endl; // Debug : Afficher le nom du premier joueur
                 players_names = names; // Sauvegarde des noms dans le vecteur global
 
                 gameManager->nb_players = nb_players;
@@ -759,7 +758,6 @@ void App::run() {
                 else oss << "| " << players_names[p] << " ";
 
                 // Ajuster l'espace pour aligner correctement
-                std::cout << players_names[p] << std::endl;
                 if (players_names[p].size() < 9) {
                     oss << std::string(9 - players_names[p].size(), ' '); // Remplir avec des espaces si le nom est court
                 }
