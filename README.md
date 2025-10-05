@@ -1,7 +1,5 @@
 # Gutter Engine: Programmable 3D Game Engine with Realistic Physics and Rendering
 
----
-
 ## Presentation
 
 This project is a homemade 3D game engine written in C++, integrating notably:
@@ -25,7 +23,7 @@ This project is part of a major academic end-of-cycle engineering project. It is
 
 The goal was to create a complete and realistic game engine, to allow the creation of independent games, with the intention of producing a demo game in addition to the engine, which would be a bowling simulation.
 
-![final](res_readme/final.png)
+![turkey](res_readme/turkey.gif)
 
 ## Architecture Choice
 
@@ -100,6 +98,8 @@ The interface was made with ImGui. Among the different panels, we find:
 - The panel to create new objects in the engine itself
 - The shadow map
 - The FPS counter
+
+![final](res_readme/final.png)
 
 ## Physics
 
