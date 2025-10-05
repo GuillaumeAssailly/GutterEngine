@@ -1,7 +1,5 @@
 # Gutter Engine: Programmable 3D Game Engine with Realistic Physics and Rendering
 
----
-
 ## Presentation
 
 This project is a homemade 3D game engine written in C++, integrating notably:
